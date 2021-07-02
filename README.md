@@ -6,15 +6,21 @@ Anime Corner releases a ranking of the most popular anime based on episodes that
 
 The aim of this site is to consolidate all of this data into one place where users can navigate through the weekly rankings for each of the [anime seasons](https://www.reddit.com/r/anime/wiki/anime_related_terms), and also learn more about an anime in the ranking if they want to.
 
-The goals for this site are:
+**Site Goals**:
 - To provide members of the Anime Corner community a pleasant experience for viewing the weekly rankings.
 - Make it easier for users to quickly find a past ranking without browsing through a list of blog posts.
 - Provide details about an anime in the ranking for users not familiar with the anime.
 
-The goals for the user are:
+**User Goals**:
 - Discover the top 10 anime's of the week from Anime Corner.
 - Browse through the different weekly rankings from each season.
 - Find additional information for an anime in the ranking.
+
+**Developer Goals**: 
+- Develop a professional(ish) project that showcases my first experience with Javascript.
+- Demonstrate understanding of working with API's, databases and also web scraping.
+- Demonstrate test driven development with Jest.
+
 
 ## UX
 
