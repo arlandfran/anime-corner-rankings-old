@@ -30,6 +30,12 @@ The goals for the user are:
 
 ### Design
 
+#### Wireframes
+
+- [Mobile](assets/img/wireframes/Mobile.png)
+- [Tablet](assets/img/wireframes/Tablet.png)
+- [Desktop](assets/img/wireframes/Desktop.png)
+
 #### Typography
 
 For this project, system font stack was used for the following reasons:
@@ -40,10 +46,25 @@ For this project, system font stack was used for the following reasons:
 
 #### Color
 
-All colors used were lifted from the colors used on the weekly ranking graphic. Minor tweaks were made to the shades to ensure that all colors were compliant with WCAG 2.0 level AA. [WebAim's Contrast Checker](https://webaim.org/resources/contrastchecker/) was used to verify this.
+The color palette consists of colors found on the weekly ranking graphic. [WebAim's Contrast Checker Tool](https://webaim.org/resources/contrastchecker/) was used to check contrast and minor tweaks were made to ensure that all colors were compliant with WCAG 2.0 level AA at the minimum.
 
-#### Wireframes
+## Features
 
-- [Mobile](assets/img/wireframes/Mobile.png)
-- [Tablet](assets/img/wireframes/Tablet.png)
-- [Desktop](assets/img/wireframes/Desktop.png)
+- Responsive Design
+- Pagination
+- Dynamic theming based on filter
+
+## Technologies Used
+
+### Languages
+
+- HTML
+- CSS
+- JavaScript
+
+### Software
+
+- [Figma](https://www.figma.com/) - High-fidelity Wireframing
+- [Visual Studio Code](https://code.visualstudio.com/) - Code Editor
+- [Git](https://git-scm.com/) - Version Control System
+- [Github](https://github.com/) - Code Hosting Platform
