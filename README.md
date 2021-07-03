@@ -26,7 +26,7 @@ The goals for the user are:
 - As a user I want to be able to select and view each anime so that I can find out more information about it.
 - As a user I want to be able to see what anime streaming platform each anime is available on so that I can watch the anime for myself if I am interested.
 - As a user I want to be able to see what was popular last week or further back so that I can track popularity trends or discover new anime.
-- As a user I want to be able to vote for the current week's anime so that I can contribute to the rankings.
+- As a user I want to be able to vote for the current week's top anime so that I can contribute to the rankings.
 
 ### Design
 
@@ -41,7 +41,7 @@ The goals for the user are:
 For this project, system font stack was used for the following reasons:
 
 - Performant - No network requests, faster page loads
-- Unicode coverage - Lessen usage of icons and instead use unicode such as: `⮅` `⮂` `⮇`
+- Unicode coverage - Lessen icon usage for unicode such as: `⮅` `⮂` `⮇`
 - Familiarity - 'Native' web app look
 
 #### Color
@@ -51,7 +51,7 @@ The color palette consists of colors found on the weekly ranking graphic. [WebAi
 ## Features
 
 - Responsive Design
-- Pagination
+- Paginated Data
 - Dynamic theming based on filter
 
 ## Technologies Used
@@ -68,3 +68,7 @@ The color palette consists of colors found on the weekly ranking graphic. [WebAi
 - [Visual Studio Code](https://code.visualstudio.com/) - Code Editor
 - [Git](https://git-scm.com/) - Version Control System
 - [Github](https://github.com/) - Code Hosting Platform
+
+## Testing
+
+Testing is documented in [testing.md](testing.md) file.
