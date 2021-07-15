@@ -60,6 +60,10 @@ The color palette consists of colors found on the weekly ranking graphic. [WebAi
 - Paginated Data
 - Dynamic theming based on filter
 
+## Where does the data come from?
+
+The process of how all the data is pulled can be found in [docs/sourcing-the-data.md](./docs/sourcing-the-data.md).
+
 ## Technologies Used
 
 ### Languages
@@ -77,4 +81,4 @@ The color palette consists of colors found on the weekly ranking graphic. [WebAi
 
 ## Testing
 
-Testing is documented in [testing.md](testing.md) file.
+Testing is documented in [docs/testing.md](./docs/testing.md).
