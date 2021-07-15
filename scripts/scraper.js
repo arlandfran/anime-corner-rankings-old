@@ -1,5 +1,6 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
+const { first } = require("cheerio/lib/api/traversing");
 const admin = require("firebase-admin");
 const serviceAccount = require("../serviceAccountKey.json");
 
@@ -27,6 +28,28 @@ axios
       .children()
       .first()
       .attr("href");
+
+    axios
+      .get(page)
+      .then((res) => {
+        $ = cheerio.load(res.data);
+
+        let data = [];
+
+        // Select tbody element and iterate through each tr element to push each cell to data array
+        $("tbody tr").each((tr_index, tr) => {
+          data[tr_index] = {
+            rank: $(tr).children().first().text(),
+            title: $(tr).children().first().next().text(),
+            votes: $(tr).children().last().text(),
+          };
+        });
+
+        console.log(data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   })
   .catch((err) => {
     console.log(err);
