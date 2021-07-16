@@ -1,5 +1,6 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
+const { data } = require("cheerio/lib/api/attributes");
 const { first } = require("cheerio/lib/api/traversing");
 const admin = require("firebase-admin");
 const serviceAccount = require("../serviceAccountKey.json");
@@ -34,16 +35,24 @@ axios
       .then((res) => {
         $ = cheerio.load(res.data);
 
-        let data = [];
+        let rankings = [];
 
         // Select tbody element and iterate through each tr element to push each cell to data array
         $("tbody tr").each((tr_index, tr) => {
-          data[tr_index] = {
+          rankings[tr_index] = {
             rank: $(tr).children().first().text(),
             title: $(tr).children().first().next().text(),
             votes: $(tr).children().last().text(),
           };
         });
+
+        let data = {};
+        let title = $("h1.text-left").text().split(" "); // Expected format: {season} {year} Top Anime Rankings – Week {period}
+
+        data.year = title[1];
+        data.season = title[0];
+        data.period = "week-" + title.pop();
+        data.rankings = rankings;
 
         console.log(data);
       })
