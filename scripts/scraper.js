@@ -37,29 +37,42 @@ axios
 
         let rankings = [];
 
-        // Select tbody element and iterate through each tr element to push each cell to data array
+        // Select tbody element and iterate through each table row to push each table cell to rankings array
         $("tbody tr").each((tr_index, tr) => {
           rankings[tr_index] = {
-            rank: $(tr).children().first().text(),
+            rank: parseInt($(tr).children().first().text()),
             title: $(tr).children().first().next().text(),
-            votes: $(tr).children().last().text(),
+            votes: parseFloat($(tr).children().last().text()),
           };
         });
 
         let data = {};
-        let title = $("h1.text-left").text().split(" "); // Expected format: {season} {year} Top Anime Rankings – Week {period}
+        // Expected format: {season} {year} Top Anime Rankings – Week {period}
+        let title = $("h1.text-left").text().split(" ");
 
         data.year = title[1];
         data.season = title[0];
-        data.period = "week-" + title.pop();
+        data.period = "Week-" + title.pop();
         data.rankings = rankings;
 
-        console.log(data);
+        const doc = db
+          .collection(data.year)
+          .doc(data.season)
+          .collection(data.period);
+
+        for (rank in data.rankings) {
+          doc.add(data.rankings[rank]).catch((err) => {
+            console.error("Error adding document: ", err);
+          });
+        }
+        console.log(
+          $("h1.text-left").text() + " successfully written to database"
+        );
       })
       .catch((err) => {
-        console.log(err);
+        console.error("Error fetching page: ", err);
       });
   })
   .catch((err) => {
-    console.log(err);
+    console.error("Error fetching page: ", err);
   });
