@@ -43,4 +43,16 @@ into this JSON object:
 }
 ```
 
-This JSON object is then pushed to a Cloud Firestore database that my web app will listen to track when a new ranking is posted and also read data from for my web components to render.
+This JSON object is then pushed to Cloud Firestore:
+
+![Firestore screen snip](../assets/img/snips/firestore-snip.png)_Data is stored in a document-model database comprising of documents and collections._
+
+As Firestore is a document-oriented database, the data is stored like this:
+
+- **Year** (Top Level Collection)
+  - **Season** (Document)
+    - **Period** (Sub-collection)
+      - **Item** (Document)
+        - Field - Value
+        - Field - Value
+        - Field - Value
