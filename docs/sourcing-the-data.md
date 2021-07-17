@@ -4,7 +4,14 @@ Back to [README](../README.md)
 
 ## Web Scraping
 
-The data I need for this project is scraped from [animecorner.me](https://animecorner.me/category/anime-corner/rankings/) and lives in HTML table format. What I've done is written a script that grabs each table cell and slots it into an array with key / value pairs, that lives in a JSON object and is pushed to firestore.
+The data needed for this project is scraped from [animecorner.me](https://animecorner.me/category/anime-corner/rankings/) and from Spring 2021 onwards are stored in table format. Rankings posted pre-Spring 2021 were posted in list format and a different script has been written to accomodate for the change in structure. The scraper requirements were as follows:
+
+1. Navigate to https://animecorner.me/category/anime-corner/rankings/anime-of-the-week/, the central repository for anime of the week blog posts
+2. Grab the URL for the latest ranking
+3. Navigate to that URL
+4. Grab the table containing the rankings
+5. Iterate through the table rows and contstruct a JSON object from cell values
+6. Post that data to the database
 
 Example:
 
@@ -56,3 +63,9 @@ As Firestore is a document-model database comprising of documents and collection
         - Field - Value
         - Field - Value
         - Field - Value
+
+The script requires 3 packages:
+
+- Axios - Promise based HTTP client, used to retrieve our HTML
+- Cheerio - HTML Parser, pull the data we need from the HTML
+- Firebase-admin - Admin SDK for Firebase services, provides server-access to Firestore
