@@ -4,7 +4,7 @@ Back to [README](../README.md)
 
 ## Web Scraping
 
-The data I need for this project is scraped from [animecorner.me](https://animecorner.me/category/anime-corner/rankings/) and lives in HTML table format. What I've done is written a script that grabs each table cell and slots it into an array with key / value pairs, that lives in a JSON object.
+The data I need for this project is scraped from [animecorner.me](https://animecorner.me/category/anime-corner/rankings/) and lives in HTML table format. What I've done is written a script that grabs each table cell and slots it into an array with key / value pairs, that lives in a JSON object and is pushed to firestore.
 
 Example:
 
@@ -43,11 +43,11 @@ into this JSON object:
 }
 ```
 
-This JSON object is then pushed to Cloud Firestore:
+then push to Firestore:
 
-![Firestore screen snip](../assets/img/snips/firestore-snip.png)_Data is stored in a document-model database comprising of documents and collections._
+![Firestore screen snip](../assets/img/snips/firestore-snip.png)
 
-As Firestore is a document-oriented database, the data is stored like this:
+As Firestore is a document-model database comprising of documents and collections, the data is stored like this:
 
 - **Year** (Top Level Collection)
   - **Season** (Document)
