@@ -1,105 +1,84 @@
-*Looking for a shareable component template? Go here --> [sveltejs/component-template](https://github.com/sveltejs/component-template)*
+# Anime Corner Rankings
 
----
+(Insert Deployed Site Link Here)
 
-# svelte app
+Anime Corner releases a ranking of the most popular anime based on episodes that air during the week, and all of this data is collated and then presented in a graphic that is distributed on all their social media feeds. Each week can be found on their own posts [here](https://animecorner.me/category/anime-corner/rankings/anime-of-the-week/).
 
-This is a project template for [Svelte](https://svelte.dev) apps. It lives at https://github.com/sveltejs/template.
+The aim of this site is to consolidate all of this data into one place where users can navigate through the weekly rankings for each of the [anime seasons](https://www.reddit.com/r/anime/wiki/anime_related_terms), and also learn more about an anime in the ranking if they want to.
 
-To create a new project based on this template using [degit](https://github.com/Rich-Harris/degit):
+**Site Goals**:
 
-```bash
-npx degit sveltejs/template svelte-app
-cd svelte-app
-```
+- To provide members of the Anime Corner community a pleasant experience for viewing the weekly rankings.
+- Make it easier for users to quickly find a past ranking without browsing through a list of blog posts.
+- Provide details about an anime in the ranking for users not familiar with the anime.
 
-*Note that you will need to have [Node.js](https://nodejs.org) installed.*
+**User Goals**:
 
+- Discover the top 10 anime's of the week from Anime Corner.
+- Browse through the different weekly rankings from each season.
+- Find additional information for an anime in the ranking.
 
-## Get started
+**Developer Goals**:
 
-Install the dependencies...
+- Develop a professional(ish) project that showcases my first experience with Javascript.
+- Demonstrate understanding of working with API's, databases and also web scraping.
+- Demonstrate test driven development with Jest.
 
-```bash
-cd svelte-app
-npm install
-```
+## UX
 
-...then start [Rollup](https://rollupjs.org):
+### User Stories
 
-```bash
-npm run dev
-```
+- As a user I want to be able to see a weekly anime ranking so I can see what is currently popular.
+- As a user I want to be able to select and view each anime so that I can find out more information about it.
+- As a user I want to be able to see what anime streaming platform each anime is available on so that I can watch the anime for myself if I am interested.
+- As a user I want to be able to see what was popular last week or further back so that I can track popularity trends or discover new anime.
+- As a user I want to be able to vote for the current week's top anime so that I can contribute to the rankings.
 
-Navigate to [localhost:5000](http://localhost:5000). You should see your app running. Edit a component file in `src`, save it, and reload the page to see your changes.
+### Design
 
-By default, the server will only respond to requests from localhost. To allow connections from other computers, edit the `sirv` commands in package.json to include the option `--host 0.0.0.0`.
+#### Wireframes
 
-If you're using [Visual Studio Code](https://code.visualstudio.com/) we recommend installing the official extension [Svelte for VS Code](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode). If you are using other editors you may need to install a plugin in order to get syntax highlighting and intellisense.
+- [Mobile](assets/img/wireframes/Mobile.png)
+- [Tablet](assets/img/wireframes/Tablet.png)
+- [Desktop](assets/img/wireframes/Desktop.png)
 
-## Building and running in production mode
+#### Typography
 
-To create an optimised version of the app:
+For this project, system font stack was used for the following reasons:
 
-```bash
-npm run build
-```
+- Performant - No network requests, faster page loads
+- Unicode coverage - Lessen icon usage for unicode such as: `⮅` `⮂` `⮇`
+- Familiarity - 'Native' web app look
 
-You can run the newly built app with `npm run start`. This uses [sirv](https://github.com/lukeed/sirv), which is included in your package.json's `dependencies` so that the app will work when you deploy to platforms like [Heroku](https://heroku.com).
+#### Color
 
+The color palette consists of colors found on the weekly ranking graphic. [WebAim's Contrast Checker Tool](https://webaim.org/resources/contrastchecker/) was used to check contrast and minor tweaks were made to ensure that all colors were compliant with WCAG 2.0 level AA at the minimum.
 
-## Single-page app mode
+## Features
 
-By default, sirv will only respond to requests that match files in `public`. This is to maximise compatibility with static fileservers, allowing you to deploy your app anywhere.
+- Responsive Design
+- Paginated Data
+- Dynamic theming based on filter
 
-If you're building a single-page app (SPA) with multiple routes, sirv needs to be able to respond to requests for *any* path. You can make it so by editing the `"start"` command in package.json:
+## Where does the data come from?
 
-```js
-"start": "sirv public --single"
-```
+The process of how all the data is pulled can be found in [docs/sourcing-the-data.md](./docs/sourcing-the-data.md).
 
-## Using TypeScript
+## Technologies Used
 
-This template comes with a script to set up a TypeScript development environment, you can run it immediately after cloning the template with:
+### Languages
 
-```bash
-node scripts/setupTypeScript.js
-```
+- HTML
+- CSS
+- JavaScript
 
-Or remove the script via:
+### Software
 
-```bash
-rm scripts/setupTypeScript.js
-```
+- [Figma](https://www.figma.com/) - High-fidelity Wireframing
+- [Visual Studio Code](https://code.visualstudio.com/) - Code Editor
+- [Git](https://git-scm.com/) - Version Control System
+- [Github](https://github.com/) - Code Hosting Platform
 
-## Deploying to the web
+## Testing
 
-### With [Vercel](https://vercel.com)
-
-Install `vercel` if you haven't already:
-
-```bash
-npm install -g vercel
-```
-
-Then, from within your project folder:
-
-```bash
-cd public
-vercel deploy --name my-project
-```
-
-### With [surge](https://surge.sh/)
-
-Install `surge` if you haven't already:
-
-```bash
-npm install -g surge
-```
-
-Then, from within your project folder:
-
-```bash
-npm run build
-surge public my-project.surge.sh
-```
+Testing is documented in [docs/testing.md](./docs/testing.md).
