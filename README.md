@@ -145,7 +145,31 @@ ghpages.publish(
 7. Build and deploy the application in terminal.
 
 ```
-npm run build
+npm run build // Generate an optimized version of project
 
-npm run deploy
+npm run deploy // Publish only the contents of the /public directory to the remote gh-pages branch
 ```
+
+This process should automatically set the gh-pages branch to be the deployment branch for Github Pages.
+
+## How to run this project locally
+
+To run this project locally on your machine, you will need a [Github account](https://github.com/join) to clone the project repository. Once you have made an account follow these steps:
+
+1. Clone the repository using the HTTPS URL found on the main page.
+
+![Get HTTPS URL snip](./assets/img/snips/https-url-snip.png)
+
+```
+git clone https://github.com/USERNAME/REPOSITORY
+```
+
+2. After cloning the repository, navigate to the project directory in terminal and install its dependencies.
+
+```
+cd path/to/project/directory
+
+npm i
+```
+
+3. Once the dependencies are installed, you can run `npm run dev` which will start a server on [http://localhost:5000](http://localhost:5000/). This will also watch for any project changes and update the website automatically.
