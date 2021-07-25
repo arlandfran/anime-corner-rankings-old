@@ -166,6 +166,10 @@ var app = (function () {
     function space() {
         return text(' ');
     }
+    function listen(node, event, handler, options) {
+        node.addEventListener(event, handler, options);
+        return () => node.removeEventListener(event, handler, options);
+    }
     function attr(node, attribute, value) {
         if (value == null)
             node.removeAttribute(attribute);
@@ -480,6 +484,19 @@ var app = (function () {
     function detach_dev(node) {
         dispatch_dev('SvelteDOMRemove', { node });
         detach(node);
+    }
+    function listen_dev(node, event, handler, options, has_prevent_default, has_stop_propagation) {
+        const modifiers = options === true ? ['capture'] : options ? Array.from(Object.keys(options)) : [];
+        if (has_prevent_default)
+            modifiers.push('preventDefault');
+        if (has_stop_propagation)
+            modifiers.push('stopPropagation');
+        dispatch_dev('SvelteDOMAddEventListener', { node, event, handler, modifiers });
+        const dispose = listen(node, event, handler, options);
+        return () => {
+            dispatch_dev('SvelteDOMRemoveEventListener', { node, event, handler, modifiers });
+            dispose();
+        };
     }
     function attr_dev(node, attribute, value) {
         attr(node, attribute, value);
@@ -22386,15 +22403,15 @@ var app = (function () {
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[5] = list[i];
+    	child_ctx[7] = list[i];
     	return child_ctx;
     }
 
-    // (56:2) {#each items as item}
+    // (98:2) {#each items as item}
     function create_each_block(ctx) {
     	let item;
     	let current;
-    	const item_spread_levels = [/*item*/ ctx[5]];
+    	const item_spread_levels = [/*item*/ ctx[7]];
     	let item_props = {};
 
     	for (let i = 0; i < item_spread_levels.length; i += 1) {
@@ -22413,7 +22430,7 @@ var app = (function () {
     		},
     		p: function update(ctx, dirty) {
     			const item_changes = (dirty & /*items*/ 1)
-    			? get_spread_update(item_spread_levels, [get_spread_object(/*item*/ ctx[5])])
+    			? get_spread_update(item_spread_levels, [get_spread_object(/*item*/ ctx[7])])
     			: {};
 
     			item.$set(item_changes);
@@ -22436,7 +22453,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(56:2) {#each items as item}",
+    		source: "(98:2) {#each items as item}",
     		ctx
     	});
 
@@ -22445,7 +22462,11 @@ var app = (function () {
 
     function create_fragment$1(ctx) {
     	let div;
+    	let t0;
+    	let button;
     	let current;
+    	let mounted;
+    	let dispose;
     	let each_value = /*items*/ ctx[0];
     	validate_each_argument(each_value);
     	let each_blocks = [];
@@ -22466,7 +22487,12 @@ var app = (function () {
     				each_blocks[i].c();
     			}
 
-    			add_location(div, file$1, 54, 0, 1500);
+    			t0 = space();
+    			button = element("button");
+    			button.textContent = "Show more rankings";
+    			add_location(div, file$1, 96, 0, 2667);
+    			attr_dev(button, "id", "showMore");
+    			add_location(button, file$1, 102, 0, 2738);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -22478,7 +22504,14 @@ var app = (function () {
     				each_blocks[i].m(div, null);
     			}
 
+    			insert_dev(target, t0, anchor);
+    			insert_dev(target, button, anchor);
     			current = true;
+
+    			if (!mounted) {
+    				dispose = listen_dev(button, "click", /*fetchNextData*/ ctx[1], false, false, false);
+    				mounted = true;
+    			}
     		},
     		p: function update(ctx, [dirty]) {
     			if (dirty & /*items*/ 1) {
@@ -22530,6 +22563,10 @@ var app = (function () {
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(div);
     			destroy_each(each_blocks, detaching);
+    			if (detaching) detach_dev(t0);
+    			if (detaching) detach_dev(button);
+    			mounted = false;
+    			dispose();
     		}
     	};
 
@@ -22549,7 +22586,8 @@ var app = (function () {
     	validate_slots("Leaderboard", slots, []);
     	let year = "2021";
     	let season = "Summer";
-    	let period = "Week-02";
+    	let period = "Week-03";
+    	let query = db.collection(year).doc(season).collection(period).orderBy("rank", "asc").limit(10);
     	let items = [];
 
     	onMount(async () => {
@@ -22558,10 +22596,10 @@ var app = (function () {
 
     	const fetchData = async () => {
     		// Set cache lifetime in seconds
-    		var cacheLife = 86400; // 24 hours
+    		let cacheLife = 86400; // 24 hours
 
     		// Get cached data from local storage
-    		var cachedData = localStorage.getItem("items");
+    		let cachedData = localStorage.getItem("items");
 
     		// If cached data exists then parse the data and check if data is expired
     		if (cachedData) {
@@ -22575,11 +22613,11 @@ var app = (function () {
     			return cachedData.data;
     		} else {
     			// Otherwise fetch data
-    			var data = await db.collection(year).doc(season).collection(period).orderBy("rank", "asc").limit(10).get().// Converts firestore collection into array of documents
-    			then(snapshot => snapshot.docs.map(doc => doc.data()));
+    			let data = await query.get().// Converts firestore collection into array of documents
+    			then(snapshots => snapshots.docs.map(doc => doc.data()));
 
     			// Save data in local storage
-    			var cacheData = {
+    			let cacheData = {
     				data,
     				cachetime: parseInt(Date.now() / 1000)
     			};
@@ -22588,6 +22626,41 @@ var app = (function () {
     			console.log("Data fetched.");
     			return data;
     		}
+    	};
+
+    	const fetchNextData = async () => {
+    		let item = [];
+
+    		await query.get().then(snapshots => {
+    			// Get the last visible document
+    			let lastVisible = snapshots.docs[snapshots.docs.length - 1];
+
+    			query = db.collection(year).doc(season).collection(period).orderBy("rank", "asc").startAfter(lastVisible).limit(10);
+
+    			query.get().then(snapshots => {
+    				// Converts newly fetched collection into array of documents
+    				let data = snapshots.docs.map(doc => doc.data());
+
+    				// Update items array with new documents
+    				for (let i = 0; i < data.length; i++) {
+    					item = {
+    						rank: data[i].rank,
+    						title: data[i].title,
+    						votes: data[i].votes
+    					};
+
+    					$$invalidate(0, items = [...items, item]);
+    				}
+
+    				// Disable show more button if there is no more data to be fetched
+    				if (snapshots.size < 10) {
+    					document.getElementById("showMore").disabled = true;
+    					console.log("No more data to be fetched");
+    				} else {
+    					console.log("Next batch of data fetched");
+    				}
+    			});
+    		});
     	};
 
     	const writable_props = [];
@@ -22603,14 +22676,17 @@ var app = (function () {
     		year,
     		season,
     		period,
+    		query,
     		items,
-    		fetchData
+    		fetchData,
+    		fetchNextData
     	});
 
     	$$self.$inject_state = $$props => {
     		if ("year" in $$props) year = $$props.year;
     		if ("season" in $$props) season = $$props.season;
     		if ("period" in $$props) period = $$props.period;
+    		if ("query" in $$props) query = $$props.query;
     		if ("items" in $$props) $$invalidate(0, items = $$props.items);
     	};
 
@@ -22618,7 +22694,7 @@ var app = (function () {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [items];
+    	return [items, fetchNextData];
     }
 
     class Leaderboard extends SvelteComponentDev {
