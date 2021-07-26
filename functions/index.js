@@ -7,8 +7,8 @@ const db = admin.firestore();
 
 exports.fetchSubCollections = functions.https.onCall(async (data, context) => {
   const subCollectionsArray = await db
-      .collection("2021")
-      .doc("Spring")
+      .collection(data.year)
+      .doc(data.season)
       .listCollections();
   const subCollections = subCollectionsArray.map((col) => col.id);
   return subCollections;
