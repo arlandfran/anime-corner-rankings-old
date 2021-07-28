@@ -1,16 +1,13 @@
 <script>
   import { onMount } from "svelte";
-  import { db } from "./firebase";
+  import { db, cf } from "./firebase";
   import Item from "./Item.svelte";
-
-  let year = "2021";
-  let season = "Summer";
-  let period = "Week-03";
+  import { year, season, week } from "./stores";
 
   let query = db
-    .collection(year)
-    .doc(season)
-    .collection(period)
+    .collection($year)
+    .doc($season)
+    .collection($week)
     .orderBy("rank", "asc")
     .limit(10);
 
@@ -61,9 +58,9 @@
       let lastVisible = snapshots.docs[snapshots.docs.length - 1];
 
       query = db
-        .collection(year)
-        .doc(season)
-        .collection(period)
+        .collection($year)
+        .doc($season)
+        .collection($week)
         .orderBy("rank", "asc")
         .startAfter(lastVisible)
         .limit(10);
@@ -92,12 +89,72 @@
       });
     });
   };
+
+  let weeks = [];
+
+  const fetchWeeks = async () => {
+    const fetchSubCollections = cf.httpsCallable("fetchSubCollections");
+    await fetchSubCollections({ year: $year, season: $season }).then(
+      (result) => {
+        weeks = result.data;
+      }
+    );
+    console.log(weeks);
+    return weeks;
+  };
+
+  const updateItems = async () => {
+    let item = [];
+    items.length = 0; // Clear items array
+
+    // Fetch a new query with updated parameters
+    query = db
+      .collection($year)
+      .doc($season)
+      .collection($week)
+      .orderBy("rank", "asc")
+      .limit(10);
+
+    let data = await query
+      .get()
+      .then((snapshots) => snapshots.docs.map((doc) => doc.data()));
+
+    for (let i = 0; i < data.length; i++) {
+      item = {
+        rank: data[i].rank,
+        title: data[i].title,
+        votes: data[i].votes,
+      };
+      items = [...items, item];
+    }
+    console.log("Items array updated");
+    // Re-enable button in the case that the user has fetched the entire subcollection and button was disabled
+    document.getElementById("showMore").disabled = false;
+  };
 </script>
 
+{#await fetchWeeks()}
+  <select>
+    <option value="">Loading...</option>
+  </select>
+{:then weeks}
+  <select bind:value={$week} on:change={updateItems}>
+    {#each weeks as week}
+      <option value={week}>{week}</option>
+    {/each}
+  </select>
+{/await}
+
+<p>The current week is {$week}</p>
+
 <div>
-  {#each items as item}
-    <Item {...item} />
-  {/each}
+  {#if items.length == 0}
+    <p>Loading...</p>
+  {:else}
+    {#each items as item}
+      <Item {...item} />
+    {/each}
+  {/if}
 </div>
 
 <button on:click={fetchNextData} id="showMore">Show more rankings</button>
