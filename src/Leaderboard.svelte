@@ -12,8 +12,12 @@
     .limit(10);
 
   let items = [];
+  let seasons = [];
+  let weeks = [];
 
   onMount(async () => {
+    seasons = await fetchSeasons();
+    weeks = await fetchWeeks();
     items = await fetchData();
   });
 
@@ -90,9 +94,20 @@
     });
   };
 
-  let weeks = [];
+  const fetchSeasons = async () => {
+    query = db.collection($year);
+
+    await query.get().then((snapshot) => {
+      snapshot.forEach((doc) => {
+        seasons = [...seasons, doc.id];
+      });
+    });
+    console.log(seasons);
+    return seasons;
+  };
 
   const fetchWeeks = async () => {
+    weeks.length = 0;
     const fetchSubCollections = cf.httpsCallable("fetchSubCollections");
     await fetchSubCollections({ year: $year, season: $season }).then(
       (result) => {
@@ -101,6 +116,13 @@
     );
     console.log(weeks);
     return weeks;
+  };
+
+  const updateSeason = async () => {
+    $week = "Week-01"; // When changing the season param, reset the week param to the start
+
+    await updateItems();
+    await fetchWeeks();
   };
 
   const updateItems = async () => {
@@ -133,19 +155,31 @@
   };
 </script>
 
-{#await fetchWeeks()}
+{#if seasons == 0}
   <select>
     <option value="">Loading...</option>
   </select>
-{:then weeks}
-  <select bind:value={$week} on:change={updateItems}>
-    {#each weeks as week}
-      <option value={week}>{week}</option>
+{:else}
+  <select bind:value={$season} on:change={updateSeason}>
+    {#each seasons as season}
+      <option value={season}>{season}</option>
     {/each}
   </select>
-{/await}
+{/if}
 
-<p>The current week is {$week}</p>
+{#if weeks.length == 0}
+  <select>
+    <option value="">Loading...</option>
+  </select>
+{:else}
+  <select bind:value={$week} on:change={updateItems}>
+    {#each weeks as week}
+      <option value={week}>{week.replace("-", " ")}</option>
+    {/each}
+  </select>
+{/if}
+
+<p>The current params are {$season} {$week}</p>
 
 <div>
   {#if items.length == 0}

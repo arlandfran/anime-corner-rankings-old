@@ -10,9 +10,6 @@ var app = (function () {
             tar[k] = src[k];
         return tar;
     }
-    function is_promise(value) {
-        return value && typeof value === 'object' && typeof value.then === 'function';
-    }
     function add_location(element, file, line, column, char) {
         element.__svelte_meta = {
             loc: { file, line, column, char }
@@ -50,6 +47,10 @@ var app = (function () {
     }
     function component_subscribe(component, store, callback) {
         component.$$.on_destroy.push(subscribe(store, callback));
+    }
+    function set_store_value(store, ret, value) {
+        store.set(value);
+        return ret;
     }
     function append(target, node) {
         target.appendChild(node);
@@ -222,88 +223,6 @@ var app = (function () {
             });
             block.o(local);
         }
-    }
-
-    function handle_promise(promise, info) {
-        const token = info.token = {};
-        function update(type, index, key, value) {
-            if (info.token !== token)
-                return;
-            info.resolved = value;
-            let child_ctx = info.ctx;
-            if (key !== undefined) {
-                child_ctx = child_ctx.slice();
-                child_ctx[key] = value;
-            }
-            const block = type && (info.current = type)(child_ctx);
-            let needs_flush = false;
-            if (info.block) {
-                if (info.blocks) {
-                    info.blocks.forEach((block, i) => {
-                        if (i !== index && block) {
-                            group_outros();
-                            transition_out(block, 1, 1, () => {
-                                if (info.blocks[i] === block) {
-                                    info.blocks[i] = null;
-                                }
-                            });
-                            check_outros();
-                        }
-                    });
-                }
-                else {
-                    info.block.d(1);
-                }
-                block.c();
-                transition_in(block, 1);
-                block.m(info.mount(), info.anchor);
-                needs_flush = true;
-            }
-            info.block = block;
-            if (info.blocks)
-                info.blocks[index] = block;
-            if (needs_flush) {
-                flush();
-            }
-        }
-        if (is_promise(promise)) {
-            const current_component = get_current_component();
-            promise.then(value => {
-                set_current_component(current_component);
-                update(info.then, 1, info.value, value);
-                set_current_component(null);
-            }, error => {
-                set_current_component(current_component);
-                update(info.catch, 2, info.error, error);
-                set_current_component(null);
-                if (!info.hasCatch) {
-                    throw error;
-                }
-            });
-            // if we previously had a then/catch block, destroy it
-            if (info.current !== info.pending) {
-                update(info.pending, 0);
-                return true;
-            }
-        }
-        else {
-            if (info.current !== info.then) {
-                update(info.then, 1, info.value, promise);
-                return true;
-            }
-            info.resolved = promise;
-        }
-    }
-    function update_await_block_branch(info, ctx, dirty) {
-        const child_ctx = ctx.slice();
-        const { resolved } = info;
-        if (info.current === info.then) {
-            child_ctx[info.value] = resolved;
-        }
-        if (info.current === info.catch) {
-            child_ctx[info.error] = resolved;
-        }
-        info.block.p(child_ctx, dirty);
     }
 
     const globals = (typeof window !== 'undefined'
@@ -511,6 +430,10 @@ var app = (function () {
             dispatch_dev('SvelteDOMRemoveAttribute', { node, attribute });
         else
             dispatch_dev('SvelteDOMSetAttribute', { node, attribute, value });
+    }
+    function prop_dev(node, property, value) {
+        node[property] = value;
+        dispatch_dev('SvelteDOMSetProperty', { node, property, value });
     }
     function set_data_dev(text, data) {
         data = '' + data;
@@ -23188,33 +23111,193 @@ var app = (function () {
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[11] = list[i];
+    	child_ctx[15] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_1(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[14] = list[i];
+    	child_ctx[18] = list[i];
     	return child_ctx;
     }
 
-    // (1:0) <script>    import { onMount }
-    function create_catch_block(ctx) {
-    	const block = { c: noop$1, m: noop$1, p: noop$1, d: noop$1 };
+    function get_each_context_2(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[21] = list[i];
+    	return child_ctx;
+    }
+
+    // (162:0) {:else}
+    function create_else_block_2(ctx) {
+    	let select;
+    	let mounted;
+    	let dispose;
+    	let each_value_2 = /*seasons*/ ctx[1];
+    	validate_each_argument(each_value_2);
+    	let each_blocks = [];
+
+    	for (let i = 0; i < each_value_2.length; i += 1) {
+    		each_blocks[i] = create_each_block_2(get_each_context_2(ctx, each_value_2, i));
+    	}
+
+    	const block = {
+    		c: function create() {
+    			select = element("select");
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			if (/*$season*/ ctx[4] === void 0) add_render_callback(() => /*select_change_handler*/ ctx[8].call(select));
+    			add_location(select, file$1, 162, 2, 4498);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, select, anchor);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].m(select, null);
+    			}
+
+    			select_option(select, /*$season*/ ctx[4]);
+
+    			if (!mounted) {
+    				dispose = [
+    					listen_dev(select, "change", /*select_change_handler*/ ctx[8]),
+    					listen_dev(select, "change", /*updateSeason*/ ctx[6], false, false, false)
+    				];
+
+    				mounted = true;
+    			}
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*seasons*/ 2) {
+    				each_value_2 = /*seasons*/ ctx[1];
+    				validate_each_argument(each_value_2);
+    				let i;
+
+    				for (i = 0; i < each_value_2.length; i += 1) {
+    					const child_ctx = get_each_context_2(ctx, each_value_2, i);
+
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(child_ctx, dirty);
+    					} else {
+    						each_blocks[i] = create_each_block_2(child_ctx);
+    						each_blocks[i].c();
+    						each_blocks[i].m(select, null);
+    					}
+    				}
+
+    				for (; i < each_blocks.length; i += 1) {
+    					each_blocks[i].d(1);
+    				}
+
+    				each_blocks.length = each_value_2.length;
+    			}
+
+    			if (dirty & /*$season, seasons*/ 18) {
+    				select_option(select, /*$season*/ ctx[4]);
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(select);
+    			destroy_each(each_blocks, detaching);
+    			mounted = false;
+    			run_all(dispose);
+    		}
+    	};
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_catch_block.name,
-    		type: "catch",
-    		source: "(1:0) <script>    import { onMount }",
+    		id: create_else_block_2.name,
+    		type: "else",
+    		source: "(162:0) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (140:0) {:then weeks}
-    function create_then_block(ctx) {
+    // (158:0) {#if seasons == 0}
+    function create_if_block_2(ctx) {
+    	let select;
+    	let option;
+
+    	const block = {
+    		c: function create() {
+    			select = element("select");
+    			option = element("option");
+    			option.textContent = "Loading...";
+    			option.__value = "";
+    			option.value = option.__value;
+    			add_location(option, file$1, 159, 4, 4436);
+    			add_location(select, file$1, 158, 2, 4422);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, select, anchor);
+    			append_dev(select, option);
+    		},
+    		p: noop$1,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(select);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block_2.name,
+    		type: "if",
+    		source: "(158:0) {#if seasons == 0}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (164:4) {#each seasons as season}
+    function create_each_block_2(ctx) {
+    	let option;
+    	let t_value = /*season*/ ctx[21] + "";
+    	let t;
+    	let option_value_value;
+
+    	const block = {
+    		c: function create() {
+    			option = element("option");
+    			t = text(t_value);
+    			option.__value = option_value_value = /*season*/ ctx[21];
+    			option.value = option.__value;
+    			add_location(option, file$1, 164, 6, 4591);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, option, anchor);
+    			append_dev(option, t);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*seasons*/ 2 && t_value !== (t_value = /*season*/ ctx[21] + "")) set_data_dev(t, t_value);
+
+    			if (dirty & /*seasons*/ 2 && option_value_value !== (option_value_value = /*season*/ ctx[21])) {
+    				prop_dev(option, "__value", option_value_value);
+    				option.value = option.__value;
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(option);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_each_block_2.name,
+    		type: "each",
+    		source: "(164:4) {#each seasons as season}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (174:0) {:else}
+    function create_else_block_1(ctx) {
     	let select;
     	let mounted;
     	let dispose;
@@ -23234,8 +23317,8 @@ var app = (function () {
     				each_blocks[i].c();
     			}
 
-    			if (/*$week*/ ctx[1] === void 0) add_render_callback(() => /*select_change_handler*/ ctx[6].call(select));
-    			add_location(select, file$1, 140, 2, 4001);
+    			if (/*$week*/ ctx[3] === void 0) add_render_callback(() => /*select_change_handler_1*/ ctx[9].call(select));
+    			add_location(select, file$1, 174, 2, 4771);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -23244,19 +23327,19 @@ var app = (function () {
     				each_blocks[i].m(select, null);
     			}
 
-    			select_option(select, /*$week*/ ctx[1]);
+    			select_option(select, /*$week*/ ctx[3]);
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(select, "change", /*select_change_handler*/ ctx[6]),
-    					listen_dev(select, "change", /*updateItems*/ ctx[5], false, false, false)
+    					listen_dev(select, "change", /*select_change_handler_1*/ ctx[9]),
+    					listen_dev(select, "change", /*updateItems*/ ctx[7], false, false, false)
     				];
 
     				mounted = true;
     			}
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*fetchWeeks*/ 16) {
+    			if (dirty & /*weeks*/ 4) {
     				each_value_1 = /*weeks*/ ctx[2];
     				validate_each_argument(each_value_1);
     				let i;
@@ -23280,8 +23363,8 @@ var app = (function () {
     				each_blocks.length = each_value_1.length;
     			}
 
-    			if (dirty & /*$week, fetchWeeks*/ 18) {
-    				select_option(select, /*$week*/ ctx[1]);
+    			if (dirty & /*$week, weeks*/ 12) {
+    				select_option(select, /*$week*/ ctx[3]);
     			}
     		},
     		d: function destroy(detaching) {
@@ -23294,52 +23377,17 @@ var app = (function () {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_then_block.name,
-    		type: "then",
-    		source: "(140:0) {:then weeks}",
+    		id: create_else_block_1.name,
+    		type: "else",
+    		source: "(174:0) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (142:4) {#each weeks as week}
-    function create_each_block_1(ctx) {
-    	let option;
-    	let t_value = /*week*/ ctx[14] + "";
-    	let t;
-
-    	const block = {
-    		c: function create() {
-    			option = element("option");
-    			t = text(t_value);
-    			option.__value = /*week*/ ctx[14];
-    			option.value = option.__value;
-    			add_location(option, file$1, 142, 6, 4087);
-    		},
-    		m: function mount(target, anchor) {
-    			insert_dev(target, option, anchor);
-    			append_dev(option, t);
-    		},
-    		p: noop$1,
-    		d: function destroy(detaching) {
-    			if (detaching) detach_dev(option);
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_each_block_1.name,
-    		type: "each",
-    		source: "(142:4) {#each weeks as week}",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    // (136:21)     <select>      <option value="">Loading...</option>    </select>  {:then weeks}
-    function create_pending_block(ctx) {
+    // (170:0) {#if weeks.length == 0}
+    function create_if_block_1(ctx) {
     	let select;
     	let option;
 
@@ -23350,8 +23398,8 @@ var app = (function () {
     			option.textContent = "Loading...";
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file$1, 137, 4, 3933);
-    			add_location(select, file$1, 136, 2, 3919);
+    			add_location(option, file$1, 171, 4, 4709);
+    			add_location(select, file$1, 170, 2, 4695);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -23365,16 +23413,59 @@ var app = (function () {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_pending_block.name,
-    		type: "pending",
-    		source: "(136:21)     <select>      <option value=\\\"\\\">Loading...</option>    </select>  {:then weeks}",
+    		id: create_if_block_1.name,
+    		type: "if",
+    		source: "(170:0) {#if weeks.length == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (153:2) {:else}
+    // (176:4) {#each weeks as week}
+    function create_each_block_1(ctx) {
+    	let option;
+    	let t_value = /*week*/ ctx[18].replace("-", " ") + "";
+    	let t;
+    	let option_value_value;
+
+    	const block = {
+    		c: function create() {
+    			option = element("option");
+    			t = text(t_value);
+    			option.__value = option_value_value = /*week*/ ctx[18];
+    			option.value = option.__value;
+    			add_location(option, file$1, 176, 6, 4857);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, option, anchor);
+    			append_dev(option, t);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*weeks*/ 4 && t_value !== (t_value = /*week*/ ctx[18].replace("-", " ") + "")) set_data_dev(t, t_value);
+
+    			if (dirty & /*weeks*/ 4 && option_value_value !== (option_value_value = /*week*/ ctx[18])) {
+    				prop_dev(option, "__value", option_value_value);
+    				option.value = option.__value;
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(option);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_each_block_1.name,
+    		type: "each",
+    		source: "(176:4) {#each weeks as week}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (187:2) {:else}
     function create_else_block(ctx) {
     	let each_1_anchor;
     	let current;
@@ -23463,14 +23554,14 @@ var app = (function () {
     		block,
     		id: create_else_block.name,
     		type: "else",
-    		source: "(153:2) {:else}",
+    		source: "(187:2) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (151:2) {#if items.length == 0}
+    // (185:2) {#if items.length == 0}
     function create_if_block(ctx) {
     	let p;
 
@@ -23478,7 +23569,7 @@ var app = (function () {
     		c: function create() {
     			p = element("p");
     			p.textContent = "Loading...";
-    			add_location(p, file$1, 151, 4, 4239);
+    			add_location(p, file$1, 185, 4, 5037);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, p, anchor);
@@ -23495,18 +23586,18 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(151:2) {#if items.length == 0}",
+    		source: "(185:2) {#if items.length == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (154:4) {#each items as item}
+    // (188:4) {#each items as item}
     function create_each_block(ctx) {
     	let item;
     	let current;
-    	const item_spread_levels = [/*item*/ ctx[11]];
+    	const item_spread_levels = [/*item*/ ctx[15]];
     	let item_props = {};
 
     	for (let i = 0; i < item_spread_levels.length; i += 1) {
@@ -23525,7 +23616,7 @@ var app = (function () {
     		},
     		p: function update(ctx, dirty) {
     			const item_changes = (dirty & /*items*/ 1)
-    			? get_spread_update(item_spread_levels, [get_spread_object(/*item*/ ctx[11])])
+    			? get_spread_update(item_spread_levels, [get_spread_object(/*item*/ ctx[15])])
     			: {};
 
     			item.$set(item_changes);
@@ -23548,7 +23639,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(154:4) {#each items as item}",
+    		source: "(188:4) {#each items as item}",
     		ctx
     	});
 
@@ -23557,89 +23648,124 @@ var app = (function () {
 
     function create_fragment$1(ctx) {
     	let t0;
-    	let p;
     	let t1;
+    	let p;
     	let t2;
     	let t3;
+    	let t4;
+    	let t5;
+    	let t6;
     	let div;
     	let current_block_type_index;
-    	let if_block;
-    	let t4;
+    	let if_block2;
+    	let t7;
     	let button;
     	let current;
     	let mounted;
     	let dispose;
 
-    	let info = {
-    		ctx,
-    		current: null,
-    		token: null,
-    		hasCatch: false,
-    		pending: create_pending_block,
-    		then: create_then_block,
-    		catch: create_catch_block,
-    		value: 2
-    	};
+    	function select_block_type(ctx, dirty) {
+    		if (/*seasons*/ ctx[1] == 0) return create_if_block_2;
+    		return create_else_block_2;
+    	}
 
-    	handle_promise(/*fetchWeeks*/ ctx[4](), info);
+    	let current_block_type = select_block_type(ctx);
+    	let if_block0 = current_block_type(ctx);
+
+    	function select_block_type_1(ctx, dirty) {
+    		if (/*weeks*/ ctx[2].length == 0) return create_if_block_1;
+    		return create_else_block_1;
+    	}
+
+    	let current_block_type_1 = select_block_type_1(ctx);
+    	let if_block1 = current_block_type_1(ctx);
     	const if_block_creators = [create_if_block, create_else_block];
     	const if_blocks = [];
 
-    	function select_block_type(ctx, dirty) {
+    	function select_block_type_2(ctx, dirty) {
     		if (/*items*/ ctx[0].length == 0) return 0;
     		return 1;
     	}
 
-    	current_block_type_index = select_block_type(ctx);
-    	if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
+    	current_block_type_index = select_block_type_2(ctx);
+    	if_block2 = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
 
     	const block = {
     		c: function create() {
-    			info.block.c();
+    			if_block0.c();
     			t0 = space();
+    			if_block1.c();
+    			t1 = space();
     			p = element("p");
-    			t1 = text("The current week is ");
-    			t2 = text(/*$week*/ ctx[1]);
-    			t3 = space();
-    			div = element("div");
-    			if_block.c();
+    			t2 = text("The current params are ");
+    			t3 = text(/*$season*/ ctx[4]);
     			t4 = space();
+    			t5 = text(/*$week*/ ctx[3]);
+    			t6 = space();
+    			div = element("div");
+    			if_block2.c();
+    			t7 = space();
     			button = element("button");
     			button.textContent = "Show more rankings";
-    			add_location(p, file$1, 147, 0, 4163);
-    			add_location(div, file$1, 149, 0, 4201);
+    			add_location(p, file$1, 181, 0, 4948);
+    			add_location(div, file$1, 183, 0, 4999);
     			attr_dev(button, "id", "showMore");
-    			add_location(button, file$1, 159, 0, 4354);
+    			add_location(button, file$1, 193, 0, 5152);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
-    			info.block.m(target, info.anchor = anchor);
-    			info.mount = () => t0.parentNode;
-    			info.anchor = t0;
+    			if_block0.m(target, anchor);
     			insert_dev(target, t0, anchor);
+    			if_block1.m(target, anchor);
+    			insert_dev(target, t1, anchor);
     			insert_dev(target, p, anchor);
-    			append_dev(p, t1);
     			append_dev(p, t2);
-    			insert_dev(target, t3, anchor);
+    			append_dev(p, t3);
+    			append_dev(p, t4);
+    			append_dev(p, t5);
+    			insert_dev(target, t6, anchor);
     			insert_dev(target, div, anchor);
     			if_blocks[current_block_type_index].m(div, null);
-    			insert_dev(target, t4, anchor);
+    			insert_dev(target, t7, anchor);
     			insert_dev(target, button, anchor);
     			current = true;
 
     			if (!mounted) {
-    				dispose = listen_dev(button, "click", /*fetchNextData*/ ctx[3], false, false, false);
+    				dispose = listen_dev(button, "click", /*fetchNextData*/ ctx[5], false, false, false);
     				mounted = true;
     			}
     		},
-    		p: function update(new_ctx, [dirty]) {
-    			ctx = new_ctx;
-    			update_await_block_branch(info, ctx, dirty);
-    			if (!current || dirty & /*$week*/ 2) set_data_dev(t2, /*$week*/ ctx[1]);
+    		p: function update(ctx, [dirty]) {
+    			if (current_block_type === (current_block_type = select_block_type(ctx)) && if_block0) {
+    				if_block0.p(ctx, dirty);
+    			} else {
+    				if_block0.d(1);
+    				if_block0 = current_block_type(ctx);
+
+    				if (if_block0) {
+    					if_block0.c();
+    					if_block0.m(t0.parentNode, t0);
+    				}
+    			}
+
+    			if (current_block_type_1 === (current_block_type_1 = select_block_type_1(ctx)) && if_block1) {
+    				if_block1.p(ctx, dirty);
+    			} else {
+    				if_block1.d(1);
+    				if_block1 = current_block_type_1(ctx);
+
+    				if (if_block1) {
+    					if_block1.c();
+    					if_block1.m(t1.parentNode, t1);
+    				}
+    			}
+
+    			if (!current || dirty & /*$season*/ 16) set_data_dev(t3, /*$season*/ ctx[4]);
+    			if (!current || dirty & /*$week*/ 8) set_data_dev(t5, /*$week*/ ctx[3]);
     			let previous_block_index = current_block_type_index;
-    			current_block_type_index = select_block_type(ctx);
+    			current_block_type_index = select_block_type_2(ctx);
 
     			if (current_block_type_index === previous_block_index) {
     				if_blocks[current_block_type_index].p(ctx, dirty);
@@ -23651,38 +23777,38 @@ var app = (function () {
     				});
 
     				check_outros();
-    				if_block = if_blocks[current_block_type_index];
+    				if_block2 = if_blocks[current_block_type_index];
 
-    				if (!if_block) {
-    					if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
-    					if_block.c();
+    				if (!if_block2) {
+    					if_block2 = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
+    					if_block2.c();
     				} else {
-    					if_block.p(ctx, dirty);
+    					if_block2.p(ctx, dirty);
     				}
 
-    				transition_in(if_block, 1);
-    				if_block.m(div, null);
+    				transition_in(if_block2, 1);
+    				if_block2.m(div, null);
     			}
     		},
     		i: function intro(local) {
     			if (current) return;
-    			transition_in(if_block);
+    			transition_in(if_block2);
     			current = true;
     		},
     		o: function outro(local) {
-    			transition_out(if_block);
+    			transition_out(if_block2);
     			current = false;
     		},
     		d: function destroy(detaching) {
-    			info.block.d(detaching);
-    			info.token = null;
-    			info = null;
+    			if_block0.d(detaching);
     			if (detaching) detach_dev(t0);
+    			if_block1.d(detaching);
+    			if (detaching) detach_dev(t1);
     			if (detaching) detach_dev(p);
-    			if (detaching) detach_dev(t3);
+    			if (detaching) detach_dev(t6);
     			if (detaching) detach_dev(div);
     			if_blocks[current_block_type_index].d();
-    			if (detaching) detach_dev(t4);
+    			if (detaching) detach_dev(t7);
     			if (detaching) detach_dev(button);
     			mounted = false;
     			dispose();
@@ -23705,17 +23831,21 @@ var app = (function () {
     	let $season;
     	let $year;
     	validate_store(week, 'week');
-    	component_subscribe($$self, week, $$value => $$invalidate(1, $week = $$value));
+    	component_subscribe($$self, week, $$value => $$invalidate(3, $week = $$value));
     	validate_store(season, 'season');
-    	component_subscribe($$self, season, $$value => $$invalidate(8, $season = $$value));
+    	component_subscribe($$self, season, $$value => $$invalidate(4, $season = $$value));
     	validate_store(year, 'year');
-    	component_subscribe($$self, year, $$value => $$invalidate(9, $year = $$value));
+    	component_subscribe($$self, year, $$value => $$invalidate(11, $year = $$value));
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('Leaderboard', slots, []);
     	let query = db.collection($year).doc($season).collection($week).orderBy("rank", "asc").limit(10);
     	let items = [];
+    	let seasons = [];
+    	let weeks = [];
 
     	onMount(async () => {
+    		$$invalidate(1, seasons = await fetchSeasons());
+    		$$invalidate(2, weeks = await fetchWeeks());
     		$$invalidate(0, items = await fetchData());
     	});
 
@@ -23788,9 +23918,21 @@ var app = (function () {
     		});
     	};
 
-    	let weeks = [];
+    	const fetchSeasons = async () => {
+    		query = db.collection($year);
+
+    		await query.get().then(snapshot => {
+    			snapshot.forEach(doc => {
+    				$$invalidate(1, seasons = [...seasons, doc.id]);
+    			});
+    		});
+
+    		console.log(seasons);
+    		return seasons;
+    	};
 
     	const fetchWeeks = async () => {
+    		$$invalidate(2, weeks.length = 0, weeks);
     		const fetchSubCollections = cf.httpsCallable("fetchSubCollections");
 
     		await fetchSubCollections({ year: $year, season: $season }).then(result => {
@@ -23799,6 +23941,12 @@ var app = (function () {
 
     		console.log(weeks);
     		return weeks;
+    	};
+
+    	const updateSeason = async () => {
+    		set_store_value(week, $week = "Week-01", $week);
+    		await updateItems();
+    		await fetchWeeks();
     	};
 
     	const updateItems = async () => {
@@ -23833,9 +23981,15 @@ var app = (function () {
     	});
 
     	function select_change_handler() {
+    		$season = select_value(this);
+    		season.set($season);
+    		$$invalidate(1, seasons);
+    	}
+
+    	function select_change_handler_1() {
     		$week = select_value(this);
     		week.set($week);
-    		$$invalidate(4, fetchWeeks);
+    		$$invalidate(2, weeks);
     	}
 
     	$$self.$capture_state = () => ({
@@ -23848,10 +24002,13 @@ var app = (function () {
     		week,
     		query,
     		items,
+    		seasons,
+    		weeks,
     		fetchData,
     		fetchNextData,
-    		weeks,
+    		fetchSeasons,
     		fetchWeeks,
+    		updateSeason,
     		updateItems,
     		$week,
     		$season,
@@ -23861,6 +24018,7 @@ var app = (function () {
     	$$self.$inject_state = $$props => {
     		if ('query' in $$props) query = $$props.query;
     		if ('items' in $$props) $$invalidate(0, items = $$props.items);
+    		if ('seasons' in $$props) $$invalidate(1, seasons = $$props.seasons);
     		if ('weeks' in $$props) $$invalidate(2, weeks = $$props.weeks);
     	};
 
@@ -23870,12 +24028,15 @@ var app = (function () {
 
     	return [
     		items,
-    		$week,
+    		seasons,
     		weeks,
+    		$week,
+    		$season,
     		fetchNextData,
-    		fetchWeeks,
+    		updateSeason,
     		updateItems,
-    		select_change_handler
+    		select_change_handler,
+    		select_change_handler_1
     	];
     }
 
