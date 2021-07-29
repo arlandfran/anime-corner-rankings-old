@@ -160,6 +160,7 @@
     <option value="">Loading...</option>
   </select>
 {:else}
+  <!-- svelte-ignore a11y-no-onchange -->
   <select bind:value={$season} on:change={updateSeason}>
     {#each seasons as season}
       <option value={season}>{season}</option>
@@ -172,6 +173,7 @@
     <option value="">Loading...</option>
   </select>
 {:else}
+  <!-- svelte-ignore a11y-no-onchange -->
   <select bind:value={$week} on:change={updateItems}>
     {#each weeks as week}
       <option value={week}>{week.replace("-", " ")}</option>
