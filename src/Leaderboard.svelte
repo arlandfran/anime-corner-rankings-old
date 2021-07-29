@@ -4,6 +4,10 @@
   import Item from "./Item.svelte";
   import { year, season, week } from "./stores";
 
+  let seasons = [];
+  let weeks = [];
+  let items = [];
+
   let query = db
     .collection($year)
     .doc($season)
@@ -11,14 +15,10 @@
     .orderBy("rank", "asc")
     .limit(10);
 
-  let items = [];
-  let seasons = [];
-  let weeks = [];
-
   onMount(async () => {
+    items = await fetchData();
     seasons = await fetchSeasons();
     weeks = await fetchWeeks();
-    items = await fetchData();
   });
 
   const fetchData = async () => {
@@ -49,7 +49,7 @@
       let cacheData = { data: data, cachetime: parseInt(Date.now() / 1000) };
       localStorage.setItem("items", JSON.stringify(cacheData));
 
-      console.log("Data fetched.");
+      console.log("Data fetched:", data);
       return data;
     }
   };
@@ -95,14 +95,14 @@
   };
 
   const fetchSeasons = async () => {
-    query = db.collection($year);
+    let seasonQuery = db.collection($year);
 
-    await query.get().then((snapshot) => {
+    await seasonQuery.get().then((snapshot) => {
       snapshot.forEach((doc) => {
         seasons = [...seasons, doc.id];
       });
     });
-    console.log(seasons);
+    console.log("Seasons fetched:", seasons);
     return seasons;
   };
 
@@ -114,7 +114,7 @@
         weeks = result.data;
       }
     );
-    console.log(weeks);
+    console.log("Weeks fetched:", weeks);
     return weeks;
   };
 
