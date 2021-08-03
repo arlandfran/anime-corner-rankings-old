@@ -196,5 +196,20 @@
 <button on:click={fetchNextData} id="showMore">Show more rankings</button>
 
 <style>
-  /* your styles go here */
+  div {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  button {
+    margin-top: 1rem;
+  }
+
+  @media screen and (min-width: 425px) {
+    div {
+      padding-left: 1rem;
+    }
+  }
 </style>

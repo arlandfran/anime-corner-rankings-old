@@ -10,21 +10,15 @@
 <style>
   main {
     text-align: center;
-    padding: 1em;
-    max-width: 240px;
+    min-width: 288px;
+    max-width: 520px;
     margin: 0 auto;
   }
 
   h1 {
-    color: #ff3e00;
+    color: var(--primary-color);
     text-transform: uppercase;
     font-size: 2em;
     font-weight: bold;
-  }
-
-  @media (min-width: 640px) {
-    main {
-      max-width: none;
-    }
   }
 </style>
