@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { db, cf } from "./firebase";
   import Item from "./Item.svelte";
-  import { year, season, week } from "./stores";
+  import { year, season, week, isActive } from "./stores";
 
   let seasons = [];
   let weeks = [];
@@ -188,7 +188,7 @@
     <p>Loading...</p>
   {:else}
     {#each items as item}
-      <Item {...item} />
+      <Item {...item} isActive={$isActive} />
     {/each}
   {/if}
 </div>

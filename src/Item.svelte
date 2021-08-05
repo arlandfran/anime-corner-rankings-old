@@ -1,40 +1,53 @@
 <script>
+  import { cf } from "./firebase";
+
   export let rank;
   export let title;
   export let votes;
+  export let isActive;
 
-  let parentNode;
-
-  // https://stackoverflow.com/questions/4793604/how-to-insert-an-element-after-another-element-in-javascript-without-using-a-lib
-  function insertAfter(referenceNode, newNode) {
-    referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
+  function toggleActive() {
+    isActive = !isActive;
   }
 
-  function addDiv() {
-    // const card = document.getElementsByClassName("card")[0];
-    console.log(document.getElementsByClassName("card")[0]);
-
-    const div = document.createElement("div");
-    const text = document.createTextNode("Anime details...");
-    div.appendChild(text);
-    insertAfter(parentNode, div);
-  }
+  const fetchDetails = async () => {
+    let data;
+    const fetchAnime = cf.httpsCallable("fetchAnime");
+    await fetchAnime({ title: title }).then((result) => {
+      data = result.data;
+      console.log("Anime details fetched", data);
+    });
+    return data;
+  };
 </script>
 
-<div class="card" on:click={addDiv} bind:this={parentNode}>
-  <div class="card--rank">
-    {rank}
+<div class="card" on:click={toggleActive}>
+  <div class="card--header">
+    <div class="card--rank">
+      {rank}
+    </div>
+    <div class="card--title">
+      {title}
+    </div>
+    <div class="card--votes">
+      {votes}%
+    </div>
   </div>
-  <div class="card--title">
-    {title}
-  </div>
-  <div class="card--votes">
-    {votes}%
-  </div>
+  {#if isActive}
+    {#await fetchDetails()}
+      <div class="card-content">
+        <p>Loading...</p>
+      </div>
+    {:then anime}
+      <div class="card-content">
+        {@html anime.description}
+      </div>
+    {/await}
+  {/if}
 </div>
 
 <style>
-  .card {
+  .card--header {
     display: flex;
     justify-content: space-between;
     align-items: center;
