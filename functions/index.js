@@ -56,5 +56,5 @@ exports.fetchAnime = functions.https.onCall(async (data) => {
     }),
   }).catch((err) => console.log(err.message));
 
-  return result.data.data;
+  return result.data.data.Media;
 });
