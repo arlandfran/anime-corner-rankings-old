@@ -23170,9 +23170,9 @@ var app = (function () {
     			add_location(div1, file$2, 54, 4, 1454);
     			attr_dev(div2, "class", "card--votes");
     			add_location(div2, file$2, 57, 4, 1509);
-    			attr_dev(div3, "class", "card--header svelte-viyw9m");
+    			attr_dev(div3, "class", "card--header svelte-1q067xo");
     			add_location(div3, file$2, 50, 2, 1370);
-    			attr_dev(div4, "class", "card");
+    			attr_dev(div4, "class", "card svelte-1q067xo");
     			add_location(div4, file$2, 49, 0, 1325);
     		},
     		l: function claim(nodes) {
