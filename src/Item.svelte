@@ -12,12 +12,38 @@
 
   const fetchDetails = async () => {
     let data;
-    const fetchAnime = cf.httpsCallable("fetchAnime");
-    await fetchAnime({ title: title }).then((result) => {
-      data = result.data;
+
+    // Set cache lifetime in seconds
+    let cacheLife = 86400; // 24 hours
+    // Get cached data from local storage
+    let cachedData = localStorage.getItem(`${title} Details`);
+
+    // If cached data exists then parse the data and check if data is expired
+    if (cachedData) {
+      cachedData = JSON.parse(cachedData);
+      var expired =
+        parseInt(Date.now() / 1000) - cachedData.cachetime > cacheLife;
+      console.log("Cached Data expired:", expired);
+    }
+
+    // If cached data exists and is not expired then return data
+    if (cachedData && !expired) {
+      return cachedData.data;
+    } else {
+      // Otherwise fetch data
+      const fetchAnime = cf.httpsCallable("fetchAnime");
+
+      await fetchAnime({ title: title }).then((result) => {
+        data = result.data;
+      });
+
+      // Save data in local storage
+      let cacheData = { data: data, cachetime: parseInt(Date.now() / 1000) };
+      localStorage.setItem(`${title} Details`, JSON.stringify(cacheData));
+
       console.log("Anime details fetched", data);
-    });
-    return data;
+      return data;
+    }
   };
 </script>
 
