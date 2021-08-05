@@ -73,6 +73,10 @@
 </div>
 
 <style>
+  .card {
+    cursor: pointer;
+  }
+
   .card--header {
     display: flex;
     justify-content: space-between;
