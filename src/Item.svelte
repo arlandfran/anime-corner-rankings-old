@@ -48,36 +48,31 @@
 </script>
 
 <div class="card" on:click={toggleActive}>
-  <div class="card--header">
-    <div class="card--rank">
-      {rank}
-    </div>
-    <div class="card--title">
-      {title}
-    </div>
-    <div class="card--votes">
-      {votes}%
-    </div>
+  <div class="card--rank">
+    {rank}
   </div>
-  {#if isActive}
-    {#await fetchDetails()}
-      <div class="card-content">
-        <p>Loading...</p>
-      </div>
-    {:then anime}
-      <div class="card-content">
-        {@html anime.description}
-      </div>
-    {/await}
-  {/if}
+  <div class="card--title">
+    {title}
+  </div>
+  <div class="card--votes">
+    {votes}%
+  </div>
 </div>
+
+{#if isActive}
+  {#await fetchDetails()}
+    <div class="card-content">
+      <p>Loading...</p>
+    </div>
+  {:then anime}
+    <div class="card-content">
+      {@html anime.description}
+    </div>
+  {/await}
+{/if}
 
 <style>
   .card {
-    cursor: pointer;
-  }
-
-  .card--header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -87,5 +82,6 @@
     padding-right: 1rem;
     background-color: var(--primary-color);
     border-radius: 4px;
+    cursor: pointer;
   }
 </style>

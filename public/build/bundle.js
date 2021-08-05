@@ -22999,7 +22999,7 @@ var app = (function () {
     const { console: console_1$1 } = globals;
     const file$2 = "src/Item.svelte";
 
-    // (62:2) {#if isActive}
+    // (62:0) {#if isActive}
     function create_if_block$1(ctx) {
     	let await_block_anchor;
 
@@ -23043,7 +23043,7 @@ var app = (function () {
     		block,
     		id: create_if_block$1.name,
     		type: "if",
-    		source: "(62:2) {#if isActive}",
+    		source: "(62:0) {#if isActive}",
     		ctx
     	});
 
@@ -23065,7 +23065,7 @@ var app = (function () {
     	return block;
     }
 
-    // (67:4) {:then anime}
+    // (67:2) {:then anime}
     function create_then_block(ctx) {
     	let div;
     	let raw_value = /*anime*/ ctx[6].description + "";
@@ -23074,7 +23074,7 @@ var app = (function () {
     		c: function create() {
     			div = element("div");
     			attr_dev(div, "class", "card-content");
-    			add_location(div, file$2, 67, 6, 1711);
+    			add_location(div, file$2, 67, 4, 1649);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -23090,14 +23090,14 @@ var app = (function () {
     		block,
     		id: create_then_block.name,
     		type: "then",
-    		source: "(67:4) {:then anime}",
+    		source: "(67:2) {:then anime}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (63:27)        <div class="card-content">         <p>Loading...</p>       </div>     {:then anime}
+    // (63:25)      <div class="card-content">       <p>Loading...</p>     </div>   {:then anime}
     function create_pending_block(ctx) {
     	let div;
     	let p;
@@ -23107,9 +23107,9 @@ var app = (function () {
     			div = element("div");
     			p = element("p");
     			p.textContent = "Loading...";
-    			add_location(p, file$2, 64, 8, 1656);
+    			add_location(p, file$2, 64, 6, 1600);
     			attr_dev(div, "class", "card-content");
-    			add_location(div, file$2, 63, 6, 1621);
+    			add_location(div, file$2, 63, 4, 1567);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -23125,7 +23125,7 @@ var app = (function () {
     		block,
     		id: create_pending_block.name,
     		type: "pending",
-    		source: "(63:27)        <div class=\\\"card-content\\\">         <p>Loading...</p>       </div>     {:then anime}",
+    		source: "(63:25)      <div class=\\\"card-content\\\">       <p>Loading...</p>     </div>   {:then anime}",
     		ctx
     	});
 
@@ -23133,7 +23133,6 @@ var app = (function () {
     }
 
     function create_fragment$2(ctx) {
-    	let div4;
     	let div3;
     	let div0;
     	let t0;
@@ -23145,13 +23144,13 @@ var app = (function () {
     	let t4;
     	let t5;
     	let t6;
+    	let if_block_anchor;
     	let mounted;
     	let dispose;
     	let if_block = /*isActive*/ ctx[0] && create_if_block$1(ctx);
 
     	const block = {
     		c: function create() {
-    			div4 = element("div");
     			div3 = element("div");
     			div0 = element("div");
     			t0 = text(/*rank*/ ctx[1]);
@@ -23164,23 +23163,21 @@ var app = (function () {
     			t5 = text("%");
     			t6 = space();
     			if (if_block) if_block.c();
+    			if_block_anchor = empty();
     			attr_dev(div0, "class", "card--rank");
-    			add_location(div0, file$2, 51, 4, 1401);
+    			add_location(div0, file$2, 50, 2, 1370);
     			attr_dev(div1, "class", "card--title");
-    			add_location(div1, file$2, 54, 4, 1454);
+    			add_location(div1, file$2, 53, 2, 1417);
     			attr_dev(div2, "class", "card--votes");
-    			add_location(div2, file$2, 57, 4, 1509);
-    			attr_dev(div3, "class", "card--header svelte-1q067xo");
-    			add_location(div3, file$2, 50, 2, 1370);
-    			attr_dev(div4, "class", "card svelte-1q067xo");
-    			add_location(div4, file$2, 49, 0, 1325);
+    			add_location(div2, file$2, 56, 2, 1466);
+    			attr_dev(div3, "class", "card svelte-ee2ok9");
+    			add_location(div3, file$2, 49, 0, 1325);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, div4, anchor);
-    			append_dev(div4, div3);
+    			insert_dev(target, div3, anchor);
     			append_dev(div3, div0);
     			append_dev(div0, t0);
     			append_dev(div3, t1);
@@ -23190,11 +23187,12 @@ var app = (function () {
     			append_dev(div3, div2);
     			append_dev(div2, t4);
     			append_dev(div2, t5);
-    			append_dev(div4, t6);
-    			if (if_block) if_block.m(div4, null);
+    			insert_dev(target, t6, anchor);
+    			if (if_block) if_block.m(target, anchor);
+    			insert_dev(target, if_block_anchor, anchor);
 
     			if (!mounted) {
-    				dispose = listen_dev(div4, "click", /*toggleActive*/ ctx[4], false, false, false);
+    				dispose = listen_dev(div3, "click", /*toggleActive*/ ctx[4], false, false, false);
     				mounted = true;
     			}
     		},
@@ -23209,7 +23207,7 @@ var app = (function () {
     				} else {
     					if_block = create_if_block$1(ctx);
     					if_block.c();
-    					if_block.m(div4, null);
+    					if_block.m(if_block_anchor.parentNode, if_block_anchor);
     				}
     			} else if (if_block) {
     				if_block.d(1);
@@ -23219,8 +23217,10 @@ var app = (function () {
     		i: noop$1,
     		o: noop$1,
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(div4);
-    			if (if_block) if_block.d();
+    			if (detaching) detach_dev(div3);
+    			if (detaching) detach_dev(t6);
+    			if (if_block) if_block.d(detaching);
+    			if (detaching) detach_dev(if_block_anchor);
     			mounted = false;
     			dispose();
     		}
