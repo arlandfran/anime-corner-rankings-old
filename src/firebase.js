@@ -13,6 +13,8 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
+// Comment out for production
+// firebase.functions().useEmulator("localhost", 5001);
 
 export const db = firebase.firestore();
 export const cf = firebase.functions();

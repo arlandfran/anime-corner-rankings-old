@@ -2,7 +2,11 @@
   import { onMount } from "svelte";
   import { db, cf } from "./firebase";
   import Item from "./Item.svelte";
-  import { year, season, week } from "./stores";
+  import { year, season, week, isActive } from "./stores";
+
+  let seasons = [];
+  let weeks = [];
+  let items = [];
 
   let query = db
     .collection($year)
@@ -11,14 +15,10 @@
     .orderBy("rank", "asc")
     .limit(10);
 
-  let items = [];
-  let seasons = [];
-  let weeks = [];
-
   onMount(async () => {
+    items = await fetchData();
     seasons = await fetchSeasons();
     weeks = await fetchWeeks();
-    items = await fetchData();
   });
 
   const fetchData = async () => {
@@ -49,7 +49,7 @@
       let cacheData = { data: data, cachetime: parseInt(Date.now() / 1000) };
       localStorage.setItem("items", JSON.stringify(cacheData));
 
-      console.log("Data fetched.");
+      console.log("Data fetched:", data);
       return data;
     }
   };
@@ -95,14 +95,14 @@
   };
 
   const fetchSeasons = async () => {
-    query = db.collection($year);
+    let seasonQuery = db.collection($year);
 
-    await query.get().then((snapshot) => {
+    await seasonQuery.get().then((snapshot) => {
       snapshot.forEach((doc) => {
         seasons = [...seasons, doc.id];
       });
     });
-    console.log(seasons);
+    console.log("Seasons fetched:", seasons);
     return seasons;
   };
 
@@ -114,7 +114,7 @@
         weeks = result.data;
       }
     );
-    console.log(weeks);
+    console.log("Weeks fetched:", weeks);
     return weeks;
   };
 
@@ -160,6 +160,7 @@
     <option value="">Loading...</option>
   </select>
 {:else}
+  <!-- svelte-ignore a11y-no-onchange -->
   <select bind:value={$season} on:change={updateSeason}>
     {#each seasons as season}
       <option value={season}>{season}</option>
@@ -172,6 +173,7 @@
     <option value="">Loading...</option>
   </select>
 {:else}
+  <!-- svelte-ignore a11y-no-onchange -->
   <select bind:value={$week} on:change={updateItems}>
     {#each weeks as week}
       <option value={week}>{week.replace("-", " ")}</option>
@@ -186,7 +188,7 @@
     <p>Loading...</p>
   {:else}
     {#each items as item}
-      <Item {...item} />
+      <Item {...item} isActive={$isActive} />
     {/each}
   {/if}
 </div>
@@ -194,5 +196,20 @@
 <button on:click={fetchNextData} id="showMore">Show more rankings</button>
 
 <style>
-  /* your styles go here */
+  div {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  button {
+    margin-top: 1rem;
+  }
+
+  @media screen and (min-width: 425px) {
+    div {
+      padding-left: 1rem;
+    }
+  }
 </style>
