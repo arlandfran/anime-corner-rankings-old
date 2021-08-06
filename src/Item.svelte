@@ -1,5 +1,6 @@
 <script>
   import { cf } from "./firebase";
+  import axios from "axios";
 
   export let rank;
   export let title;
@@ -31,17 +32,52 @@
       return cachedData.data;
     } else {
       // Otherwise fetch data
-      const fetchAnime = cf.httpsCallable("fetchAnime");
+      const query = `
+  query ($title: String){
+    Media (search: $title, type: ANIME) {
+      rankings {
+        allTime
+        rank
+        context
+      }
+      genres
+      description
+      externalLinks {
+        url
+      }
+      coverImage {
+        extraLarge
+      }
+    }
+  } 
+  `;
 
-      await fetchAnime({ title: title }).then((result) => {
-        data = result.data;
-      });
+      const variables = {
+        title: title,
+      };
+
+      const headers = {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      };
+
+      const result = await axios({
+        method: "post",
+        url: "https://graphql.anilist.co/",
+        headers,
+        data: JSON.stringify({
+          query: query,
+          variables: variables,
+        }),
+      }).catch((err) => console.log(err.message));
+
+      data = result.data.data.Media;
 
       // Save data in local storage
       let cacheData = { data: data, cachetime: parseInt(Date.now() / 1000) };
       localStorage.setItem(`${title} Details`, JSON.stringify(cacheData));
 
-      console.log("Anime details fetched", data);
+      console.log(`${title} details fetched`, data);
       return data;
     }
   };
