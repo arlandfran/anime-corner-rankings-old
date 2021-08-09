@@ -1,5 +1,4 @@
 <script>
-  import { cf } from "./firebase";
   import axios from "axios";
 
   export let rank;
@@ -31,7 +30,7 @@
     if (cachedData && !expired) {
       return cachedData.data;
     } else {
-      // Otherwise fetch data
+      // Otherwise fetch data from Anilist
       const query = `
   query ($title: String){
     Media (search: $title, type: ANIME) {
@@ -61,7 +60,7 @@
         Accept: "application/json",
       };
 
-      const result = await axios({
+      await axios({
         method: "post",
         url: "https://graphql.anilist.co/",
         headers,
@@ -69,10 +68,38 @@
           query: query,
           variables: variables,
         }),
-      }).catch((err) => console.log(err.message));
+      })
+        .then((result) => (data = result.data.data.Media))
+        // if HTTP status = 404, fetch data from Kitsu
+        .catch(async (err) => {
+          console.log(err.message);
+          console.log("Trying Kitsu...");
 
-      data = result.data.data.Media;
+          const headers = {
+            "Content-Type": "application/vnd.api+json",
+            Accept: "application/vnd.api+json",
+          };
 
+          const fetchAnimeKitsu = async () => {
+            const result = {};
+            const response = await axios({
+              method: "get",
+              url: `https://kitsu.io/api/edge/anime?filter[text]=${title}`,
+              headers,
+            }).catch((err) => console.log(err.message));
+
+            result.description =
+              response.data.data[0].attributes.synopsis.replace(
+                // Replace \n with <br />
+                /\n/g,
+                "<br />"
+              );
+
+            return result;
+          };
+
+          data = await fetchAnimeKitsu();
+        });
       // Save data in local storage
       let cacheData = { data: data, cachetime: parseInt(Date.now() / 1000) };
       localStorage.setItem(`${title} Details`, JSON.stringify(cacheData));
