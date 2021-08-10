@@ -3,6 +3,7 @@
   import { db, cf } from "./firebase";
   import Item from "./Item.svelte";
   import { year, season, week, isActive } from "./stores";
+  import { checkCache, cacheData } from "./cache";
 
   let seasons = [];
   let weeks = [];
@@ -22,22 +23,12 @@
   });
 
   const fetchData = async () => {
-    // Set cache lifetime in seconds
-    let cacheLife = 86400; // 24 hours
-    // Get cached data from local storage
-    let cachedData = localStorage.getItem("items");
-
-    // If cached data exists then parse the data and check if data is expired
-    if (cachedData) {
-      cachedData = JSON.parse(cachedData);
-      var expired =
-        parseInt(Date.now() / 1000) - cachedData.cachetime > cacheLife;
-      console.log("Cached Data expired:", expired);
-    }
+    let key = `${$season}-${$week}`;
+    let cache = checkCache(key);
 
     // If cached data exists and is not expired then return data
-    if (cachedData && !expired) {
-      return cachedData.data;
+    if (cache.cachedData && !cache.expired) {
+      return cache.cachedData.data;
     } else {
       // Otherwise fetch data
       let data = await query
@@ -46,8 +37,7 @@
         .then((snapshots) => snapshots.docs.map((doc) => doc.data()));
 
       // Save data in local storage
-      let cacheData = { data: data, cachetime: parseInt(Date.now() / 1000) };
-      localStorage.setItem("items", JSON.stringify(cacheData));
+      cacheData(key, data);
 
       console.log("Data fetched:", data);
       return data;
@@ -95,27 +85,48 @@
   };
 
   const fetchSeasons = async () => {
-    let seasonQuery = db.collection($year);
+    let key = "Seasons";
+    let cache = checkCache(key);
 
-    await seasonQuery.get().then((snapshot) => {
-      snapshot.forEach((doc) => {
-        seasons = [...seasons, doc.id];
+    if (cache.cachedData && !cache.expired) {
+      seasons = cache.cachedData.data;
+    } else {
+      let seasonQuery = db.collection($year);
+
+      await seasonQuery.get().then((snapshot) => {
+        snapshot.forEach((doc) => {
+          seasons = [...seasons, doc.id];
+        });
       });
-    });
-    console.log("Seasons fetched:", seasons);
-    return seasons;
+
+      cacheData(key, seasons);
+
+      console.log("Seasons fetched:", seasons);
+      return seasons;
+    }
   };
 
   const fetchWeeks = async () => {
-    weeks.length = 0;
-    const fetchSubCollections = cf.httpsCallable("fetchSubCollections");
-    await fetchSubCollections({ year: $year, season: $season }).then(
-      (result) => {
-        weeks = result.data;
-      }
-    );
-    console.log("Weeks fetched:", weeks);
-    return weeks;
+    let key = `${$season}-Weeks`;
+    let cache = checkCache(key);
+
+    if (cache.cachedData && !cache.expired) {
+      weeks.length = 0;
+      weeks = cache.cachedData.data;
+    } else {
+      weeks.length = 0;
+      const fetchSubCollections = cf.httpsCallable("fetchSubCollections");
+      await fetchSubCollections({ year: $year, season: $season }).then(
+        (result) => {
+          weeks = result.data;
+        }
+      );
+
+      cacheData(key, weeks);
+
+      console.log("Weeks fetched:", weeks);
+      return weeks;
+    }
   };
 
   const updateSeason = async () => {
@@ -126,30 +137,41 @@
   };
 
   const updateItems = async () => {
-    let item = [];
-    items.length = 0; // Clear items array
+    let key = `${$season}-${$week}`;
+    let cache = checkCache(key);
 
-    // Fetch a new query with updated parameters
-    query = db
-      .collection($year)
-      .doc($season)
-      .collection($week)
-      .orderBy("rank", "asc")
-      .limit(10);
+    // If cached data exists and is not expired then return data
+    if (cache.cachedData && !cache.expired) {
+      items.length = 0; // Clear items array
+      items = cache.cachedData.data;
+    } else {
+      let item = [];
+      items.length = 0; // Clear items array
 
-    let data = await query
-      .get()
-      .then((snapshots) => snapshots.docs.map((doc) => doc.data()));
+      // Fetch a new query with updated parameters
+      query = db
+        .collection($year)
+        .doc($season)
+        .collection($week)
+        .orderBy("rank", "asc")
+        .limit(10);
 
-    for (let i = 0; i < data.length; i++) {
-      item = {
-        rank: data[i].rank,
-        title: data[i].title,
-        votes: data[i].votes,
-      };
-      items = [...items, item];
+      let data = await query
+        .get()
+        .then((snapshots) => snapshots.docs.map((doc) => doc.data()));
+
+      for (let i = 0; i < data.length; i++) {
+        item = {
+          rank: data[i].rank,
+          title: data[i].title,
+          votes: data[i].votes,
+        };
+        items = [...items, item];
+      }
+      // Save data in local storage
+      cacheData(key, data);
+      console.log("Items array updated. New Items:", items);
     }
-    console.log("Items array updated");
     // Re-enable button in the case that the user has fetched the entire subcollection and button was disabled
     document.getElementById("showMore").disabled = false;
   };
