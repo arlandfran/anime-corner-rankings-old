@@ -24982,23 +24982,23 @@ var app = (function () {
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[17] = list[i];
+    	child_ctx[18] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_1(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[20] = list[i];
+    	child_ctx[21] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_2(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[23] = list[i];
+    	child_ctx[24] = list[i];
     	return child_ctx;
     }
 
-    // (201:0) {:else}
+    // (228:0) {:else}
     function create_else_block_2(ctx) {
     	let select;
     	let mounted;
@@ -25019,8 +25019,8 @@ var app = (function () {
     				each_blocks[i].c();
     			}
 
-    			if (/*$season*/ ctx[4] === void 0) add_render_callback(() => /*select_change_handler*/ ctx[10].call(select));
-    			add_location(select, file$1, 202, 2, 5534);
+    			if (/*$season*/ ctx[4] === void 0) add_render_callback(() => /*select_change_handler*/ ctx[11].call(select));
+    			add_location(select, file$1, 229, 2, 6385);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -25033,7 +25033,7 @@ var app = (function () {
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(select, "change", /*select_change_handler*/ ctx[10]),
+    					listen_dev(select, "change", /*select_change_handler*/ ctx[11]),
     					listen_dev(select, "change", /*updateSeason*/ ctx[7], false, false, false)
     				];
 
@@ -25081,14 +25081,14 @@ var app = (function () {
     		block,
     		id: create_else_block_2.name,
     		type: "else",
-    		source: "(201:0) {:else}",
+    		source: "(228:0) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (197:0) {#if seasons == 0}
+    // (224:0) {#if seasons == 0}
     function create_if_block_2(ctx) {
     	let select;
     	let option;
@@ -25100,8 +25100,8 @@ var app = (function () {
     			option.textContent = "Loading...";
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file$1, 198, 4, 5429);
-    			add_location(select, file$1, 197, 2, 5415);
+    			add_location(option, file$1, 225, 4, 6280);
+    			add_location(select, file$1, 224, 2, 6266);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -25117,17 +25117,17 @@ var app = (function () {
     		block,
     		id: create_if_block_2.name,
     		type: "if",
-    		source: "(197:0) {#if seasons == 0}",
+    		source: "(224:0) {#if seasons == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (204:4) {#each seasons as season}
+    // (231:4) {#each seasons as season}
     function create_each_block_2(ctx) {
     	let option;
-    	let t_value = /*season*/ ctx[23] + "";
+    	let t_value = /*season*/ ctx[24] + "";
     	let t;
     	let option_value_value;
 
@@ -25135,18 +25135,18 @@ var app = (function () {
     		c: function create() {
     			option = element("option");
     			t = text(t_value);
-    			option.__value = option_value_value = /*season*/ ctx[23];
+    			option.__value = option_value_value = /*season*/ ctx[24];
     			option.value = option.__value;
-    			add_location(option, file$1, 204, 6, 5627);
+    			add_location(option, file$1, 231, 6, 6478);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
     			append_dev(option, t);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*seasons*/ 1 && t_value !== (t_value = /*season*/ ctx[23] + "")) set_data_dev(t, t_value);
+    			if (dirty & /*seasons*/ 1 && t_value !== (t_value = /*season*/ ctx[24] + "")) set_data_dev(t, t_value);
 
-    			if (dirty & /*seasons*/ 1 && option_value_value !== (option_value_value = /*season*/ ctx[23])) {
+    			if (dirty & /*seasons*/ 1 && option_value_value !== (option_value_value = /*season*/ ctx[24])) {
     				prop_dev(option, "__value", option_value_value);
     				option.value = option.__value;
     			}
@@ -25160,14 +25160,14 @@ var app = (function () {
     		block,
     		id: create_each_block_2.name,
     		type: "each",
-    		source: "(204:4) {#each seasons as season}",
+    		source: "(231:4) {#each seasons as season}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (214:0) {:else}
+    // (241:0) {:else}
     function create_else_block_1(ctx) {
     	let select;
     	let mounted;
@@ -25188,8 +25188,8 @@ var app = (function () {
     				each_blocks[i].c();
     			}
 
-    			if (/*$week*/ ctx[3] === void 0) add_render_callback(() => /*select_change_handler_1*/ ctx[11].call(select));
-    			add_location(select, file$1, 215, 2, 5850);
+    			if (/*$week*/ ctx[3] === void 0) add_render_callback(() => /*select_change_handler_1*/ ctx[12].call(select));
+    			add_location(select, file$1, 242, 2, 6701);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -25202,7 +25202,7 @@ var app = (function () {
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(select, "change", /*select_change_handler_1*/ ctx[11]),
+    					listen_dev(select, "change", /*select_change_handler_1*/ ctx[12]),
     					listen_dev(select, "change", /*updateItems*/ ctx[8], false, false, false)
     				];
 
@@ -25250,14 +25250,14 @@ var app = (function () {
     		block,
     		id: create_else_block_1.name,
     		type: "else",
-    		source: "(214:0) {:else}",
+    		source: "(241:0) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (210:0) {#if weeks.length == 0}
+    // (237:0) {#if weeks.length == 0}
     function create_if_block_1(ctx) {
     	let select;
     	let option;
@@ -25269,8 +25269,8 @@ var app = (function () {
     			option.textContent = "Loading...";
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file$1, 211, 4, 5745);
-    			add_location(select, file$1, 210, 2, 5731);
+    			add_location(option, file$1, 238, 4, 6596);
+    			add_location(select, file$1, 237, 2, 6582);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -25286,17 +25286,17 @@ var app = (function () {
     		block,
     		id: create_if_block_1.name,
     		type: "if",
-    		source: "(210:0) {#if weeks.length == 0}",
+    		source: "(237:0) {#if weeks.length == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (217:4) {#each weeks as week}
+    // (244:4) {#each weeks as week}
     function create_each_block_1(ctx) {
     	let option;
-    	let t_value = /*week*/ ctx[20].replace("-", " ") + "";
+    	let t_value = /*week*/ ctx[21].replace("-", " ") + "";
     	let t;
     	let option_value_value;
 
@@ -25304,18 +25304,18 @@ var app = (function () {
     		c: function create() {
     			option = element("option");
     			t = text(t_value);
-    			option.__value = option_value_value = /*week*/ ctx[20];
+    			option.__value = option_value_value = /*week*/ ctx[21];
     			option.value = option.__value;
-    			add_location(option, file$1, 217, 6, 5936);
+    			add_location(option, file$1, 244, 6, 6787);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
     			append_dev(option, t);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*weeks*/ 2 && t_value !== (t_value = /*week*/ ctx[20].replace("-", " ") + "")) set_data_dev(t, t_value);
+    			if (dirty & /*weeks*/ 2 && t_value !== (t_value = /*week*/ ctx[21].replace("-", " ") + "")) set_data_dev(t, t_value);
 
-    			if (dirty & /*weeks*/ 2 && option_value_value !== (option_value_value = /*week*/ ctx[20])) {
+    			if (dirty & /*weeks*/ 2 && option_value_value !== (option_value_value = /*week*/ ctx[21])) {
     				prop_dev(option, "__value", option_value_value);
     				option.value = option.__value;
     			}
@@ -25329,14 +25329,14 @@ var app = (function () {
     		block,
     		id: create_each_block_1.name,
     		type: "each",
-    		source: "(217:4) {#each weeks as week}",
+    		source: "(244:4) {#each weeks as week}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (228:2) {:else}
+    // (257:2) {:else}
     function create_else_block(ctx) {
     	let each_1_anchor;
     	let current;
@@ -25425,14 +25425,14 @@ var app = (function () {
     		block,
     		id: create_else_block.name,
     		type: "else",
-    		source: "(228:2) {:else}",
+    		source: "(257:2) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (226:2) {#if items.length == 0}
+    // (255:2) {#if items.length == 0}
     function create_if_block(ctx) {
     	let p;
 
@@ -25440,7 +25440,7 @@ var app = (function () {
     		c: function create() {
     			p = element("p");
     			p.textContent = "Loading...";
-    			add_location(p, file$1, 226, 4, 6116);
+    			add_location(p, file$1, 255, 4, 7024);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, p, anchor);
@@ -25457,18 +25457,18 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(226:2) {#if items.length == 0}",
+    		source: "(255:2) {#if items.length == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (229:4) {#each items as item}
+    // (258:4) {#each items as item}
     function create_each_block(ctx) {
     	let item;
     	let current;
-    	const item_spread_levels = [/*item*/ ctx[17], { isActive: /*$isActive*/ ctx[5] }];
+    	const item_spread_levels = [/*item*/ ctx[18], { isActive: /*$isActive*/ ctx[5] }];
     	let item_props = {};
 
     	for (let i = 0; i < item_spread_levels.length; i += 1) {
@@ -25488,7 +25488,7 @@ var app = (function () {
     		p: function update(ctx, dirty) {
     			const item_changes = (dirty & /*items, $isActive*/ 36)
     			? get_spread_update(item_spread_levels, [
-    					dirty & /*items*/ 4 && get_spread_object(/*item*/ ctx[17]),
+    					dirty & /*items*/ 4 && get_spread_object(/*item*/ ctx[18]),
     					dirty & /*$isActive*/ 32 && { isActive: /*$isActive*/ ctx[5] }
     				])
     			: {};
@@ -25513,7 +25513,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(229:4) {#each items as item}",
+    		source: "(258:4) {#each items as item}",
     		ctx
     	});
 
@@ -25525,17 +25525,19 @@ var app = (function () {
     	let t1;
     	let t2;
     	let t3;
-    	let p;
-    	let t4;
+    	let button1;
     	let t5;
+    	let p;
     	let t6;
     	let t7;
     	let t8;
+    	let t9;
+    	let t10;
     	let div;
     	let current_block_type_index;
     	let if_block2;
-    	let t9;
-    	let button1;
+    	let t11;
+    	let button2;
     	let current;
     	let mounted;
     	let dispose;
@@ -25575,26 +25577,32 @@ var app = (function () {
     			t2 = space();
     			if_block1.c();
     			t3 = space();
+    			button1 = element("button");
+    			button1.textContent = "Next";
+    			t5 = space();
     			p = element("p");
-    			t4 = text("The current params are ");
-    			t5 = text(/*$season*/ ctx[4]);
-    			t6 = space();
-    			t7 = text(/*$week*/ ctx[3]);
+    			t6 = text("The current params are ");
+    			t7 = text(/*$season*/ ctx[4]);
     			t8 = space();
+    			t9 = text(/*$week*/ ctx[3]);
+    			t10 = space();
     			div = element("div");
     			if_block2.c();
-    			t9 = space();
-    			button1 = element("button");
-    			button1.textContent = "Show more rankings";
-    			attr_dev(button0, "id", "prevBtn");
+    			t11 = space();
+    			button2 = element("button");
+    			button2.textContent = "Show more rankings";
+    			attr_dev(button0, "id", "prev-btn");
     			attr_dev(button0, "class", "svelte-1hn3a7v");
-    			add_location(button0, file$1, 194, 0, 5333);
-    			add_location(p, file$1, 222, 0, 6027);
-    			attr_dev(div, "class", "svelte-1hn3a7v");
-    			add_location(div, file$1, 224, 0, 6078);
-    			attr_dev(button1, "id", "showMore");
+    			add_location(button0, file$1, 221, 0, 6183);
+    			attr_dev(button1, "id", "next-btn");
     			attr_dev(button1, "class", "svelte-1hn3a7v");
-    			add_location(button1, file$1, 234, 0, 6252);
+    			add_location(button1, file$1, 249, 0, 6878);
+    			add_location(p, file$1, 251, 0, 6935);
+    			attr_dev(div, "class", "svelte-1hn3a7v");
+    			add_location(div, file$1, 253, 0, 6986);
+    			attr_dev(button2, "id", "showMore");
+    			attr_dev(button2, "class", "svelte-1hn3a7v");
+    			add_location(button2, file$1, 263, 0, 7160);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -25606,22 +25614,25 @@ var app = (function () {
     			insert_dev(target, t2, anchor);
     			if_block1.m(target, anchor);
     			insert_dev(target, t3, anchor);
+    			insert_dev(target, button1, anchor);
+    			insert_dev(target, t5, anchor);
     			insert_dev(target, p, anchor);
-    			append_dev(p, t4);
-    			append_dev(p, t5);
     			append_dev(p, t6);
     			append_dev(p, t7);
-    			insert_dev(target, t8, anchor);
+    			append_dev(p, t8);
+    			append_dev(p, t9);
+    			insert_dev(target, t10, anchor);
     			insert_dev(target, div, anchor);
     			if_blocks[current_block_type_index].m(div, null);
-    			insert_dev(target, t9, anchor);
-    			insert_dev(target, button1, anchor);
+    			insert_dev(target, t11, anchor);
+    			insert_dev(target, button2, anchor);
     			current = true;
 
     			if (!mounted) {
     				dispose = [
     					listen_dev(button0, "click", /*goPrev*/ ctx[9], false, false, false),
-    					listen_dev(button1, "click", /*fetchNextData*/ ctx[6], false, false, false)
+    					listen_dev(button1, "click", /*goNext*/ ctx[10], false, false, false),
+    					listen_dev(button2, "click", /*fetchNextData*/ ctx[6], false, false, false)
     				];
 
     				mounted = true;
@@ -25652,8 +25663,8 @@ var app = (function () {
     				}
     			}
 
-    			if (!current || dirty & /*$season*/ 16) set_data_dev(t5, /*$season*/ ctx[4]);
-    			if (!current || dirty & /*$week*/ 8) set_data_dev(t7, /*$week*/ ctx[3]);
+    			if (!current || dirty & /*$season*/ 16) set_data_dev(t7, /*$season*/ ctx[4]);
+    			if (!current || dirty & /*$week*/ 8) set_data_dev(t9, /*$week*/ ctx[3]);
     			let previous_block_index = current_block_type_index;
     			current_block_type_index = select_block_type_2(ctx);
 
@@ -25696,12 +25707,14 @@ var app = (function () {
     			if (detaching) detach_dev(t2);
     			if_block1.d(detaching);
     			if (detaching) detach_dev(t3);
+    			if (detaching) detach_dev(button1);
+    			if (detaching) detach_dev(t5);
     			if (detaching) detach_dev(p);
-    			if (detaching) detach_dev(t8);
+    			if (detaching) detach_dev(t10);
     			if (detaching) detach_dev(div);
     			if_blocks[current_block_type_index].d();
-    			if (detaching) detach_dev(t9);
-    			if (detaching) detach_dev(button1);
+    			if (detaching) detach_dev(t11);
+    			if (detaching) detach_dev(button2);
     			mounted = false;
     			run_all(dispose);
     		}
@@ -25728,7 +25741,7 @@ var app = (function () {
     	validate_store(season, 'season');
     	component_subscribe($$self, season, $$value => $$invalidate(4, $season = $$value));
     	validate_store(year, 'year');
-    	component_subscribe($$self, year, $$value => $$invalidate(13, $year = $$value));
+    	component_subscribe($$self, year, $$value => $$invalidate(14, $year = $$value));
     	validate_store(isActive, 'isActive');
     	component_subscribe($$self, isActive, $$value => $$invalidate(5, $isActive = $$value));
     	let { $$slots: slots = {}, $$scope } = $$props;
@@ -25742,6 +25755,9 @@ var app = (function () {
     		$$invalidate(2, items = await fetchData());
     		$$invalidate(0, seasons = await fetchSeasons());
     		$$invalidate(1, weeks = await fetchWeeks());
+
+    		// disable next btn as the latest week is always displayed on mount
+    		document.getElementById("next-btn").disabled = true;
     	});
 
     	const fetchData = async () => {
@@ -25843,7 +25859,11 @@ var app = (function () {
     	};
 
     	const updateSeason = async () => {
-    		set_store_value(week, $week = "Week-01", $week); // When changing the season param, reset the week param to the start
+    		// When changing the season param, reset the week param and btn states
+    		set_store_value(week, $week = "Week-01", $week);
+
+    		document.getElementById("prev-btn").disabled = true;
+    		document.getElementById("next-btn").disabled = false;
     		await updateItems();
     		await fetchWeeks();
     	};
@@ -25888,16 +25908,39 @@ var app = (function () {
     	function goPrev() {
     		let i = weeks.indexOf($week);
 
+    		if (document.getElementById("next-btn").disabled = true) {
+    			document.getElementById("next-btn").disabled = false;
+    		}
+
     		if (i == 1) {
     			set_store_value(week, $week = weeks[i - 1], $week);
     			updateItems();
-    			document.getElementById("prevBtn").disabled = true;
+    			document.getElementById("prev-btn").disabled = true;
     		} else {
     			set_store_value(week, $week = weeks[i - 1], $week);
     			updateItems();
     		}
 
     		console.log("Previous clicked");
+    	}
+
+    	function goNext() {
+    		let i = weeks.indexOf($week);
+
+    		if (document.getElementById("prev-btn").disabled = true) {
+    			document.getElementById("prev-btn").disabled = false;
+    		}
+
+    		if (i + 1 == weeks.length - 1) {
+    			set_store_value(week, $week = weeks[i + 1], $week);
+    			updateItems();
+    			document.getElementById("next-btn").disabled = true;
+    		} else {
+    			set_store_value(week, $week = weeks[i + 1], $week);
+    			updateItems();
+    		}
+
+    		console.log("Next clicked");
     	}
 
     	const writable_props = [];
@@ -25940,6 +25983,7 @@ var app = (function () {
     		updateSeason,
     		updateItems,
     		goPrev,
+    		goNext,
     		$week,
     		$season,
     		$year,
@@ -25968,6 +26012,7 @@ var app = (function () {
     		updateSeason,
     		updateItems,
     		goPrev,
+    		goNext,
     		select_change_handler,
     		select_change_handler_1
     	];

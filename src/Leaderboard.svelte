@@ -20,6 +20,8 @@
     items = await fetchData();
     seasons = await fetchSeasons();
     weeks = await fetchWeeks();
+    // disable next btn as the latest week is always displayed on mount
+    document.getElementById("next-btn").disabled = true;
   });
 
   const fetchData = async () => {
@@ -131,7 +133,10 @@
   };
 
   const updateSeason = async () => {
-    $week = "Week-01"; // When changing the season param, reset the week param to the start
+    // When changing the season param, reset the week param and btn states
+    $week = "Week-01";
+    document.getElementById("prev-btn").disabled = true;
+    document.getElementById("next-btn").disabled = false;
 
     await updateItems();
     await fetchWeeks();
@@ -180,19 +185,41 @@
   function goPrev() {
     let i = weeks.indexOf($week);
 
+    if ((document.getElementById("next-btn").disabled = true)) {
+      document.getElementById("next-btn").disabled = false;
+    }
+
     if (i == 1) {
       $week = weeks[i - 1];
       updateItems();
-      document.getElementById("prevBtn").disabled = true;
+      document.getElementById("prev-btn").disabled = true;
     } else {
       $week = weeks[i - 1];
       updateItems();
     }
     console.log("Previous clicked");
   }
+
+  function goNext() {
+    let i = weeks.indexOf($week);
+
+    if ((document.getElementById("prev-btn").disabled = true)) {
+      document.getElementById("prev-btn").disabled = false;
+    }
+
+    if (i + 1 == weeks.length - 1) {
+      $week = weeks[i + 1];
+      updateItems();
+      document.getElementById("next-btn").disabled = true;
+    } else {
+      $week = weeks[i + 1];
+      updateItems();
+    }
+    console.log("Next clicked");
+  }
 </script>
 
-<button on:click={goPrev} id="prevBtn">Previous</button>
+<button on:click={goPrev} id="prev-btn">Previous</button>
 
 {#if seasons == 0}
   <select>
@@ -219,6 +246,8 @@
     {/each}
   </select>
 {/if}
+
+<button on:click={goNext} id="next-btn">Next</button>
 
 <p>The current params are {$season} {$week}</p>
 
