@@ -113,6 +113,7 @@
     if (cache.cachedData && !cache.expired) {
       weeks.length = 0;
       weeks = cache.cachedData.data;
+      return weeks;
     } else {
       weeks.length = 0;
       const fetchSubCollections = cf.httpsCallable("fetchSubCollections");
@@ -175,7 +176,23 @@
     // Re-enable button in the case that the user has fetched the entire subcollection and button was disabled
     document.getElementById("showMore").disabled = false;
   };
+
+  function goPrev() {
+    let i = weeks.indexOf($week);
+
+    if (i == 1) {
+      $week = weeks[i - 1];
+      updateItems();
+      document.getElementById("prevBtn").disabled = true;
+    } else {
+      $week = weeks[i - 1];
+      updateItems();
+    }
+    console.log("Previous clicked");
+  }
 </script>
+
+<button on:click={goPrev} id="prevBtn">Previous</button>
 
 {#if seasons == 0}
   <select>
