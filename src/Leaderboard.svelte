@@ -89,7 +89,7 @@
     let cache = checkCache(key);
 
     if (cache.cachedData && !cache.expired) {
-      seasons = cache.cachedData.data;
+      return cache.cachedData.data;
     } else {
       let seasonQuery = db.collection($year);
 
