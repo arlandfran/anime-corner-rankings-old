@@ -91,7 +91,7 @@
     if (cache.cachedData && !cache.expired) {
       return cache.cachedData.data;
     } else {
-      let seasonQuery = db.collection($year);
+      let seasonQuery = db.collection($year).orderBy("order", "asc");
 
       await seasonQuery.get().then((snapshot) => {
         snapshot.forEach((doc) => {
