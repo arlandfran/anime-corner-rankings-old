@@ -1,7 +1,5 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
-const { data } = require("cheerio/lib/api/attributes");
-const { first } = require("cheerio/lib/api/traversing");
 const admin = require("firebase-admin");
 const serviceAccount = require("../serviceAccountKey.json");
 
@@ -21,13 +19,17 @@ axios
     let $ = cheerio.load(res.data);
 
     // Get latest ranking page url which contains our table data
-    let page = $(".post-grid-view")
+    let page = $(".penci-wrapper-data")
       .children()
       .first()
       .children()
       .first()
       .children()
+      .last()
+      .children()
       .first()
+      .find("h2")
+      .find("a")
       .attr("href");
 
     axios
@@ -47,18 +49,18 @@ axios
         });
 
         let data = {};
-        // Expected format: {season} {year} Top Anime Rankings – Week {period}
-        let title = $("h1.text-left").text().split(" ");
+        // Expected format: {season} {year} Top Anime Rankings – Week {week}
+        let title = $("h1.post-title").text().split(" ");
 
         data.year = title[1];
         data.season = title[0];
-        data.period = "Week-" + title.pop();
+        data.week = "Week-" + title.pop();
         data.rankings = rankings;
 
         const doc = db
           .collection(data.year)
           .doc(data.season)
-          .collection(data.period);
+          .collection(data.week);
 
         for (rank in data.rankings) {
           doc.add(data.rankings[rank]).catch((err) => {
@@ -66,7 +68,7 @@ axios
           });
         }
         console.log(
-          $("h1.text-left").text() + " successfully written to database"
+          $("h1.post-title").text() + " successfully written to database"
         );
       })
       .catch((err) => {
@@ -74,5 +76,5 @@ axios
       });
   })
   .catch((err) => {
-    console.error("Error fetching page: ", err);
+    console.error("Error fetching baseUrl: ", err);
   });
