@@ -25066,7 +25066,7 @@ var app = (function () {
     	return block;
     }
 
-    // (71:0) {:then details}
+    // (61:0) {:then details}
     function create_then_block$1(ctx) {
     	let div6;
     	let div2;
@@ -25105,19 +25105,19 @@ var app = (function () {
     			div4 = element("div");
     			t7 = text(t7_value);
     			attr_dev(div0, "class", "figure svelte-1mwo41z");
-    			add_location(div0, file$3, 73, 6, 1949);
+    			add_location(div0, file$3, 63, 6, 1598);
     			attr_dev(div1, "class", "label svelte-1mwo41z");
-    			add_location(div1, file$3, 74, 6, 2004);
+    			add_location(div1, file$3, 64, 6, 1653);
     			attr_dev(div2, "class", "sub-container svelte-1mwo41z");
-    			add_location(div2, file$3, 72, 4, 1914);
+    			add_location(div2, file$3, 62, 4, 1563);
     			attr_dev(div3, "class", "figure svelte-1mwo41z");
-    			add_location(div3, file$3, 77, 6, 2114);
+    			add_location(div3, file$3, 67, 6, 1763);
     			attr_dev(div4, "class", "label svelte-1mwo41z");
-    			add_location(div4, file$3, 78, 6, 2155);
+    			add_location(div4, file$3, 68, 6, 1804);
     			attr_dev(div5, "class", "sub-container svelte-1mwo41z");
-    			add_location(div5, file$3, 76, 4, 2079);
+    			add_location(div5, file$3, 66, 4, 1728);
     			attr_dev(div6, "class", "container svelte-1mwo41z");
-    			add_location(div6, file$3, 71, 2, 1885);
+    			add_location(div6, file$3, 61, 2, 1534);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div6, anchor);
@@ -25148,14 +25148,14 @@ var app = (function () {
     		block,
     		id: create_then_block$1.name,
     		type: "then",
-    		source: "(71:0) {:then details}",
+    		source: "(61:0) {:then details}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (69:23)     <div class="container">Loading...</div>  {:then details}
+    // (59:23)     <div class="container">Loading...</div>  {:then details}
     function create_pending_block$1(ctx) {
     	let div;
 
@@ -25164,7 +25164,7 @@ var app = (function () {
     			div = element("div");
     			div.textContent = "Loading...";
     			attr_dev(div, "class", "container svelte-1mwo41z");
-    			add_location(div, file$3, 69, 2, 1825);
+    			add_location(div, file$3, 59, 2, 1474);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -25179,7 +25179,7 @@ var app = (function () {
     		block,
     		id: create_pending_block$1.name,
     		type: "pending",
-    		source: "(69:23)     <div class=\\\"container\\\">Loading...</div>  {:then details}",
+    		source: "(59:23)     <div class=\\\"container\\\">Loading...</div>  {:then details}",
     		ctx
     	});
 
@@ -25288,15 +25288,13 @@ var app = (function () {
 
     	const fetchDetails = async () => {
     		let details;
-    		const previousRankQuery = db.collection($year).doc($season).collection(decrementWeek($week)).where("title", "==", title);
-    		let previousRanks = await previousRankQuery.get().then(snapshots => snapshots.docs.map(doc => doc.data().rank));
-    		const previousVoteQuery = db.collection($year).doc($season).collection(decrementWeek($week)).where("title", "==", title);
-    		let previousVotes = await previousVoteQuery.get().then(snapshots => snapshots.docs.map(doc => doc.data().votes));
+    		const query = db.collection($year).doc($season).collection(decrementWeek($week)).where("title", "==", title);
+    		let data = await query.get().then(snapshots => snapshots.docs.map(doc => doc.data()));
 
     		details = {
-    			progression: calculateRankProgression(rank, previousRanks[0]),
-    			previousRank: previousRanks[0],
-    			voteDifference: calculateVoteDifference(votes, previousVotes[0])
+    			progression: calculateRankProgression(rank, data[0].rank),
+    			previousRank: data[0].rank,
+    			voteDifference: calculateVoteDifference(votes, data[0].votes)
     		};
 
     		return details;

@@ -36,30 +36,20 @@
   const fetchDetails = async () => {
     let details;
 
-    const previousRankQuery = db
+    const query = db
       .collection($year)
       .doc($season)
       .collection(decrementWeek($week))
       .where("title", "==", title);
 
-    let previousRanks = await previousRankQuery
+    let data = await query
       .get()
-      .then((snapshots) => snapshots.docs.map((doc) => doc.data().rank));
-
-    const previousVoteQuery = db
-      .collection($year)
-      .doc($season)
-      .collection(decrementWeek($week))
-      .where("title", "==", title);
-
-    let previousVotes = await previousVoteQuery
-      .get()
-      .then((snapshots) => snapshots.docs.map((doc) => doc.data().votes));
+      .then((snapshots) => snapshots.docs.map((doc) => doc.data()));
 
     details = {
-      progression: calculateRankProgression(rank, previousRanks[0]),
-      previousRank: previousRanks[0],
-      voteDifference: calculateVoteDifference(votes, previousVotes[0]),
+      progression: calculateRankProgression(rank, data[0].rank),
+      previousRank: data[0].rank,
+      voteDifference: calculateVoteDifference(votes, data[0].votes),
     };
 
     return details;
