@@ -2,6 +2,7 @@
   import axios from "axios";
   import ItemRank from "./ItemRank.svelte";
   import ItemBanner from "./ItemBanner.svelte";
+  import ItemDetails from "./ItemDetails.svelte";
   import { checkCache, cacheData } from "../cache";
 
   export let rank;
@@ -104,9 +105,7 @@
 <div class="card" on:click={toggleActive}>
   <ItemRank {rank} />
   <ItemBanner {title} />
-  <div class="card--votes">
-    {votes}%
-  </div>
+  <ItemDetails {votes} />
 </div>
 
 {#if isActive}
@@ -129,10 +128,5 @@
     background-color: var(--primary-color);
     border-radius: 4px;
     cursor: pointer;
-  }
-
-  .card--votes {
-    width: 6rem;
-    text-align: center;
   }
 </style>
