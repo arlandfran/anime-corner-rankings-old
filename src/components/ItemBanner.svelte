@@ -1,6 +1,7 @@
 <script>
+  import axios from "axios";
   import { afterUpdate } from "svelte";
-  import { checkCache, cacheData } from "./cache";
+  import { checkCache, cacheData } from "../cache";
 
   export let title;
   let src;

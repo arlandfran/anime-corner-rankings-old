@@ -1,9 +1,9 @@
 <script>
   import { onMount } from "svelte";
-  import { db, cf } from "./firebase";
+  import { db, cf } from "../firebase";
   import Item from "./Item.svelte";
-  import { year, season, week, isActive } from "./stores";
-  import { checkCache, cacheData } from "./cache";
+  import { year, season, week, isActive } from "../stores";
+  import { checkCache, cacheData } from "../cache";
 
   let seasons = [];
   let weeks = [];

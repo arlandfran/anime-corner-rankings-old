@@ -1,8 +1,8 @@
 <script>
   import axios from "axios";
-  import Rank from "./Rank.svelte";
-  import Banner from "./Banner.svelte";
-  import { checkCache, cacheData } from "./cache";
+  import ItemRank from "./ItemRank.svelte";
+  import ItemBanner from "./ItemBanner.svelte";
+  import { checkCache, cacheData } from "../cache";
 
   export let rank;
   export let title;
@@ -102,8 +102,8 @@
 </script>
 
 <div class="card" on:click={toggleActive}>
-  <Rank {rank} />
-  <Banner {title} />
+  <ItemRank {rank} />
+  <ItemBanner {title} />
   <div class="card--votes">
     {votes}%
   </div>

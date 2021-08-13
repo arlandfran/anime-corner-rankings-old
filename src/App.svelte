@@ -1,5 +1,5 @@
 <script>
-  import Leaderboard from "./Leaderboard.svelte";
+  import Leaderboard from "./components/Leaderboard.svelte";
 </script>
 
 <main>
