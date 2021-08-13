@@ -1,5 +1,6 @@
 <script>
   import axios from "axios";
+  import Rank from "./Rank.svelte";
   import Banner from "./Banner.svelte";
   import { checkCache, cacheData } from "./cache";
 
@@ -101,9 +102,7 @@
 </script>
 
 <div class="card" on:click={toggleActive}>
-  <div class="card--rank">
-    {rank}
-  </div>
+  <Rank {rank} />
   <Banner {title} />
   <div class="card--votes">
     {votes}%
@@ -132,12 +131,6 @@
     cursor: pointer;
   }
 
-  .card--rank {
-    width: 4rem;
-    font-size: x-large;
-    font-weight: bold;
-    text-align: center;
-  }
   .card--votes {
     width: 6rem;
     text-align: center;
