@@ -488,7 +488,7 @@ var app = (function () {
     }
 
     function dispatch_dev(type, detail) {
-        document.dispatchEvent(custom_event(type, Object.assign({ version: '3.41.0' }, detail), true));
+        document.dispatchEvent(custom_event(type, Object.assign({ version: '3.42.1' }, detail), true));
     }
     function append_dev(target, node) {
         dispatch_dev('SvelteDOMInsert', { target, node });
@@ -704,282 +704,6 @@ var app = (function () {
      * See the License for the specific language governing permissions and
      * limitations under the License.
      */
-    var stringToByteArray = function (str) {
-        // TODO(user): Use native implementations if/when available
-        var out = [];
-        var p = 0;
-        for (var i = 0; i < str.length; i++) {
-            var c = str.charCodeAt(i);
-            if (c < 128) {
-                out[p++] = c;
-            }
-            else if (c < 2048) {
-                out[p++] = (c >> 6) | 192;
-                out[p++] = (c & 63) | 128;
-            }
-            else if ((c & 0xfc00) === 0xd800 &&
-                i + 1 < str.length &&
-                (str.charCodeAt(i + 1) & 0xfc00) === 0xdc00) {
-                // Surrogate Pair
-                c = 0x10000 + ((c & 0x03ff) << 10) + (str.charCodeAt(++i) & 0x03ff);
-                out[p++] = (c >> 18) | 240;
-                out[p++] = ((c >> 12) & 63) | 128;
-                out[p++] = ((c >> 6) & 63) | 128;
-                out[p++] = (c & 63) | 128;
-            }
-            else {
-                out[p++] = (c >> 12) | 224;
-                out[p++] = ((c >> 6) & 63) | 128;
-                out[p++] = (c & 63) | 128;
-            }
-        }
-        return out;
-    };
-    /**
-     * Turns an array of numbers into the string given by the concatenation of the
-     * characters to which the numbers correspond.
-     * @param bytes Array of numbers representing characters.
-     * @return Stringification of the array.
-     */
-    var byteArrayToString = function (bytes) {
-        // TODO(user): Use native implementations if/when available
-        var out = [];
-        var pos = 0, c = 0;
-        while (pos < bytes.length) {
-            var c1 = bytes[pos++];
-            if (c1 < 128) {
-                out[c++] = String.fromCharCode(c1);
-            }
-            else if (c1 > 191 && c1 < 224) {
-                var c2 = bytes[pos++];
-                out[c++] = String.fromCharCode(((c1 & 31) << 6) | (c2 & 63));
-            }
-            else if (c1 > 239 && c1 < 365) {
-                // Surrogate Pair
-                var c2 = bytes[pos++];
-                var c3 = bytes[pos++];
-                var c4 = bytes[pos++];
-                var u = (((c1 & 7) << 18) | ((c2 & 63) << 12) | ((c3 & 63) << 6) | (c4 & 63)) -
-                    0x10000;
-                out[c++] = String.fromCharCode(0xd800 + (u >> 10));
-                out[c++] = String.fromCharCode(0xdc00 + (u & 1023));
-            }
-            else {
-                var c2 = bytes[pos++];
-                var c3 = bytes[pos++];
-                out[c++] = String.fromCharCode(((c1 & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
-            }
-        }
-        return out.join('');
-    };
-    // We define it as an object literal instead of a class because a class compiled down to es5 can't
-    // be treeshaked. https://github.com/rollup/rollup/issues/1691
-    // Static lookup maps, lazily populated by init_()
-    var base64 = {
-        /**
-         * Maps bytes to characters.
-         */
-        byteToCharMap_: null,
-        /**
-         * Maps characters to bytes.
-         */
-        charToByteMap_: null,
-        /**
-         * Maps bytes to websafe characters.
-         * @private
-         */
-        byteToCharMapWebSafe_: null,
-        /**
-         * Maps websafe characters to bytes.
-         * @private
-         */
-        charToByteMapWebSafe_: null,
-        /**
-         * Our default alphabet, shared between
-         * ENCODED_VALS and ENCODED_VALS_WEBSAFE
-         */
-        ENCODED_VALS_BASE: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' + 'abcdefghijklmnopqrstuvwxyz' + '0123456789',
-        /**
-         * Our default alphabet. Value 64 (=) is special; it means "nothing."
-         */
-        get ENCODED_VALS() {
-            return this.ENCODED_VALS_BASE + '+/=';
-        },
-        /**
-         * Our websafe alphabet.
-         */
-        get ENCODED_VALS_WEBSAFE() {
-            return this.ENCODED_VALS_BASE + '-_.';
-        },
-        /**
-         * Whether this browser supports the atob and btoa functions. This extension
-         * started at Mozilla but is now implemented by many browsers. We use the
-         * ASSUME_* variables to avoid pulling in the full useragent detection library
-         * but still allowing the standard per-browser compilations.
-         *
-         */
-        HAS_NATIVE_SUPPORT: typeof atob === 'function',
-        /**
-         * Base64-encode an array of bytes.
-         *
-         * @param input An array of bytes (numbers with
-         *     value in [0, 255]) to encode.
-         * @param webSafe Boolean indicating we should use the
-         *     alternative alphabet.
-         * @return The base64 encoded string.
-         */
-        encodeByteArray: function (input, webSafe) {
-            if (!Array.isArray(input)) {
-                throw Error('encodeByteArray takes an array as a parameter');
-            }
-            this.init_();
-            var byteToCharMap = webSafe
-                ? this.byteToCharMapWebSafe_
-                : this.byteToCharMap_;
-            var output = [];
-            for (var i = 0; i < input.length; i += 3) {
-                var byte1 = input[i];
-                var haveByte2 = i + 1 < input.length;
-                var byte2 = haveByte2 ? input[i + 1] : 0;
-                var haveByte3 = i + 2 < input.length;
-                var byte3 = haveByte3 ? input[i + 2] : 0;
-                var outByte1 = byte1 >> 2;
-                var outByte2 = ((byte1 & 0x03) << 4) | (byte2 >> 4);
-                var outByte3 = ((byte2 & 0x0f) << 2) | (byte3 >> 6);
-                var outByte4 = byte3 & 0x3f;
-                if (!haveByte3) {
-                    outByte4 = 64;
-                    if (!haveByte2) {
-                        outByte3 = 64;
-                    }
-                }
-                output.push(byteToCharMap[outByte1], byteToCharMap[outByte2], byteToCharMap[outByte3], byteToCharMap[outByte4]);
-            }
-            return output.join('');
-        },
-        /**
-         * Base64-encode a string.
-         *
-         * @param input A string to encode.
-         * @param webSafe If true, we should use the
-         *     alternative alphabet.
-         * @return The base64 encoded string.
-         */
-        encodeString: function (input, webSafe) {
-            // Shortcut for Mozilla browsers that implement
-            // a native base64 encoder in the form of "btoa/atob"
-            if (this.HAS_NATIVE_SUPPORT && !webSafe) {
-                return btoa(input);
-            }
-            return this.encodeByteArray(stringToByteArray(input), webSafe);
-        },
-        /**
-         * Base64-decode a string.
-         *
-         * @param input to decode.
-         * @param webSafe True if we should use the
-         *     alternative alphabet.
-         * @return string representing the decoded value.
-         */
-        decodeString: function (input, webSafe) {
-            // Shortcut for Mozilla browsers that implement
-            // a native base64 encoder in the form of "btoa/atob"
-            if (this.HAS_NATIVE_SUPPORT && !webSafe) {
-                return atob(input);
-            }
-            return byteArrayToString(this.decodeStringToByteArray(input, webSafe));
-        },
-        /**
-         * Base64-decode a string.
-         *
-         * In base-64 decoding, groups of four characters are converted into three
-         * bytes.  If the encoder did not apply padding, the input length may not
-         * be a multiple of 4.
-         *
-         * In this case, the last group will have fewer than 4 characters, and
-         * padding will be inferred.  If the group has one or two characters, it decodes
-         * to one byte.  If the group has three characters, it decodes to two bytes.
-         *
-         * @param input Input to decode.
-         * @param webSafe True if we should use the web-safe alphabet.
-         * @return bytes representing the decoded value.
-         */
-        decodeStringToByteArray: function (input, webSafe) {
-            this.init_();
-            var charToByteMap = webSafe
-                ? this.charToByteMapWebSafe_
-                : this.charToByteMap_;
-            var output = [];
-            for (var i = 0; i < input.length;) {
-                var byte1 = charToByteMap[input.charAt(i++)];
-                var haveByte2 = i < input.length;
-                var byte2 = haveByte2 ? charToByteMap[input.charAt(i)] : 0;
-                ++i;
-                var haveByte3 = i < input.length;
-                var byte3 = haveByte3 ? charToByteMap[input.charAt(i)] : 64;
-                ++i;
-                var haveByte4 = i < input.length;
-                var byte4 = haveByte4 ? charToByteMap[input.charAt(i)] : 64;
-                ++i;
-                if (byte1 == null || byte2 == null || byte3 == null || byte4 == null) {
-                    throw Error();
-                }
-                var outByte1 = (byte1 << 2) | (byte2 >> 4);
-                output.push(outByte1);
-                if (byte3 !== 64) {
-                    var outByte2 = ((byte2 << 4) & 0xf0) | (byte3 >> 2);
-                    output.push(outByte2);
-                    if (byte4 !== 64) {
-                        var outByte3 = ((byte3 << 6) & 0xc0) | byte4;
-                        output.push(outByte3);
-                    }
-                }
-            }
-            return output;
-        },
-        /**
-         * Lazy static initialization function. Called before
-         * accessing any of the static map variables.
-         * @private
-         */
-        init_: function () {
-            if (!this.byteToCharMap_) {
-                this.byteToCharMap_ = {};
-                this.charToByteMap_ = {};
-                this.byteToCharMapWebSafe_ = {};
-                this.charToByteMapWebSafe_ = {};
-                // We want quick mappings back and forth, so we precompute two maps.
-                for (var i = 0; i < this.ENCODED_VALS.length; i++) {
-                    this.byteToCharMap_[i] = this.ENCODED_VALS.charAt(i);
-                    this.charToByteMap_[this.byteToCharMap_[i]] = i;
-                    this.byteToCharMapWebSafe_[i] = this.ENCODED_VALS_WEBSAFE.charAt(i);
-                    this.charToByteMapWebSafe_[this.byteToCharMapWebSafe_[i]] = i;
-                    // Be forgiving when decoding and correctly decode both encodings.
-                    if (i >= this.ENCODED_VALS_BASE.length) {
-                        this.charToByteMap_[this.ENCODED_VALS_WEBSAFE.charAt(i)] = i;
-                        this.charToByteMapWebSafe_[this.ENCODED_VALS.charAt(i)] = i;
-                    }
-                }
-            }
-        }
-    };
-
-    /**
-     * @license
-     * Copyright 2017 Google LLC
-     *
-     * Licensed under the Apache License, Version 2.0 (the "License");
-     * you may not use this file except in compliance with the License.
-     * You may obtain a copy of the License at
-     *
-     *   http://www.apache.org/licenses/LICENSE-2.0
-     *
-     * Unless required by applicable law or agreed to in writing, software
-     * distributed under the License is distributed on an "AS IS" BASIS,
-     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     * See the License for the specific language governing permissions and
-     * limitations under the License.
-     */
     /**
      * Do a deep-copy of basic JavaScript Objects or Arrays.
      */
@@ -1093,103 +817,13 @@ var app = (function () {
         };
         return Deferred;
     }());
-
-    /**
-     * @license
-     * Copyright 2021 Google LLC
-     *
-     * Licensed under the Apache License, Version 2.0 (the "License");
-     * you may not use this file except in compliance with the License.
-     * You may obtain a copy of the License at
-     *
-     *   http://www.apache.org/licenses/LICENSE-2.0
-     *
-     * Unless required by applicable law or agreed to in writing, software
-     * distributed under the License is distributed on an "AS IS" BASIS,
-     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     * See the License for the specific language governing permissions and
-     * limitations under the License.
-     */
-    function createMockUserToken(token, projectId) {
-        if (token.uid) {
-            throw new Error('The "uid" field is no longer supported by mockUserToken. Please use "sub" instead for Firebase Auth User ID.');
-        }
-        // Unsecured JWTs use "none" as the algorithm.
-        var header = {
-            alg: 'none',
-            type: 'JWT'
-        };
-        var project = projectId || 'demo-project';
-        var iat = token.iat || 0;
-        var sub = token.sub || token.user_id;
-        if (!sub) {
-            throw new Error("mockUserToken must contain 'sub' or 'user_id' field!");
-        }
-        var payload = __assign({ 
-            // Set all required fields to decent defaults
-            iss: "https://securetoken.google.com/" + project, aud: project, iat: iat, exp: iat + 3600, auth_time: iat, sub: sub, user_id: sub, firebase: {
-                sign_in_provider: 'custom',
-                identities: {}
-            } }, token);
-        // Unsecured JWTs use the empty string as a signature.
-        var signature = '';
-        return [
-            base64.encodeString(JSON.stringify(header), /*webSafe=*/ false),
-            base64.encodeString(JSON.stringify(payload), /*webSafe=*/ false),
-            signature
-        ].join('.');
-    }
-
-    /**
-     * @license
-     * Copyright 2017 Google LLC
-     *
-     * Licensed under the Apache License, Version 2.0 (the "License");
-     * you may not use this file except in compliance with the License.
-     * You may obtain a copy of the License at
-     *
-     *   http://www.apache.org/licenses/LICENSE-2.0
-     *
-     * Unless required by applicable law or agreed to in writing, software
-     * distributed under the License is distributed on an "AS IS" BASIS,
-     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     * See the License for the specific language governing permissions and
-     * limitations under the License.
-     */
-    /**
-     * Returns navigator.userAgent string or '' if it's not defined.
-     * @return user agent string
-     */
-    function getUA() {
-        if (typeof navigator !== 'undefined' &&
-            typeof navigator['userAgent'] === 'string') {
-            return navigator['userAgent'];
-        }
-        else {
-            return '';
-        }
-    }
-    /**
-     * Detect Cordova / PhoneGap / Ionic frameworks on a mobile device.
-     *
-     * Deliberately does not rely on checking `file://` URLs (as this fails PhoneGap
-     * in the Ripple emulator) nor Cordova `onDeviceReady`, which would normally
-     * wait for a callback.
-     */
-    function isMobileCordova() {
-        return (typeof window !== 'undefined' &&
-            // @ts-ignore Setting up an broadly applicable index signature for Window
-            // just to deal with this case would probably be a bad idea.
-            !!(window['cordova'] || window['phonegap'] || window['PhoneGap']) &&
-            /ios|iphone|ipod|ipad|android|blackberry|iemobile/i.test(getUA()));
-    }
     /**
      * Detect Node.js.
      *
      * @return true if Node.js environment is detected.
      */
     // Node detection logic from: https://github.com/iliakan/detect-node/
-    function isNode() {
+    function isNode$1() {
         try {
             return (Object.prototype.toString.call(global.process) === '[object process]');
         }
@@ -1203,41 +837,6 @@ var app = (function () {
     function isBrowser() {
         return typeof self === 'object' && self.self === self;
     }
-    function isBrowserExtension() {
-        var runtime = typeof chrome === 'object'
-            ? chrome.runtime
-            : typeof browser === 'object'
-                ? browser.runtime
-                : undefined;
-        return typeof runtime === 'object' && runtime.id !== undefined;
-    }
-    /**
-     * Detect React Native.
-     *
-     * @return true if ReactNative environment is detected.
-     */
-    function isReactNative() {
-        return (typeof navigator === 'object' && navigator['product'] === 'ReactNative');
-    }
-    /** Detects Electron apps. */
-    function isElectron() {
-        return getUA().indexOf('Electron/') >= 0;
-    }
-    /** Detects Internet Explorer. */
-    function isIE() {
-        var ua = getUA();
-        return ua.indexOf('MSIE ') >= 0 || ua.indexOf('Trident/') >= 0;
-    }
-    /** Detects Universal Windows Platform apps. */
-    function isUWP() {
-        return getUA().indexOf('MSAppHost/') >= 0;
-    }
-    /** Returns true if we are running in Safari. */
-    function isSafari() {
-        return (!isNode() &&
-            navigator.userAgent.includes('Safari') &&
-            !navigator.userAgent.includes('Chrome'));
-    }
 
     /**
      * @license
@@ -1255,29 +854,29 @@ var app = (function () {
      * See the License for the specific language governing permissions and
      * limitations under the License.
      */
-    var ERROR_NAME = 'FirebaseError';
+    var ERROR_NAME$2 = 'FirebaseError';
     // Based on code from:
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#Custom_Error_Types
-    var FirebaseError = /** @class */ (function (_super) {
+    var FirebaseError$2 = /** @class */ (function (_super) {
         __extends$1(FirebaseError, _super);
         function FirebaseError(code, message, customData) {
             var _this = _super.call(this, message) || this;
             _this.code = code;
             _this.customData = customData;
-            _this.name = ERROR_NAME;
+            _this.name = ERROR_NAME$2;
             // Fix For ES5
             // https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
             Object.setPrototypeOf(_this, FirebaseError.prototype);
             // Maintains proper stack trace for where our error was thrown.
             // Only available on V8.
             if (Error.captureStackTrace) {
-                Error.captureStackTrace(_this, ErrorFactory.prototype.create);
+                Error.captureStackTrace(_this, ErrorFactory$2.prototype.create);
             }
             return _this;
         }
         return FirebaseError;
     }(Error));
-    var ErrorFactory = /** @class */ (function () {
+    var ErrorFactory$2 = /** @class */ (function () {
         function ErrorFactory(service, serviceName, errors) {
             this.service = service;
             this.serviceName = serviceName;
@@ -1291,21 +890,21 @@ var app = (function () {
             var customData = data[0] || {};
             var fullCode = this.service + "/" + code;
             var template = this.errors[code];
-            var message = template ? replaceTemplate(template, customData) : 'Error';
+            var message = template ? replaceTemplate$2(template, customData) : 'Error';
             // Service Name: Error message (service/code).
             var fullMessage = this.serviceName + ": " + message + " (" + fullCode + ").";
-            var error = new FirebaseError(fullCode, fullMessage, customData);
+            var error = new FirebaseError$2(fullCode, fullMessage, customData);
             return error;
         };
         return ErrorFactory;
     }());
-    function replaceTemplate(template, data) {
-        return template.replace(PATTERN, function (_, key) {
+    function replaceTemplate$2(template, data) {
+        return template.replace(PATTERN$2, function (_, key) {
             var value = data[key];
             return value != null ? String(value) : "<" + key + "?>";
         });
     }
-    var PATTERN = /\{\$([^}]+)}/g;
+    var PATTERN$2 = /\{\$([^}]+)}/g;
 
     /**
      * @license
@@ -1532,34 +1131,9 @@ var app = (function () {
     }
 
     /**
-     * @license
-     * Copyright 2021 Google LLC
-     *
-     * Licensed under the Apache License, Version 2.0 (the "License");
-     * you may not use this file except in compliance with the License.
-     * You may obtain a copy of the License at
-     *
-     *   http://www.apache.org/licenses/LICENSE-2.0
-     *
-     * Unless required by applicable law or agreed to in writing, software
-     * distributed under the License is distributed on an "AS IS" BASIS,
-     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     * See the License for the specific language governing permissions and
-     * limitations under the License.
-     */
-    function getModularInstance(service) {
-        if (service && service._delegate) {
-            return service._delegate;
-        }
-        else {
-            return service;
-        }
-    }
-
-    /**
      * Component for service name T, e.g. `auth`, `auth-internal`
      */
-    var Component = /** @class */ (function () {
+    var Component$2 = /** @class */ (function () {
         /**
          *
          * @param name The public service name, e.g. app, auth, firestore, database
@@ -2316,10 +1890,10 @@ var app = (function () {
             'Firebase App instance.',
         _a$1["invalid-log-argument" /* INVALID_LOG_ARGUMENT */] = 'First argument to `onLog` must be null or a function.',
         _a$1);
-    var ERROR_FACTORY = new ErrorFactory('app', 'Firebase', ERRORS);
+    var ERROR_FACTORY = new ErrorFactory$2('app', 'Firebase', ERRORS);
 
     var name$c = "@firebase/app";
-    var version$1$1 = "0.6.28";
+    var version$1$1 = "0.6.29";
 
     var name$b = "@firebase/analytics";
 
@@ -2429,7 +2003,7 @@ var app = (function () {
             this.options_ = deepCopy(options);
             this.container = new ComponentContainer(config.name);
             // add itself to container
-            this._addComponent(new Component('app', function () { return _this; }, "PUBLIC" /* PUBLIC */));
+            this._addComponent(new Component$2('app', function () { return _this; }, "PUBLIC" /* PUBLIC */));
             // populate ComponentContainer with existing components
             this.firebase_.INTERNAL.components.forEach(function (component) {
                 return _this._addComponent(component);
@@ -2559,7 +2133,7 @@ var app = (function () {
         FirebaseAppImpl.prototype.delete ||
         console.log('dc');
 
-    var version$2 = "8.7.0";
+    var version$2 = "8.8.1";
 
     /**
      * @license
@@ -2759,7 +2333,7 @@ var app = (function () {
                 logger.warn(warning.join(' '));
                 return;
             }
-            registerComponent(new Component(library + "-version", function () { return ({ library: library, version: version }); }, "VERSION" /* VERSION */));
+            registerComponent(new Component$2(library + "-version", function () { return ({ library: library, version: version }); }, "VERSION" /* VERSION */));
         }
         function onLog(logCallback, options) {
             if (logCallback !== null && typeof logCallback !== 'function') {
@@ -2807,7 +2381,7 @@ var app = (function () {
         namespace.INTERNAL = __assign(__assign({}, namespace.INTERNAL), { createFirebaseNamespace: createFirebaseNamespace,
             extendNamespace: extendNamespace,
             createSubscribe: createSubscribe,
-            ErrorFactory: ErrorFactory,
+            ErrorFactory: ErrorFactory$2,
             deepExtend: deepExtend });
         /**
          * Patch the top-level firebase namespace with additional properties.
@@ -2892,7 +2466,7 @@ var app = (function () {
      * limitations under the License.
      */
     function registerCoreComponents(firebase, variant) {
-        firebase.INTERNAL.registerComponent(new Component('platform-logger', function (container) { return new PlatformLoggerService(container); }, "PRIVATE" /* PRIVATE */));
+        firebase.INTERNAL.registerComponent(new Component$2('platform-logger', function (container) { return new PlatformLoggerService(container); }, "PRIVATE" /* PRIVATE */));
         // Register `app` package.
         firebase.registerVersion(name$c, version$1$1, variant);
         // Register platform SDK identifier (no version).
@@ -2937,7 +2511,7 @@ var app = (function () {
         // Environment check before initializing app
         // Do the check in initializeApp, so people have a chance to disable it by setting logLevel
         // in @firebase/logger
-        if (isNode()) {
+        if (isNode$1()) {
             logger.warn("\n      Warning: This is a browser-targeted Firebase bundle but it appears it is being\n      run in a Node environment.  If running in a Node environment, make sure you\n      are using the bundle specified by the \"main\" field in package.json.\n      \n      If you are using Webpack, you can specify \"main\" as the first item in\n      \"resolve.mainFields\":\n      https://webpack.js.org/configuration/resolve/#resolvemainfields\n      \n      If using Rollup, use the @rollup/plugin-node-resolve plugin and specify \"main\"\n      as the first item in \"mainFields\", e.g. ['main', 'module'].\n      https://github.com/rollup/@rollup/plugin-node-resolve\n      ");
         }
         return initializeApp.apply(undefined, args);
@@ -2946,7 +2520,7 @@ var app = (function () {
     registerCoreComponents(firebase);
 
     var name$1 = "firebase";
-    var version$1 = "8.8.0";
+    var version$1 = "8.9.1";
 
     /**
      * @license
@@ -2966,6 +2540,514 @@ var app = (function () {
      */
     firebase.registerVersion(name$1, version$1, 'app');
     firebase.SDK_VERSION = version$1;
+
+    /**
+     * @license
+     * Copyright 2017 Google LLC
+     *
+     * Licensed under the Apache License, Version 2.0 (the "License");
+     * you may not use this file except in compliance with the License.
+     * You may obtain a copy of the License at
+     *
+     *   http://www.apache.org/licenses/LICENSE-2.0
+     *
+     * Unless required by applicable law or agreed to in writing, software
+     * distributed under the License is distributed on an "AS IS" BASIS,
+     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     * See the License for the specific language governing permissions and
+     * limitations under the License.
+     */
+    var stringToByteArray$1 = function (str) {
+        // TODO(user): Use native implementations if/when available
+        var out = [];
+        var p = 0;
+        for (var i = 0; i < str.length; i++) {
+            var c = str.charCodeAt(i);
+            if (c < 128) {
+                out[p++] = c;
+            }
+            else if (c < 2048) {
+                out[p++] = (c >> 6) | 192;
+                out[p++] = (c & 63) | 128;
+            }
+            else if ((c & 0xfc00) === 0xd800 &&
+                i + 1 < str.length &&
+                (str.charCodeAt(i + 1) & 0xfc00) === 0xdc00) {
+                // Surrogate Pair
+                c = 0x10000 + ((c & 0x03ff) << 10) + (str.charCodeAt(++i) & 0x03ff);
+                out[p++] = (c >> 18) | 240;
+                out[p++] = ((c >> 12) & 63) | 128;
+                out[p++] = ((c >> 6) & 63) | 128;
+                out[p++] = (c & 63) | 128;
+            }
+            else {
+                out[p++] = (c >> 12) | 224;
+                out[p++] = ((c >> 6) & 63) | 128;
+                out[p++] = (c & 63) | 128;
+            }
+        }
+        return out;
+    };
+    /**
+     * Turns an array of numbers into the string given by the concatenation of the
+     * characters to which the numbers correspond.
+     * @param bytes Array of numbers representing characters.
+     * @return Stringification of the array.
+     */
+    var byteArrayToString = function (bytes) {
+        // TODO(user): Use native implementations if/when available
+        var out = [];
+        var pos = 0, c = 0;
+        while (pos < bytes.length) {
+            var c1 = bytes[pos++];
+            if (c1 < 128) {
+                out[c++] = String.fromCharCode(c1);
+            }
+            else if (c1 > 191 && c1 < 224) {
+                var c2 = bytes[pos++];
+                out[c++] = String.fromCharCode(((c1 & 31) << 6) | (c2 & 63));
+            }
+            else if (c1 > 239 && c1 < 365) {
+                // Surrogate Pair
+                var c2 = bytes[pos++];
+                var c3 = bytes[pos++];
+                var c4 = bytes[pos++];
+                var u = (((c1 & 7) << 18) | ((c2 & 63) << 12) | ((c3 & 63) << 6) | (c4 & 63)) -
+                    0x10000;
+                out[c++] = String.fromCharCode(0xd800 + (u >> 10));
+                out[c++] = String.fromCharCode(0xdc00 + (u & 1023));
+            }
+            else {
+                var c2 = bytes[pos++];
+                var c3 = bytes[pos++];
+                out[c++] = String.fromCharCode(((c1 & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
+            }
+        }
+        return out.join('');
+    };
+    // We define it as an object literal instead of a class because a class compiled down to es5 can't
+    // be treeshaked. https://github.com/rollup/rollup/issues/1691
+    // Static lookup maps, lazily populated by init_()
+    var base64 = {
+        /**
+         * Maps bytes to characters.
+         */
+        byteToCharMap_: null,
+        /**
+         * Maps characters to bytes.
+         */
+        charToByteMap_: null,
+        /**
+         * Maps bytes to websafe characters.
+         * @private
+         */
+        byteToCharMapWebSafe_: null,
+        /**
+         * Maps websafe characters to bytes.
+         * @private
+         */
+        charToByteMapWebSafe_: null,
+        /**
+         * Our default alphabet, shared between
+         * ENCODED_VALS and ENCODED_VALS_WEBSAFE
+         */
+        ENCODED_VALS_BASE: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' + 'abcdefghijklmnopqrstuvwxyz' + '0123456789',
+        /**
+         * Our default alphabet. Value 64 (=) is special; it means "nothing."
+         */
+        get ENCODED_VALS() {
+            return this.ENCODED_VALS_BASE + '+/=';
+        },
+        /**
+         * Our websafe alphabet.
+         */
+        get ENCODED_VALS_WEBSAFE() {
+            return this.ENCODED_VALS_BASE + '-_.';
+        },
+        /**
+         * Whether this browser supports the atob and btoa functions. This extension
+         * started at Mozilla but is now implemented by many browsers. We use the
+         * ASSUME_* variables to avoid pulling in the full useragent detection library
+         * but still allowing the standard per-browser compilations.
+         *
+         */
+        HAS_NATIVE_SUPPORT: typeof atob === 'function',
+        /**
+         * Base64-encode an array of bytes.
+         *
+         * @param input An array of bytes (numbers with
+         *     value in [0, 255]) to encode.
+         * @param webSafe Boolean indicating we should use the
+         *     alternative alphabet.
+         * @return The base64 encoded string.
+         */
+        encodeByteArray: function (input, webSafe) {
+            if (!Array.isArray(input)) {
+                throw Error('encodeByteArray takes an array as a parameter');
+            }
+            this.init_();
+            var byteToCharMap = webSafe
+                ? this.byteToCharMapWebSafe_
+                : this.byteToCharMap_;
+            var output = [];
+            for (var i = 0; i < input.length; i += 3) {
+                var byte1 = input[i];
+                var haveByte2 = i + 1 < input.length;
+                var byte2 = haveByte2 ? input[i + 1] : 0;
+                var haveByte3 = i + 2 < input.length;
+                var byte3 = haveByte3 ? input[i + 2] : 0;
+                var outByte1 = byte1 >> 2;
+                var outByte2 = ((byte1 & 0x03) << 4) | (byte2 >> 4);
+                var outByte3 = ((byte2 & 0x0f) << 2) | (byte3 >> 6);
+                var outByte4 = byte3 & 0x3f;
+                if (!haveByte3) {
+                    outByte4 = 64;
+                    if (!haveByte2) {
+                        outByte3 = 64;
+                    }
+                }
+                output.push(byteToCharMap[outByte1], byteToCharMap[outByte2], byteToCharMap[outByte3], byteToCharMap[outByte4]);
+            }
+            return output.join('');
+        },
+        /**
+         * Base64-encode a string.
+         *
+         * @param input A string to encode.
+         * @param webSafe If true, we should use the
+         *     alternative alphabet.
+         * @return The base64 encoded string.
+         */
+        encodeString: function (input, webSafe) {
+            // Shortcut for Mozilla browsers that implement
+            // a native base64 encoder in the form of "btoa/atob"
+            if (this.HAS_NATIVE_SUPPORT && !webSafe) {
+                return btoa(input);
+            }
+            return this.encodeByteArray(stringToByteArray$1(input), webSafe);
+        },
+        /**
+         * Base64-decode a string.
+         *
+         * @param input to decode.
+         * @param webSafe True if we should use the
+         *     alternative alphabet.
+         * @return string representing the decoded value.
+         */
+        decodeString: function (input, webSafe) {
+            // Shortcut for Mozilla browsers that implement
+            // a native base64 encoder in the form of "btoa/atob"
+            if (this.HAS_NATIVE_SUPPORT && !webSafe) {
+                return atob(input);
+            }
+            return byteArrayToString(this.decodeStringToByteArray(input, webSafe));
+        },
+        /**
+         * Base64-decode a string.
+         *
+         * In base-64 decoding, groups of four characters are converted into three
+         * bytes.  If the encoder did not apply padding, the input length may not
+         * be a multiple of 4.
+         *
+         * In this case, the last group will have fewer than 4 characters, and
+         * padding will be inferred.  If the group has one or two characters, it decodes
+         * to one byte.  If the group has three characters, it decodes to two bytes.
+         *
+         * @param input Input to decode.
+         * @param webSafe True if we should use the web-safe alphabet.
+         * @return bytes representing the decoded value.
+         */
+        decodeStringToByteArray: function (input, webSafe) {
+            this.init_();
+            var charToByteMap = webSafe
+                ? this.charToByteMapWebSafe_
+                : this.charToByteMap_;
+            var output = [];
+            for (var i = 0; i < input.length;) {
+                var byte1 = charToByteMap[input.charAt(i++)];
+                var haveByte2 = i < input.length;
+                var byte2 = haveByte2 ? charToByteMap[input.charAt(i)] : 0;
+                ++i;
+                var haveByte3 = i < input.length;
+                var byte3 = haveByte3 ? charToByteMap[input.charAt(i)] : 64;
+                ++i;
+                var haveByte4 = i < input.length;
+                var byte4 = haveByte4 ? charToByteMap[input.charAt(i)] : 64;
+                ++i;
+                if (byte1 == null || byte2 == null || byte3 == null || byte4 == null) {
+                    throw Error();
+                }
+                var outByte1 = (byte1 << 2) | (byte2 >> 4);
+                output.push(outByte1);
+                if (byte3 !== 64) {
+                    var outByte2 = ((byte2 << 4) & 0xf0) | (byte3 >> 2);
+                    output.push(outByte2);
+                    if (byte4 !== 64) {
+                        var outByte3 = ((byte3 << 6) & 0xc0) | byte4;
+                        output.push(outByte3);
+                    }
+                }
+            }
+            return output;
+        },
+        /**
+         * Lazy static initialization function. Called before
+         * accessing any of the static map variables.
+         * @private
+         */
+        init_: function () {
+            if (!this.byteToCharMap_) {
+                this.byteToCharMap_ = {};
+                this.charToByteMap_ = {};
+                this.byteToCharMapWebSafe_ = {};
+                this.charToByteMapWebSafe_ = {};
+                // We want quick mappings back and forth, so we precompute two maps.
+                for (var i = 0; i < this.ENCODED_VALS.length; i++) {
+                    this.byteToCharMap_[i] = this.ENCODED_VALS.charAt(i);
+                    this.charToByteMap_[this.byteToCharMap_[i]] = i;
+                    this.byteToCharMapWebSafe_[i] = this.ENCODED_VALS_WEBSAFE.charAt(i);
+                    this.charToByteMapWebSafe_[this.byteToCharMapWebSafe_[i]] = i;
+                    // Be forgiving when decoding and correctly decode both encodings.
+                    if (i >= this.ENCODED_VALS_BASE.length) {
+                        this.charToByteMap_[this.ENCODED_VALS_WEBSAFE.charAt(i)] = i;
+                        this.charToByteMapWebSafe_[this.ENCODED_VALS.charAt(i)] = i;
+                    }
+                }
+            }
+        }
+    };
+
+    /**
+     * @license
+     * Copyright 2021 Google LLC
+     *
+     * Licensed under the Apache License, Version 2.0 (the "License");
+     * you may not use this file except in compliance with the License.
+     * You may obtain a copy of the License at
+     *
+     *   http://www.apache.org/licenses/LICENSE-2.0
+     *
+     * Unless required by applicable law or agreed to in writing, software
+     * distributed under the License is distributed on an "AS IS" BASIS,
+     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     * See the License for the specific language governing permissions and
+     * limitations under the License.
+     */
+    function createMockUserToken(token, projectId) {
+        if (token.uid) {
+            throw new Error('The "uid" field is no longer supported by mockUserToken. Please use "sub" instead for Firebase Auth User ID.');
+        }
+        // Unsecured JWTs use "none" as the algorithm.
+        var header = {
+            alg: 'none',
+            type: 'JWT'
+        };
+        var project = projectId || 'demo-project';
+        var iat = token.iat || 0;
+        var sub = token.sub || token.user_id;
+        if (!sub) {
+            throw new Error("mockUserToken must contain 'sub' or 'user_id' field!");
+        }
+        var payload = __assign({ 
+            // Set all required fields to decent defaults
+            iss: "https://securetoken.google.com/" + project, aud: project, iat: iat, exp: iat + 3600, auth_time: iat, sub: sub, user_id: sub, firebase: {
+                sign_in_provider: 'custom',
+                identities: {}
+            } }, token);
+        // Unsecured JWTs use the empty string as a signature.
+        var signature = '';
+        return [
+            base64.encodeString(JSON.stringify(header), /*webSafe=*/ false),
+            base64.encodeString(JSON.stringify(payload), /*webSafe=*/ false),
+            signature
+        ].join('.');
+    }
+
+    /**
+     * @license
+     * Copyright 2017 Google LLC
+     *
+     * Licensed under the Apache License, Version 2.0 (the "License");
+     * you may not use this file except in compliance with the License.
+     * You may obtain a copy of the License at
+     *
+     *   http://www.apache.org/licenses/LICENSE-2.0
+     *
+     * Unless required by applicable law or agreed to in writing, software
+     * distributed under the License is distributed on an "AS IS" BASIS,
+     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     * See the License for the specific language governing permissions and
+     * limitations under the License.
+     */
+    /**
+     * Returns navigator.userAgent string or '' if it's not defined.
+     * @return user agent string
+     */
+    function getUA() {
+        if (typeof navigator !== 'undefined' &&
+            typeof navigator['userAgent'] === 'string') {
+            return navigator['userAgent'];
+        }
+        else {
+            return '';
+        }
+    }
+    /**
+     * Detect Cordova / PhoneGap / Ionic frameworks on a mobile device.
+     *
+     * Deliberately does not rely on checking `file://` URLs (as this fails PhoneGap
+     * in the Ripple emulator) nor Cordova `onDeviceReady`, which would normally
+     * wait for a callback.
+     */
+    function isMobileCordova() {
+        return (typeof window !== 'undefined' &&
+            // @ts-ignore Setting up an broadly applicable index signature for Window
+            // just to deal with this case would probably be a bad idea.
+            !!(window['cordova'] || window['phonegap'] || window['PhoneGap']) &&
+            /ios|iphone|ipod|ipad|android|blackberry|iemobile/i.test(getUA()));
+    }
+    /**
+     * Detect Node.js.
+     *
+     * @return true if Node.js environment is detected.
+     */
+    // Node detection logic from: https://github.com/iliakan/detect-node/
+    function isNode() {
+        try {
+            return (Object.prototype.toString.call(global.process) === '[object process]');
+        }
+        catch (e) {
+            return false;
+        }
+    }
+    function isBrowserExtension() {
+        var runtime = typeof chrome === 'object'
+            ? chrome.runtime
+            : typeof browser === 'object'
+                ? browser.runtime
+                : undefined;
+        return typeof runtime === 'object' && runtime.id !== undefined;
+    }
+    /**
+     * Detect React Native.
+     *
+     * @return true if ReactNative environment is detected.
+     */
+    function isReactNative() {
+        return (typeof navigator === 'object' && navigator['product'] === 'ReactNative');
+    }
+    /** Detects Electron apps. */
+    function isElectron() {
+        return getUA().indexOf('Electron/') >= 0;
+    }
+    /** Detects Internet Explorer. */
+    function isIE() {
+        var ua = getUA();
+        return ua.indexOf('MSIE ') >= 0 || ua.indexOf('Trident/') >= 0;
+    }
+    /** Detects Universal Windows Platform apps. */
+    function isUWP() {
+        return getUA().indexOf('MSAppHost/') >= 0;
+    }
+    /** Returns true if we are running in Safari. */
+    function isSafari() {
+        return (!isNode() &&
+            navigator.userAgent.includes('Safari') &&
+            !navigator.userAgent.includes('Chrome'));
+    }
+
+    /**
+     * @license
+     * Copyright 2017 Google LLC
+     *
+     * Licensed under the Apache License, Version 2.0 (the "License");
+     * you may not use this file except in compliance with the License.
+     * You may obtain a copy of the License at
+     *
+     *   http://www.apache.org/licenses/LICENSE-2.0
+     *
+     * Unless required by applicable law or agreed to in writing, software
+     * distributed under the License is distributed on an "AS IS" BASIS,
+     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     * See the License for the specific language governing permissions and
+     * limitations under the License.
+     */
+    var ERROR_NAME$1 = 'FirebaseError';
+    // Based on code from:
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#Custom_Error_Types
+    var FirebaseError$1 = /** @class */ (function (_super) {
+        __extends$1(FirebaseError, _super);
+        function FirebaseError(code, message, customData) {
+            var _this = _super.call(this, message) || this;
+            _this.code = code;
+            _this.customData = customData;
+            _this.name = ERROR_NAME$1;
+            // Fix For ES5
+            // https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
+            Object.setPrototypeOf(_this, FirebaseError.prototype);
+            // Maintains proper stack trace for where our error was thrown.
+            // Only available on V8.
+            if (Error.captureStackTrace) {
+                Error.captureStackTrace(_this, ErrorFactory$1.prototype.create);
+            }
+            return _this;
+        }
+        return FirebaseError;
+    }(Error));
+    var ErrorFactory$1 = /** @class */ (function () {
+        function ErrorFactory(service, serviceName, errors) {
+            this.service = service;
+            this.serviceName = serviceName;
+            this.errors = errors;
+        }
+        ErrorFactory.prototype.create = function (code) {
+            var data = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                data[_i - 1] = arguments[_i];
+            }
+            var customData = data[0] || {};
+            var fullCode = this.service + "/" + code;
+            var template = this.errors[code];
+            var message = template ? replaceTemplate$1(template, customData) : 'Error';
+            // Service Name: Error message (service/code).
+            var fullMessage = this.serviceName + ": " + message + " (" + fullCode + ").";
+            var error = new FirebaseError$1(fullCode, fullMessage, customData);
+            return error;
+        };
+        return ErrorFactory;
+    }());
+    function replaceTemplate$1(template, data) {
+        return template.replace(PATTERN$1, function (_, key) {
+            var value = data[key];
+            return value != null ? String(value) : "<" + key + "?>";
+        });
+    }
+    var PATTERN$1 = /\{\$([^}]+)}/g;
+
+    /**
+     * @license
+     * Copyright 2021 Google LLC
+     *
+     * Licensed under the Apache License, Version 2.0 (the "License");
+     * you may not use this file except in compliance with the License.
+     * You may obtain a copy of the License at
+     *
+     *   http://www.apache.org/licenses/LICENSE-2.0
+     *
+     * Unless required by applicable law or agreed to in writing, software
+     * distributed under the License is distributed on an "AS IS" BASIS,
+     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     * See the License for the specific language governing permissions and
+     * limitations under the License.
+     */
+    function getModularInstance(service) {
+        if (service && service._delegate) {
+            return service._delegate;
+        }
+        else {
+            return service;
+        }
+    }
 
     /*! *****************************************************************************
     Copyright (c) Microsoft Corporation.
@@ -3256,10 +3338,10 @@ var app = (function () {
     var pb = "__closure_events_fn_" + (1E9 * Math.random() >>> 0);
     function hb(a) { if ("function" === typeof a)
         return a; a[pb] || (a[pb] = function (b) { return a.handleEvent(b); }); return a[pb]; }
-    function C$1() { v.call(this); this.i = new $a$1(this); this.P = this; this.I = null; }
-    t(C$1, v);
-    C$1.prototype[B$1] = !0;
-    C$1.prototype.removeEventListener = function (a, b, c, d) { nb(this, a, b, c, d); };
+    function C$2() { v.call(this); this.i = new $a$1(this); this.P = this; this.I = null; }
+    t(C$2, v);
+    C$2.prototype[B$1] = !0;
+    C$2.prototype.removeEventListener = function (a, b, c, d) { nb(this, a, b, c, d); };
     function D$1(a, b) { var c, d = a.I; if (d)
         for (c = []; d; d = d.I)
             c.push(d); a = a.P; d = b.type || b; if ("string" === typeof b)
@@ -3277,7 +3359,7 @@ var app = (function () {
         } h = b.g = a; e = qb(h, d, !0, b) && e; e = qb(h, d, !1, b) && e; if (c)
         for (f = 0; f < c.length; f++)
             h = b.g = c[f], e = qb(h, d, !1, b) && e; }
-    C$1.prototype.M = function () { C$1.Z.M.call(this); if (this.i) {
+    C$2.prototype.M = function () { C$2.Z.M.call(this); if (this.i) {
         var a = this.i, c;
         for (c in a.g) {
             for (var d = a.g[c], e = 0; e < d.length; e++)
@@ -3286,8 +3368,8 @@ var app = (function () {
             a.h--;
         }
     } this.I = null; };
-    C$1.prototype.N = function (a, b, c, d) { return this.i.add(String(a), b, !1, c, d); };
-    C$1.prototype.O = function (a, b, c, d) { return this.i.add(String(a), b, !0, c, d); };
+    C$2.prototype.N = function (a, b, c, d) { return this.i.add(String(a), b, !1, c, d); };
+    C$2.prototype.O = function (a, b, c, d) { return this.i.add(String(a), b, !0, c, d); };
     function qb(a, b, c, d) { b = a.i.g[String(b)]; if (!b)
         return !0; b = b.concat(); for (var e = !0, f = 0; f < b.length; ++f) {
         var h = b[f];
@@ -3340,8 +3422,8 @@ var app = (function () {
         b.j(a);
         100 > b.h && (b.h++, a.next = b.g, b.g = a);
     } Cb = !1; }
-    function Eb(a, b) { C$1.call(this); this.h = a || 1; this.g = b || l; this.j = q$1(this.kb, this); this.l = Date.now(); }
-    t(Eb, C$1);
+    function Eb(a, b) { C$2.call(this); this.h = a || 1; this.g = b || l; this.j = q$1(this.kb, this); this.l = Date.now(); }
+    t(Eb, C$2);
     k$1 = Eb.prototype;
     k$1.da = !1;
     k$1.S = null;
@@ -3433,7 +3515,7 @@ var app = (function () {
         return b;
     } }
     var H$1 = {}, Rb = null;
-    function Sb() { return Rb = Rb || new C$1; }
+    function Sb() { return Rb = Rb || new C$2; }
     H$1.Ma = "serverreachability";
     function Tb(a) { z$1.call(this, H$1.Ma, a); }
     t(Tb, z$1);
@@ -3490,7 +3572,7 @@ var app = (function () {
                             var e = d.length, f = 4 == O$1(this.g);
                             if (!this.h.i) {
                                 if ("undefined" === typeof TextDecoder) {
-                                    P$2(this);
+                                    P$1(this);
                                     rc$1(this);
                                     var h = "";
                                     break b;
@@ -3526,18 +3608,18 @@ var app = (function () {
                                     this.i = !1;
                                     this.o = 3;
                                     J$1(12);
-                                    P$2(this);
+                                    P$1(this);
                                     rc$1(this);
                                     break a;
                                 }
                             }
                             this.U ? (tc$1(this, r, h), Ja$1 && this.i && 3 == r && (Kb(this.V, this.W, "tick", this.fb),
                                 this.W.start())) : (F$1(this.j, this.m, h, null), sc$1(this, h));
-                            4 == r && P$2(this);
+                            4 == r && P$1(this);
                             this.i && !this.I && (4 == r ? uc$1(this.l, this) : (this.i = !1, lc$1(this)));
                         }
                         else
-                            400 == c && 0 < h.indexOf("Unknown SID") ? (this.o = 3, J$1(12)) : (this.o = 0, J$1(13)), P$2(this), rc$1(this);
+                            400 == c && 0 < h.indexOf("Unknown SID") ? (this.o = 3, J$1(12)) : (this.o = 0, J$1(13)), P$1(this), rc$1(this);
                     }
                 }
         }
@@ -3565,7 +3647,7 @@ var app = (function () {
         qc$1(a) && e != hc$1 && e != gc$1 && (a.h.g = "", a.C = 0);
         4 != b || 0 != c.length || a.h.h || (a.o = 1, J$1(16), d = !1);
         a.i = a.i && d;
-        d ? 0 < c.length && !a.aa && (a.aa = !0, b = a.l, b.g == a && b.$ && !b.L && (b.h.info("Great, no buffering proxy detected. Bytes received: " + c.length), wc$1(b), b.L = !0, J$1(11))) : (F$1(a.j, a.m, c, "[Invalid Chunked Response]"), P$2(a), rc$1(a));
+        d ? 0 < c.length && !a.aa && (a.aa = !0, b = a.l, b.g == a && b.$ && !b.L && (b.h.info("Great, no buffering proxy detected. Bytes received: " + c.length), wc$1(b), b.L = !0, J$1(11))) : (F$1(a.j, a.m, c, "[Invalid Chunked Response]"), P$1(a), rc$1(a));
     }
     k$1.fb = function () { if (this.g) {
         var a = O$1(this.g), b = this.g.ga();
@@ -3575,14 +3657,14 @@ var app = (function () {
         return hc$1; c = Number(b.substring(c, d)); if (isNaN(c))
         return gc$1; d += 1; if (d + c > b.length)
         return hc$1; b = b.substr(d, c); a.C = d + c; return b; }
-    k$1.cancel = function () { this.I = !0; P$2(this); };
+    k$1.cancel = function () { this.I = !0; P$1(this); };
     function lc$1(a) { a.Y = Date.now() + a.P; xc$1(a, a.P); }
     function xc$1(a, b) { if (null != a.B)
         throw Error("WatchDog timer not null"); a.B = K$1(q$1(a.eb, a), b); }
     function pc$1(a) { a.B && (l.clearTimeout(a.B), a.B = null); }
-    k$1.eb = function () { this.B = null; var a = Date.now(); 0 <= a - this.Y ? (Qb(this.j, this.A), 2 != this.K && (I$1(3), J$1(17)), P$2(this), this.o = 2, rc$1(this)) : xc$1(this, this.Y - a); };
+    k$1.eb = function () { this.B = null; var a = Date.now(); 0 <= a - this.Y ? (Qb(this.j, this.A), 2 != this.K && (I$1(3), J$1(17)), P$1(this), this.o = 2, rc$1(this)) : xc$1(this, this.Y - a); };
     function rc$1(a) { 0 == a.l.G || a.I || uc$1(a.l, a); }
-    function P$2(a) { pc$1(a); var b = a.L; b && "function" == typeof b.na && b.na(); a.L = null; Fb(a.W); Lb(a.V); a.g && (b = a.g, a.g = null, b.abort(), b.na()); }
+    function P$1(a) { pc$1(a); var b = a.L; b && "function" == typeof b.na && b.na(); a.L = null; Fb(a.W); Lb(a.V); a.g && (b = a.g, a.g = null, b.abort(), b.na()); }
     function sc$1(a, b) {
         try {
             var c = a.l;
@@ -3918,8 +4000,8 @@ var app = (function () {
     t(pd, Yb);
     pd.prototype.g = function () { return new qd(this.l, this.j); };
     pd.prototype.i = function (a) { return function () { return a; }; }({});
-    function qd(a, b) { C$1.call(this); this.D = a; this.u = b; this.m = void 0; this.readyState = rd; this.status = 0; this.responseType = this.responseText = this.response = this.statusText = ""; this.onreadystatechange = null; this.v = new Headers; this.h = null; this.C = "GET"; this.B = ""; this.g = !1; this.A = this.j = this.l = null; }
-    t(qd, C$1);
+    function qd(a, b) { C$2.call(this); this.D = a; this.u = b; this.m = void 0; this.readyState = rd; this.status = 0; this.responseType = this.responseText = this.response = this.statusText = ""; this.onreadystatechange = null; this.v = new Headers; this.h = null; this.C = "GET"; this.B = ""; this.g = !1; this.A = this.j = this.l = null; }
+    t(qd, C$2);
     var rd = 0;
     k$1 = qd.prototype;
     k$1.open = function (a, b) { if (this.readyState != rd)
@@ -3970,8 +4052,8 @@ var app = (function () {
     function sd(a) { a.onreadystatechange && a.onreadystatechange.call(a); }
     Object.defineProperty(qd.prototype, "withCredentials", { get: function () { return "include" === this.m; }, set: function (a) { this.m = a ? "include" : "same-origin"; } });
     var vd = l.JSON.parse;
-    function X$1(a) { C$1.call(this); this.headers = new S$1; this.u = a || null; this.h = !1; this.C = this.g = null; this.H = ""; this.m = 0; this.j = ""; this.l = this.F = this.v = this.D = !1; this.B = 0; this.A = null; this.J = wd; this.K = this.L = !1; }
-    t(X$1, C$1);
+    function X$1(a) { C$2.call(this); this.headers = new S$1; this.u = a || null; this.h = !1; this.C = this.g = null; this.H = ""; this.m = 0; this.j = ""; this.l = this.F = this.v = this.D = !1; this.B = 0; this.A = null; this.J = wd; this.K = this.L = !1; }
+    t(X$1, C$2);
     var wd = "", xd = /^https?$/i, yd = ["POST", "PUT"];
     k$1 = X$1.prototype;
     k$1.ea = function (a, b, c, d) {
@@ -4357,7 +4439,7 @@ var app = (function () {
         throw Error("Environmental error: no available transport."); }
     Td.prototype.g = function (a, b) { return new Y$1(a, b); };
     function Y$1(a, b) {
-        C$1.call(this);
+        C$2.call(this);
         this.g = new Id(b);
         this.l = a;
         this.h = b && b.messageUrlParams || null;
@@ -4375,7 +4457,7 @@ var app = (function () {
         (b = b && b.httpSessionIdParam) && !sa$1(b) && (this.g.D = b, a = this.h, null !== a && b in a && (a = this.h, b in a && delete a[b]));
         this.j = new Z$1(this);
     }
-    t(Y$1, C$1);
+    t(Y$1, C$2);
     Y$1.prototype.m = function () { this.g.j = this.j; this.A && (this.g.H = !0); var a = this.g, b = this.l, c = this.h || void 0; a.Wa && (a.h.info("Origin Trials enabled."), zb(q$1(a.hb, a, b))); J$1(0); a.W = b; a.aa = c || {}; a.N = a.X; a.F = Ec$1(a, null, a.W); Hc(a); };
     Y$1.prototype.close = function () { Ic$1(this.g); };
     Y$1.prototype.u = function (a) { if ("string" === typeof a) {
@@ -4437,7 +4519,7 @@ var app = (function () {
     L$1.CLOSE = "b";
     L$1.ERROR = "c";
     L$1.MESSAGE = "d";
-    C$1.prototype.listen = C$1.prototype.N;
+    C$2.prototype.listen = C$2.prototype.N;
     X$1.prototype.listenOnce = X$1.prototype.O;
     X$1.prototype.getLastError = X$1.prototype.La;
     X$1.prototype.getLastErrorCode = X$1.prototype.Da;
@@ -4665,11 +4747,11 @@ var app = (function () {
      *     <li>`error` to log errors only.</li>
      *     <li><code>`silent` to turn off logging.</li>
      *   </ul>
-     */ function C(t) {
+     */ function C$1(t) {
         for (var n = [], r = 1; r < arguments.length; r++) n[r - 1] = arguments[r];
         if (A.logLevel <= LogLevel.DEBUG) {
             var i = n.map(L);
-            A.debug.apply(A, __spreadArray([ "Firestore (8.8.0): " + t ], i));
+            A.debug.apply(A, __spreadArray([ "Firestore (8.8.1): " + t ], i));
         }
     }
 
@@ -4677,7 +4759,7 @@ var app = (function () {
         for (var n = [], r = 1; r < arguments.length; r++) n[r - 1] = arguments[r];
         if (A.logLevel <= LogLevel.ERROR) {
             var i = n.map(L);
-            A.error.apply(A, __spreadArray([ "Firestore (8.8.0): " + t ], i));
+            A.error.apply(A, __spreadArray([ "Firestore (8.8.1): " + t ], i));
         }
     }
 
@@ -4685,7 +4767,7 @@ var app = (function () {
         for (var n = [], r = 1; r < arguments.length; r++) n[r - 1] = arguments[r];
         if (A.logLevel <= LogLevel.WARN) {
             var i = n.map(L);
-            A.warn.apply(A, __spreadArray([ "Firestore (8.8.0): " + t ], i));
+            A.warn.apply(A, __spreadArray([ "Firestore (8.8.1): " + t ], i));
         }
     }
 
@@ -4729,7 +4811,7 @@ var app = (function () {
         void 0 === t && (t = "Unexpected state");
         // Log the failure in addition to throw an exception, just in case the
         // exception is swallowed.
-            var e = "FIRESTORE (8.8.0) INTERNAL ASSERTION FAILED: " + t;
+            var e = "FIRESTORE (8.8.1) INTERNAL ASSERTION FAILED: " + t;
         // NOTE: We don't use FirestoreError here because these are internal failures
         // that cannot be handled by the user. (Also it would create a circular
         // dependency between the error and assert modules which doesn't work.)
@@ -4742,7 +4824,7 @@ var app = (function () {
      */;
     }
 
-    function P$1(t, e) {
+    function P(t, e) {
         t || O();
     }
 
@@ -5290,12 +5372,12 @@ var app = (function () {
         // The json interface (for the browser) will return an iso timestamp string,
         // while the proto js library (for node) will return a
         // google.protobuf.Timestamp instance.
-        if (P$1(!!t), "string" == typeof t) {
+        if (P(!!t), "string" == typeof t) {
             // The date string can have higher precision (nanos) than the Date class
             // (millis), so we do some custom parsing here.
             // Parse the nanos right out of the string.
             var e = 0, n = Z.exec(t);
-            if (P$1(!!n), n[1]) {
+            if (P(!!n), n[1]) {
                 // Pad the fraction out to 9 digits (nanos).
                 var r = n[1];
                 r = (r + "000000000").substr(0, 9), e = Number(r);
@@ -6906,7 +6988,7 @@ var app = (function () {
 
     function Ve(t, e, n) {
         var r = new Map;
-        P$1(t.length === n.length);
+        P(t.length === n.length);
         for (var i = 0; i < n.length; i++) {
             var o = t[i], s = o.transform, u = e.data.field(o.field);
             r.set(o.field, ye(s, u, n[i]));
@@ -7891,7 +7973,7 @@ var app = (function () {
                     // queries.
                     var o = new ct(i.path);
                     this.tt(e, o, Nt.newNoDocument(o, K.min()));
-                } else P$1(1 === n); else this.ct(e) !== n && (
+                } else P(1 === n); else this.ct(e) !== n && (
                 // Existence filter mismatch: We reset the mapping and raise a new
                 // snapshot with `isFromCache:true`.
                 this.it(e), this.Y = this.Y.add(e));
@@ -7995,7 +8077,7 @@ var app = (function () {
          */
         t.prototype.st = function(t) {
             var e = null !== this.ot(t);
-            return e || C("WatchChangeAggregator", "Detected inactive target", t), e;
+            return e || C$1("WatchChangeAggregator", "Detected inactive target", t), e;
         }, 
         /**
          * Returns the TargetData for an active target (i.e. a target that the user
@@ -8112,7 +8194,7 @@ var app = (function () {
     }
 
     function _n(t) {
-        return P$1(!!t), K.fromTimestamp(function(t) {
+        return P(!!t), K.fromTimestamp(function(t) {
             var e = tt(t);
             return new j(e.seconds, e.nanos);
         }(t));
@@ -8126,7 +8208,7 @@ var app = (function () {
 
     function Nn(t) {
         var e = H.fromString(t);
-        return P$1($n(e)), e;
+        return P($n(e)), e;
     }
 
     function Dn(t, e) {
@@ -8158,7 +8240,7 @@ var app = (function () {
     }
 
     function Rn(t) {
-        return P$1(t.length > 4 && "documents" === t.get(4)), t.popFirst(5)
+        return P(t.length > 4 && "documents" === t.get(4)), t.popFirst(5)
         /** Creates a Document proto from key and fields (but no create/update time) */;
     }
 
@@ -8233,7 +8315,7 @@ var app = (function () {
         }(e.currentDocument) : De.none(), r = e.updateTransforms ? e.updateTransforms.map((function(e) {
             return function(t, e) {
                 var n = null;
-                if ("setToServerValue" in e) P$1("REQUEST_TIME" === e.setToServerValue), n = new me; else if ("appendMissingElements" in e) {
+                if ("setToServerValue" in e) P("REQUEST_TIME" === e.setToServerValue), n = new me; else if ("appendMissingElements" in e) {
                     var r = e.appendMissingElements.values || [];
                     n = new ge(r);
                 } else if ("removeAllFromArray" in e) {
@@ -8364,7 +8446,7 @@ var app = (function () {
     function qn(t) {
         var e = Cn(t.parent), n = t.structuredQuery, r = n.from ? n.from.length : 0, i = null;
         if (r > 0) {
-            P$1(1 === r);
+            P(1 === r);
             var o = n.from[0];
             o.allDescendants ? i = o.collectionId : e = e.child(o.collectionId);
         }
@@ -8580,7 +8662,7 @@ var app = (function () {
         // Event the empty path must encode as a path of at least length 2. A path
         // with exactly 2 must be the empty path.
         var e = t.length;
-        if (P$1(e >= 2), 2 === e) return P$1("" === t.charAt(0) && "" === t.charAt(1)), H.emptyPath();
+        if (P(e >= 2), 2 === e) return P("" === t.charAt(0) && "" === t.charAt(1)), H.emptyPath();
         // Escape characters cannot exist past the second-to-last position in the
         // source value.
             for (var n = e - 2, r = [], i = "", o = 0; o < e; ) {
@@ -9284,7 +9366,7 @@ var app = (function () {
             enumerable: !1,
             configurable: !0
         }), t.prototype.abort = function(t) {
-            t && this.ft.reject(t), this.aborted || (C("SimpleDb", "Aborting transaction:", t ? t.message : "Client-initiated abort"), 
+            t && this.ft.reject(t), this.aborted || (C$1("SimpleDb", "Aborting transaction:", t ? t.message : "Client-initiated abort"), 
             this.aborted = !0, this.transaction.abort());
         }, 
         /**
@@ -9319,7 +9401,7 @@ var app = (function () {
             12.2 === t._t(getUA()) && x("Firestore persistence suffers from a bug in iOS 12.2 Safari that may cause your app to stop working. See https://stackoverflow.com/q/56496296/110915 for details and a potential workaround.");
         }
         /** Deletes the specified database. */    return t.delete = function(t) {
-            return C("SimpleDb", "Removing database:", t), Ar(window.indexedDB.deleteDatabase(t)).toPromise();
+            return C$1("SimpleDb", "Removing database:", t), Ar(window.indexedDB.deleteDatabase(t)).toPromise();
         }, 
         /** Returns true if IndexedDB is available in the current environment. */ t.yt = function() {
             if ("undefined" == typeof indexedDB) return !1;
@@ -9374,7 +9456,7 @@ var app = (function () {
                 return __generator(this, (function(r) {
                     switch (r.label) {
                       case 0:
-                        return this.db ? [ 3 /*break*/ , 2 ] : (C("SimpleDb", "Opening database:", this.name), 
+                        return this.db ? [ 3 /*break*/ , 2 ] : (C$1("SimpleDb", "Opening database:", this.name), 
                         e = this, [ 4 /*yield*/ , new Promise((function(e, r) {
                             // TODO(mikelehen): Investigate browser compatibility.
                             // https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB
@@ -9391,10 +9473,10 @@ var app = (function () {
                                 var n = e.target.error;
                                 "VersionError" === n.name ? r(new D(N.FAILED_PRECONDITION, "A newer version of the Firestore SDK was previously used and so the persisted data is not compatible with the version of the SDK you are now using. The SDK will operate with persistence disabled. If you need persistence, please re-upgrade to a newer version of the SDK or else clear the persisted IndexedDB data for your app to start fresh.")) : r(new Sr(t, n));
                             }, i.onupgradeneeded = function(t) {
-                                C("SimpleDb", 'Database "' + n.name + '" requires upgrade from version:', t.oldVersion);
+                                C$1("SimpleDb", 'Database "' + n.name + '" requires upgrade from version:', t.oldVersion);
                                 var e = t.target.result;
                                 n.wt.Rt(e, i.transaction, t.oldVersion, n.version).next((function() {
-                                    C("SimpleDb", "Database upgrade to version " + n.version + " complete");
+                                    C$1("SimpleDb", "Database upgrade to version " + n.version + " complete");
                                 }));
                             };
                         })) ]);
@@ -9446,7 +9528,7 @@ var app = (function () {
                                     r.sent(), u), c) ];
 
                                   case 4:
-                                    return h = r.sent(), f = "FirebaseError" !== h.name && s < 3, C("SimpleDb", "Transaction failed with error:", h.message, "Retrying:", f), 
+                                    return h = r.sent(), f = "FirebaseError" !== h.name && s < 3, C$1("SimpleDb", "Transaction failed with error:", h.message, "Retrying:", f), 
                                     a.close(), f ? [ 3 /*break*/ , 5 ] : [ 2 /*return*/ , {
                                         value: Promise.reject(h)
                                     } ];
@@ -9559,7 +9641,7 @@ var app = (function () {
         }
         return t.prototype.put = function(t, e) {
             var n;
-            return void 0 !== e ? (C("SimpleDb", "PUT", this.store.name, t, e), n = this.store.put(e, t)) : (C("SimpleDb", "PUT", this.store.name, "<auto-key>", t), 
+            return void 0 !== e ? (C$1("SimpleDb", "PUT", this.store.name, t, e), n = this.store.put(e, t)) : (C$1("SimpleDb", "PUT", this.store.name, "<auto-key>", t), 
             n = this.store.put(t)), Ar(n);
         }, 
         /**
@@ -9570,7 +9652,7 @@ var app = (function () {
          * @returns The key of the value to add.
          */
         t.prototype.add = function(t) {
-            return C("SimpleDb", "ADD", this.store.name, t, t), Ar(this.store.add(t));
+            return C$1("SimpleDb", "ADD", this.store.name, t, t), Ar(this.store.add(t));
         }, 
         /**
          * Gets the object with the specified key from the specified store, or null
@@ -9585,10 +9667,10 @@ var app = (function () {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     return Ar(this.store.get(t)).next((function(n) {
                 // Normalize nonexistence to null.
-                return void 0 === n && (n = null), C("SimpleDb", "GET", e.store.name, t, n), n;
+                return void 0 === n && (n = null), C$1("SimpleDb", "GET", e.store.name, t, n), n;
             }));
         }, t.prototype.delete = function(t) {
-            return C("SimpleDb", "DELETE", this.store.name, t), Ar(this.store.delete(t));
+            return C$1("SimpleDb", "DELETE", this.store.name, t), Ar(this.store.delete(t));
         }, 
         /**
          * If we ever need more of the count variants, we can add overloads. For now,
@@ -9597,7 +9679,7 @@ var app = (function () {
          * Returns the number of rows in the store.
          */
         t.prototype.count = function() {
-            return C("SimpleDb", "COUNT", this.store.name), Ar(this.store.count());
+            return C$1("SimpleDb", "COUNT", this.store.name), Ar(this.store.count());
         }, t.prototype.Nt = function(t, e) {
             var n = this.cursor(this.options(t, e)), r = [];
             return this.xt(n, (function(t, e) {
@@ -9606,7 +9688,7 @@ var app = (function () {
                 return r;
             }));
         }, t.prototype.Ft = function(t, e) {
-            C("SimpleDb", "DELETE ALL", this.store.name);
+            C$1("SimpleDb", "DELETE ALL", this.store.name);
             var n = this.options(t, e);
             n.kt = !1;
             var r = this.cursor(n);
@@ -9847,7 +9929,7 @@ var app = (function () {
          */;
         }
         return t.from = function(e, n, r) {
-            P$1(e.mutations.length === r.length);
+            P(e.mutations.length === r.length);
             for (var i = rn(), o = e.mutations, s = 0; s < o.length; s++) i = i.insert(o[s].key, r[s].version);
             return new t(e, n, r, i);
         }, t;
@@ -9995,7 +10077,7 @@ var app = (function () {
 
     /** Decodes a DbTarget into TargetData */ function Qr(t) {
         var e, n, r = jr(t.readTime), i = void 0 !== t.lastLimboFreeSnapshotVersion ? jr(t.lastLimboFreeSnapshotVersion) : K.min();
-        return void 0 !== t.query.documents ? (P$1(1 === (n = t.query).documents.length), 
+        return void 0 !== t.query.documents ? (P(1 === (n = t.query).documents.length), 
         e = ne(Yt(Cn(n.documents[0])))) : e = function(t) {
             return ne(qn(t));
         }(t.query), new Pr(e, t.targetId, 0 /* Listen */ , t.lastListenSequenceNumber, r, i, J.fromBase64String(t.resumeToken))
@@ -10264,7 +10346,7 @@ var app = (function () {
             return u++, n.delete();
         }));
         o.push(a.next((function() {
-            P$1(1 === u);
+            P(1 === u);
         })));
         for (var c = [], h = 0, f = n.mutations; h < f.length; h++) {
             var l = f[h], d = or.key(e, l.key.path, n.batchId);
@@ -10339,7 +10421,7 @@ var app = (function () {
             // In particular, are there any reserved characters? are empty ids allowed?
             // For the moment store these together in the same mutations table assuming
             // that empty userIDs aren't allowed.
-            return P$1("" !== e.uid), new t(e.isAuthenticated() ? e.uid : "", n, r, i);
+            return P("" !== e.uid), new t(e.isAuthenticated() ? e.uid : "", n, r, i);
         }, t.prototype.checkEmpty = function(t) {
             var e = !0, n = IDBKeyRange.bound([ this.userId, Number.NEGATIVE_INFINITY ], [ this.userId, Number.POSITIVE_INFINITY ]);
             return si(t).$t({
@@ -10362,7 +10444,7 @@ var app = (function () {
             // We write an empty object to obtain key
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return s.add({}).next((function(u) {
-                P$1("number" == typeof u);
+                P("number" == typeof u);
                 for (var a = new Lr(u, e, n, r), c = function(t, e, n) {
                     var r = n.baseMutations.map((function(e) {
                         return Pn(t.Lt, e);
@@ -10387,7 +10469,7 @@ var app = (function () {
         }, t.prototype.lookupMutationBatch = function(t, e) {
             var n = this;
             return si(t).get(e).next((function(t) {
-                return t ? (P$1(t.userId === n.userId), Kr(n.R, t)) : null;
+                return t ? (P(t.userId === n.userId), Kr(n.R, t)) : null;
             }));
         }, 
         /**
@@ -10412,7 +10494,7 @@ var app = (function () {
                 index: ir.userMutationsIndex,
                 range: i
             }, (function(t, e, i) {
-                e.userId === n.userId && (P$1(e.batchId >= r), o = Kr(n.R, e)), i.done();
+                e.userId === n.userId && (P(e.batchId >= r), o = Kr(n.R, e)), i.done();
             })).next((function() {
                 return o;
             }));
@@ -10453,7 +10535,7 @@ var app = (function () {
                 // Look up the mutation batch in the store.
                 return si(t).get(c).next((function(t) {
                     if (!t) throw O();
-                    P$1(t.userId === n.userId), o.push(Kr(n.R, t));
+                    P(t.userId === n.userId), o.push(Kr(n.R, t));
                 }));
                 s.done();
             })).next((function() {
@@ -10501,7 +10583,7 @@ var app = (function () {
             return e.forEach((function(e) {
                 i.push(si(t).get(e).next((function(t) {
                     if (null === t) throw O();
-                    P$1(t.userId === n.userId), r.push(Kr(n.R, t));
+                    P(t.userId === n.userId), r.push(Kr(n.R, t));
                 })));
             })), Ir.waitFor(i).next((function() {
                 return r;
@@ -10542,7 +10624,7 @@ var app = (function () {
                         i.push(o);
                     } else r.done();
                 })).next((function() {
-                    P$1(0 === i.length);
+                    P(0 === i.length);
                 }));
             }));
         }, t.prototype.containsKey = function(t, e) {
@@ -10689,7 +10771,7 @@ var app = (function () {
             })).next((function() {
                 return n.Xt(t);
             })).next((function(e) {
-                return P$1(e.targetCount > 0), e.targetCount -= 1, n.Zt(t, e);
+                return P(e.targetCount > 0), e.targetCount -= 1, n.Zt(t, e);
             }));
         }, 
         /**
@@ -10718,7 +10800,7 @@ var app = (function () {
             }));
         }, t.prototype.Xt = function(t) {
             return li(t).get(lr.key).next((function(t) {
-                return P$1(null !== t), t;
+                return P(null !== t), t;
             }));
         }, t.prototype.Zt = function(t, e) {
             return li(t).put(lr.key, e);
@@ -10887,7 +10969,7 @@ var app = (function () {
         return __awaiter(this, void 0, void 0, (function() {
             return __generator(this, (function(e) {
                 if (t.code !== N.FAILED_PRECONDITION || t.message !== gr) throw t;
-                return C("LocalStore", "Unexpectedly lost primary lease"), [ 2 /*return*/ ];
+                return C$1("LocalStore", "Unexpectedly lost primary lease"), [ 2 /*return*/ ];
             }));
         }));
     }
@@ -10957,7 +11039,7 @@ var app = (function () {
             configurable: !0
         }), t.prototype.ue = function(t) {
             var e = this, i = this.oe ? 3e5 : 6e4;
-            C("LruGarbageCollector", "Garbage collection scheduled in " + i + "ms"), this.ce = this.asyncQueue.enqueueAfterDelay("lru_garbage_collection" /* LruGarbageCollection */ , i, (function() {
+            C$1("LruGarbageCollector", "Garbage collection scheduled in " + i + "ms"), this.ce = this.asyncQueue.enqueueAfterDelay("lru_garbage_collection" /* LruGarbageCollection */ , i, (function() {
                 return __awaiter(e, void 0, void 0, (function() {
                     var e;
                     return __generator(this, (function(n) {
@@ -10972,7 +11054,7 @@ var app = (function () {
                             return n.sent(), [ 3 /*break*/ , 7 ];
 
                           case 3:
-                            return Nr(e = n.sent()) ? (C("LruGarbageCollector", "Ignoring IndexedDB error during garbage collection: ", e), 
+                            return Nr(e = n.sent()) ? (C$1("LruGarbageCollector", "Ignoring IndexedDB error during garbage collection: ", e), 
                             [ 3 /*break*/ , 6 ]) : [ 3 /*break*/ , 4 ];
 
                           case 4:
@@ -11021,9 +11103,9 @@ var app = (function () {
             return this.ae.removeOrphanedDocuments(t, e);
         }, t.prototype.collect = function(t, e) {
             var n = this;
-            return -1 === this.params.cacheSizeCollectionThreshold ? (C("LruGarbageCollector", "Garbage collection skipped; disabled"), 
+            return -1 === this.params.cacheSizeCollectionThreshold ? (C$1("LruGarbageCollector", "Garbage collection skipped; disabled"), 
             Ir.resolve(ti)) : this.getCacheSize(t).next((function(r) {
-                return r < n.params.cacheSizeCollectionThreshold ? (C("LruGarbageCollector", "Garbage collection skipped; Cache size " + r + " is lower than threshold " + n.params.cacheSizeCollectionThreshold), 
+                return r < n.params.cacheSizeCollectionThreshold ? (C$1("LruGarbageCollector", "Garbage collection skipped; Cache size " + r + " is lower than threshold " + n.params.cacheSizeCollectionThreshold), 
                 ti) : n.fe(t, e);
             }));
         }, t.prototype.getCacheSize = function(t) {
@@ -11032,14 +11114,14 @@ var app = (function () {
             var n, r, i, o, s, u, a, c = this, h = Date.now();
             return this.calculateTargetCount(t, this.params.percentileToCollect).next((function(e) {
                 // Cap at the configured max
-                return e > c.params.maximumSequenceNumbersToCollect ? (C("LruGarbageCollector", "Capping sequence numbers to collect down to the maximum of " + c.params.maximumSequenceNumbersToCollect + " from " + e), 
+                return e > c.params.maximumSequenceNumbersToCollect ? (C$1("LruGarbageCollector", "Capping sequence numbers to collect down to the maximum of " + c.params.maximumSequenceNumbersToCollect + " from " + e), 
                 r = c.params.maximumSequenceNumbersToCollect) : r = e, o = Date.now(), c.nthSequenceNumber(t, r);
             })).next((function(r) {
                 return n = r, s = Date.now(), c.removeTargets(t, n, e);
             })).next((function(e) {
                 return i = e, u = Date.now(), c.removeOrphanedDocuments(t, n);
             })).next((function(t) {
-                return a = Date.now(), k() <= LogLevel.DEBUG && C("LruGarbageCollector", "LRU Garbage Collection\n\tCounted targets in " + (o - h) + "ms\n\tDetermined least recently used " + r + " in " + (s - o) + "ms\n\tRemoved " + i + " targets in " + (u - s) + "ms\n\tRemoved " + t + " documents in " + (a - u) + "ms\nTotal Duration: " + (a - h) + "ms"), 
+                return a = Date.now(), k() <= LogLevel.DEBUG && C$1("LruGarbageCollector", "LRU Garbage Collection\n\tCounted targets in " + (o - h) + "ms\n\tDetermined least recently used " + r + " in " + (s - o) + "ms\n\tRemoved " + i + " targets in " + (u - s) + "ms\n\tRemoved " + t + " documents in " + (a - u) + "ms\nTotal Duration: " + (a - h) + "ms"), 
                 Ir.resolve({
                     didRun: !0,
                     sequenceNumbersCollected: r,
@@ -11461,7 +11543,7 @@ var app = (function () {
             }));
         }, t.prototype.getMetadata = function(t) {
             return Si(t).get(cr.key).next((function(t) {
-                return P$1(!!t), t;
+                return P(!!t), t;
             }));
         }, t.prototype.me = function(t, e) {
             return Si(t).put(cr.key, e);
@@ -11610,7 +11692,7 @@ var app = (function () {
          * and local feature development.
          */    return t.prototype.Rt = function(t, e, n, r) {
             var i = this;
-            P$1(n < r && n >= 0 && r <= 11);
+            P(n < r && n >= 0 && r <= 11);
             var o = new Tr("createOrUpgrade", e);
             n < 1 && r >= 1 && (function(t) {
                 t.createObjectStore(nr.store);
@@ -11727,7 +11809,7 @@ var app = (function () {
                     var i = IDBKeyRange.bound([ n.userId, -1 ], [ n.userId, n.lastAcknowledgedBatchId ]);
                     return r.Nt(ir.userMutationsIndex, i).next((function(r) {
                         return Ir.forEach(r, (function(r) {
-                            P$1(r.userId === n.userId);
+                            P(r.userId === n.userId);
                             var i = Kr(e.R, r);
                             return ni(t, n.userId, i).next((function() {}));
                         }));
@@ -11968,9 +12050,9 @@ var app = (function () {
                 if (Nr(e)) 
                 // Proceed with the existing state. Any subsequent access to
                 // IndexedDB will verify the lease.
-                return C("IndexedDbPersistence", "Failed to extend owner lease: ", e), t.isPrimary;
+                return C$1("IndexedDbPersistence", "Failed to extend owner lease: ", e), t.isPrimary;
                 if (!t.allowTabSynchronization) throw e;
-                return C("IndexedDbPersistence", "Releasing owner lease after error during lease refresh", e), 
+                return C$1("IndexedDbPersistence", "Releasing owner lease after error during lease refresh", e), 
                 /* isPrimary= */ !1;
             })).then((function(e) {
                 t.isPrimary !== e && t.Se.enqueueRetryable((function() {
@@ -12094,7 +12176,7 @@ var app = (function () {
                     }));
                 }));
             })).next((function(t) {
-                return e.isPrimary !== t && C("IndexedDbPersistence", "Client " + (t ? "is" : "is not") + " eligible for a primary lease."), 
+                return e.isPrimary !== t && C$1("IndexedDbPersistence", "Client " + (t ? "is" : "is not") + " eligible for a primary lease."), 
                 t;
             }));
         }, t.prototype.shutdown = function() {
@@ -12172,7 +12254,7 @@ var app = (function () {
             return this.Ke;
         }, t.prototype.runTransaction = function(t, e, n) {
             var r = this;
-            C("IndexedDbPersistence", "Starting transaction:", t);
+            C$1("IndexedDbPersistence", "Starting transaction:", t);
             var i, o = "readonly" === e ? "readonly" : "readwrite";
             // Do all transactions as readwrite against all object stores, since we
             // are the only reader/writer.
@@ -12221,7 +12303,7 @@ var app = (function () {
         /** Checks the primary lease and removes it if we are the current primary. */ t.prototype.Xe = function(t) {
             var e = this, n = Ri(t);
             return n.get(nr.key).next((function(t) {
-                return e.tn(t) ? (C("IndexedDbPersistence", "Releasing primary lease."), n.delete(nr.key)) : Ir.resolve();
+                return e.tn(t) ? (C$1("IndexedDbPersistence", "Releasing primary lease."), n.delete(nr.key)) : Ir.resolve();
             }));
         }, 
         /** Verifies that `updateTimeMs` is within `maxAgeMs`. */ t.prototype.sn = function(t, e) {
@@ -12275,7 +12357,7 @@ var app = (function () {
             var e;
             try {
                 var n = null !== (null === (e = this.Qe) || void 0 === e ? void 0 : e.getItem(this.on(t)));
-                return C("IndexedDbPersistence", "Client '" + t + "' " + (n ? "is" : "is not") + " zombied in LocalStorage"), 
+                return C$1("IndexedDbPersistence", "Client '" + t + "' " + (n ? "is" : "is not") + " zombied in LocalStorage"), 
                 n;
             } catch (t) {
                 // Gracefully handle if LocalStorage isn't working.
@@ -12560,7 +12642,7 @@ var app = (function () {
                 return 0 === t.filters.length && null === t.limit && null == t.startAt && null == t.endAt && (0 === t.explicitOrderBy.length || 1 === t.explicitOrderBy.length && t.explicitOrderBy[0].field.isKeyField());
             }(e) || n.isEqual(K.min()) ? this.Dn(t, e) : this.Sn.pn(t, r).next((function(o) {
                 var s = i.Cn(e, o);
-                return ($t(e) || Xt(e)) && i.Nn(e.limitType, s, r, n) ? i.Dn(t, e) : (k() <= LogLevel.DEBUG && C("QueryEngine", "Re-using previous result from %s to execute query: %s", n.toString(), se(e)), 
+                return ($t(e) || Xt(e)) && i.Nn(e.limitType, s, r, n) ? i.Dn(t, e) : (k() <= LogLevel.DEBUG && C$1("QueryEngine", "Re-using previous result from %s to execute query: %s", n.toString(), se(e)), 
                 i.Sn.getDocumentsMatchingQuery(t, e, n).next((function(t) {
                     // We merge `previousResults` into `updateResults`, since
                     // `updateResults` is already a DocumentMap. If a document is
@@ -12607,7 +12689,7 @@ var app = (function () {
                     var i = "F" /* First */ === t ? e.last() : e.first();
             return !!i && (i.hasPendingWrites || i.version.compareTo(r) > 0);
         }, t.prototype.Dn = function(t, e) {
-            return k() <= LogLevel.DEBUG && C("QueryEngine", "Using full collection scan to execute query:", se(e)), 
+            return k() <= LogLevel.DEBUG && C$1("QueryEngine", "Using full collection scan to execute query:", se(e)), 
             this.Sn.getDocumentsMatchingQuery(t, e, K.min());
         }, t;
     }(), qi = /** @class */ function() {
@@ -12759,7 +12841,7 @@ var app = (function () {
                         return r.getEntry(e, t);
                     })).next((function(e) {
                         var o = n.docVersions.get(t);
-                        P$1(null !== o), e.version.compareTo(o) < 0 && (i.applyToRemoteDocument(e, n), e.isValidDocument() && 
+                        P(null !== o), e.version.compareTo(o) < 0 && (i.applyToRemoteDocument(e, n), e.isValidDocument() && 
                         // We use the commitVersion as the readTime rather than the
                         // document's updateTime since the updateTime is not advanced
                         // for updates that do not modify the underlying document.
@@ -12839,7 +12921,7 @@ var app = (function () {
          */
                         function(t, e, n) {
                             // Always persist target data if we don't already have a resume token.
-                            return P$1(e.resumeToken.approximateByteSize() > 0), 0 === t.resumeToken.approximateByteSize() || (
+                            return P(e.resumeToken.approximateByteSize() > 0), 0 === t.resumeToken.approximateByteSize() || (
                             // Don't allow resume token changes to be buffered indefinitely. This
                             // allows us to be reasonably up-to-date after a crash and avoids needing
                             // to loop over all active queries on shutdown. Especially in the browser
@@ -12915,7 +12997,7 @@ var app = (function () {
                 // events. We remove these documents from cache since we lost
                 // access.
                 e.removeEntry(n, a), o = o.insert(n, s)) : !u.isValidDocument() || s.version.compareTo(u.version) > 0 || 0 === s.version.compareTo(u.version) && u.hasPendingWrites ? (e.addEntry(s, a), 
-                o = o.insert(n, s)) : C("LocalStore", "Ignoring outdated watch update for ", n, ". Current version:", u.version, " Watch version:", s.version);
+                o = o.insert(n, s)) : C$1("LocalStore", "Ignoring outdated watch update for ", n, ". Current version:", u.version, " Watch version:", s.version);
             })), o;
         }))
         /**
@@ -13007,7 +13089,7 @@ var app = (function () {
                     // activity. If we lose this write this could cause a very slight
                     // difference in the order of target deletion during GC, but we
                     // don't define exact LRU semantics so this is acceptable.
-                                    return C("LocalStore", "Failed to update sequence numbers for target " + e + ": " + u), 
+                                    return C$1("LocalStore", "Failed to update sequence numbers for target " + e + ": " + u), 
                     [ 3 /*break*/ , 5 ];
 
                   case 5:
@@ -13310,7 +13392,7 @@ var app = (function () {
             })), n;
         }, t.prototype.removeMutationBatch = function(t, e) {
             var n = this;
-            P$1(0 === this.hs(e.batchId, "removed")), this._n.shift();
+            P(0 === this.hs(e.batchId, "removed")), this._n.shift();
             var r = this.rs;
             return Ir.forEach(e.mutations, (function(i) {
                 var o = new ro(i.key, e.batchId);
@@ -13561,7 +13643,7 @@ var app = (function () {
             return this.Ke;
         }, t.prototype.runTransaction = function(t, e, n) {
             var r = this;
-            C("MemoryPersistence", "Starting transaction:", t);
+            C$1("MemoryPersistence", "Starting transaction:", t);
             var i = new co(this.Ne.next());
             return this.referenceDelegate.Es(), n(i).next((function(t) {
                 return r.referenceDelegate.Ts(i).next((function() {
@@ -13938,17 +14020,17 @@ var app = (function () {
             this.started = !1);
         }, t.prototype.getItem = function(t) {
             var e = this.storage.getItem(t);
-            return C("SharedClientState", "READ", t, e), e;
+            return C$1("SharedClientState", "READ", t, e), e;
         }, t.prototype.setItem = function(t, e) {
-            C("SharedClientState", "SET", t, e), this.storage.setItem(t, e);
+            C$1("SharedClientState", "SET", t, e), this.storage.setItem(t, e);
         }, t.prototype.removeItem = function(t) {
-            C("SharedClientState", "REMOVE", t), this.storage.removeItem(t);
+            C$1("SharedClientState", "REMOVE", t), this.storage.removeItem(t);
         }, t.prototype.Fs = function(t) {
             var e = this, i = t;
             // Note: The function is typed to take Event to be interface-compatible with
             // `Window.addEventListener`.
                     if (i.storageArea === this.storage) {
-                if (C("SharedClientState", "EVENT", i.key, i.newValue), i.key === this.Os) return void x("Received WebStorage notification for local change. Another client might have garbage-collected our state");
+                if (C$1("SharedClientState", "EVENT", i.key, i.newValue), i.key === this.Os) return void x("Received WebStorage notification for local change. Another client might have garbage-collected our state");
                 this.Se.enqueueRetryable((function() {
                     return __awaiter(e, void 0, void 0, (function() {
                         var t, e, n, o, s, u;
@@ -13967,7 +14049,7 @@ var app = (function () {
                                     var e = S.o;
                                     if (null != t) try {
                                         var n = JSON.parse(t);
-                                        P$1("number" == typeof n), e = n;
+                                        P("number" == typeof n), e = n;
                                     } catch (t) {
                                         x("SharedClientState", "Failed to read sequence number from WebStorage", t);
                                     }
@@ -14046,7 +14128,7 @@ var app = (function () {
         }, t.prototype.ii = function(t) {
             return __awaiter(this, void 0, void 0, (function() {
                 return __generator(this, (function(e) {
-                    return t.user.uid === this.currentUser.uid ? [ 2 /*return*/ , this.syncEngine.ui(t.batchId, t.state, t.error) ] : (C("SharedClientState", "Ignoring mutation for non-active user " + t.user.uid), 
+                    return t.user.uid === this.currentUser.uid ? [ 2 /*return*/ , this.syncEngine.ui(t.batchId, t.state, t.error) ] : (C$1("SharedClientState", "Ignoring mutation for non-active user " + t.user.uid), 
                     [ 2 /*return*/ ]);
                 }));
             }));
@@ -14129,12 +14211,12 @@ var app = (function () {
         }, t.prototype.pi = function() {
             window.addEventListener("online", this.wi), window.addEventListener("offline", this.mi);
         }, t.prototype._i = function() {
-            C("ConnectivityMonitor", "Network connectivity changed: AVAILABLE");
+            C$1("ConnectivityMonitor", "Network connectivity changed: AVAILABLE");
             for (var t = 0, e = this.gi; t < e.length; t++) {
                 (0, e[t])(0 /* AVAILABLE */);
             }
         }, t.prototype.yi = function() {
-            C("ConnectivityMonitor", "Network connectivity changed: UNAVAILABLE");
+            C$1("ConnectivityMonitor", "Network connectivity changed: UNAVAILABLE");
             for (var t = 0, e = this.gi; t < e.length; t++) {
                 (0, e[t])(1 /* UNAVAILABLE */);
             }
@@ -14188,16 +14270,16 @@ var app = (function () {
                         switch (s.getLastErrorCode()) {
                           case ErrorCode.NO_ERROR:
                             var e = s.getResponseJson();
-                            C("Connection", "XHR received:", JSON.stringify(e)), i(e);
+                            C$1("Connection", "XHR received:", JSON.stringify(e)), i(e);
                             break;
 
                           case ErrorCode.TIMEOUT:
-                            C("Connection", 'RPC "' + t + '" timed out'), o(new D(N.DEADLINE_EXCEEDED, "Request time out"));
+                            C$1("Connection", 'RPC "' + t + '" timed out'), o(new D(N.DEADLINE_EXCEEDED, "Request time out"));
                             break;
 
                           case ErrorCode.HTTP_ERROR:
                             var n = s.getStatus();
-                            if (C("Connection", 'RPC "' + t + '" failed with status:', n, "response text:", s.getResponseText()), 
+                            if (C$1("Connection", 'RPC "' + t + '" failed with status:', n, "response text:", s.getResponseText()), 
                             n > 0) {
                                 var r = s.getResponseJson().error;
                                 if (r && r.status && r.message) {
@@ -14217,7 +14299,7 @@ var app = (function () {
                             O();
                         }
                     } finally {
-                        C("Connection", 'RPC "' + t + '" completed.');
+                        C$1("Connection", 'RPC "' + t + '" completed.');
                     }
                 }));
                 var u = JSON.stringify(r);
@@ -14266,11 +14348,11 @@ var app = (function () {
             // https://github.com/firebase/firebase-js-sdk/issues/1491.
             isMobileCordova() || isReactNative() || isElectron() || isIE() || isUWP() || isBrowserExtension() || (o.httpHeadersOverwriteParam = "$httpHeaders");
             var l = n.join("");
-            C("Connection", "Creating WebChannel: " + l, o);
+            C$1("Connection", "Creating WebChannel: " + l, o);
             var d = r.createWebChannel(l, o), p = !1, y = !1, v = new No({
                 Ei: function(t) {
-                    y ? C("Connection", "Not sending because WebChannel is closed:", t) : (p || (C("Connection", "Opening WebChannel transport."), 
-                    d.open(), p = !0), C("Connection", "WebChannel sending:", t), d.send(t));
+                    y ? C$1("Connection", "Not sending because WebChannel is closed:", t) : (p || (C$1("Connection", "Opening WebChannel transport."), 
+                    d.open(), p = !0), C$1("Connection", "WebChannel sending:", t), d.send(t));
                 },
                 Ti: function() {
                     return d.close();
@@ -14298,16 +14380,16 @@ var app = (function () {
             // Note that eventually this function could go away if we are confident
             // enough the code is exception free.
             return m(d, WebChannel.EventType.OPEN, (function() {
-                y || C("Connection", "WebChannel transport opened.");
+                y || C$1("Connection", "WebChannel transport opened.");
             })), m(d, WebChannel.EventType.CLOSE, (function() {
-                y || (y = !0, C("Connection", "WebChannel transport closed"), v.Vi());
+                y || (y = !0, C$1("Connection", "WebChannel transport closed"), v.Vi());
             })), m(d, WebChannel.EventType.ERROR, (function(t) {
                 y || (y = !0, R("Connection", "WebChannel transport errored:", t), v.Vi(new D(N.UNAVAILABLE, "The operation could not be completed")));
             })), m(d, WebChannel.EventType.MESSAGE, (function(t) {
                 var e;
                 if (!y) {
                     var n = t.data[0];
-                    P$1(!!n);
+                    P(!!n);
                     // TODO(b/35143891): There is a bug in One Platform that caused errors
                     // (and only errors) to be wrapped in an extra array. To be forward
                     // compatible with the bug we need to check either condition. The latter
@@ -14315,7 +14397,7 @@ var app = (function () {
                     // Use any because msgData.error is not typed.
                     var r = n, i = r.error || (null === (e = r[0]) || void 0 === e ? void 0 : e.error);
                     if (i) {
-                        C("Connection", "WebChannel received error:", i);
+                        C$1("Connection", "WebChannel received error:", i);
                         // error.status will be a string like 'OK' or 'NOT_FOUND'.
                         var o = i.status, s = 
                         /**
@@ -14333,10 +14415,10 @@ var app = (function () {
                         void 0 === s && (s = N.INTERNAL, u = "Unknown error status: " + o + " with message " + i.message), 
                         // Mark closed so no further events are propagated
                         y = !0, v.Vi(new D(s, u)), d.close();
-                    } else C("Connection", "WebChannel received:", n), v.Si(n);
+                    } else C$1("Connection", "WebChannel received:", n), v.Si(n);
                 }
             })), m(i, Event.STAT_EVENT, (function(t) {
-                t.stat === Stat.PROXY ? C("Connection", "Detected buffering proxy") : t.stat === Stat.NOPROXY && C("Connection", "Detected no buffering proxy");
+                t.stat === Stat.PROXY ? C$1("Connection", "Detected buffering proxy") : t.stat === Stat.NOPROXY && C$1("Connection", "Detected no buffering proxy");
             })), setTimeout((function() {
                 // Technically we could/should wait for the WebChannel opened event,
                 // but because we want to send the first message with the WebChannel
@@ -14353,10 +14435,10 @@ var app = (function () {
         }
         return t.prototype.Ni = function(t, e, n, r) {
             var i = this.xi(t, e);
-            C("RestConnection", "Sending: ", i, n);
+            C$1("RestConnection", "Sending: ", i, n);
             var o = {};
             return this.Fi(o, r), this.ki(t, i, o, n).then((function(t) {
-                return C("RestConnection", "Received: ", t), t;
+                return C$1("RestConnection", "Received: ", t), t;
             }), (function(e) {
                 throw R("RestConnection", t + " failed with error: ", e, "url: ", i, "request:", n), 
                 e;
@@ -14371,7 +14453,7 @@ var app = (function () {
          * present and any additional headers for the request.
          */
         t.prototype.Fi = function(t, e) {
-            if (t["X-Goog-Api-Client"] = "gl-js/ fire/8.8.0", 
+            if (t["X-Goog-Api-Client"] = "gl-js/ fire/8.8.1", 
             // Content-Type: text/plain will avoid preflight requests which might
             // mess with CORS and redirects by proxies. If we add custom headers
             // we will need to change this code to potentially use the $httpOverwrite
@@ -14525,7 +14607,7 @@ var app = (function () {
             // honored as such).
             var n = Math.floor(this.qi + this.Wi()), r = Math.max(0, Date.now() - this.Ki), i = Math.max(0, n - r);
             // Guard against lastAttemptTime being in the future due to a clock change.
-                    i > 0 && C("ExponentialBackoff", "Backing off for " + i + " ms (base delay: " + this.qi + " ms, delay with jitter: " + n + " ms, last attempt: " + r + " ms ago)"), 
+                    i > 0 && C$1("ExponentialBackoff", "Backing off for " + i + " ms (base delay: " + this.qi + " ms, delay with jitter: " + n + " ms, last attempt: " + r + " ms ago)"), 
             this.Ui = this.Se.enqueueAfterDelay(this.timerId, i, (function() {
                 return e.Ki = Date.now(), t();
             })), 
@@ -14743,7 +14825,7 @@ var app = (function () {
             // we never expect this to happen because if we stop a stream ourselves,
             // this callback will never be called. To prevent cases where we retry
             // without a backoff accidentally, we set the stream to error in all cases.
-            return C("PersistentStream", "close with error: " + t), this.stream = null, this.close(3 /* Error */ , t);
+            return C$1("PersistentStream", "close with error: " + t), this.stream = null, this.close(3 /* Error */ , t);
         }, 
         /**
          * Returns a "dispatcher" function that dispatches operations onto the
@@ -14755,7 +14837,7 @@ var app = (function () {
             var e = this;
             return function(n) {
                 e.Se.enqueueAndForget((function() {
-                    return e.Yi === t ? n() : (C("PersistentStream", "stream callback skipped by getCloseGuardedDispatcher."), 
+                    return e.Yi === t ? n() : (C$1("PersistentStream", "stream callback skipped by getCloseGuardedDispatcher."), 
                     Promise.resolve());
                 }));
             };
@@ -14780,7 +14862,7 @@ var app = (function () {
                     var r = function(t) {
                         return "NO_CHANGE" === t ? 0 /* NoChange */ : "ADD" === t ? 1 /* Added */ : "REMOVE" === t ? 2 /* Removed */ : "CURRENT" === t ? 3 /* Current */ : "RESET" === t ? 4 /* Reset */ : O();
                     }(e.targetChange.targetChangeType || "NO_CHANGE"), i = e.targetChange.targetIds || [], o = function(t, e) {
-                        return t.I ? (P$1(void 0 === e || "string" == typeof e), J.fromBase64String(e || "")) : (P$1(void 0 === e || e instanceof Uint8Array), 
+                        return t.I ? (P(void 0 === e || "string" == typeof e), J.fromBase64String(e || "")) : (P(void 0 === e || e instanceof Uint8Array), 
                         J.fromUint8Array(e || new Uint8Array));
                     }(t, e.targetChange.resumeToken), s = (u = e.targetChange.cause) && function(t) {
                         var e = void 0 === t.code ? N.UNKNOWN : ze(t.code);
@@ -14894,13 +14976,13 @@ var app = (function () {
         }, n.prototype.onMessage = function(t) {
             if (
             // Always capture the last stream token.
-            P$1(!!t.streamToken), this.lastStreamToken = t.streamToken, this.gr) {
+            P(!!t.streamToken), this.lastStreamToken = t.streamToken, this.gr) {
                 // A successful first write response means the stream is healthy,
                 // Note, that we could consider a successful handshake healthy, however,
                 // the write itself might be causing an error we want to back off from.
                 this.Zi.reset();
                 var e = function(t, e) {
-                    return t && t.length > 0 ? (P$1(void 0 !== e), t.map((function(t) {
+                    return t && t.length > 0 ? (P(void 0 !== e), t.map((function(t) {
                         return function(t, e) {
                             // NOTE: Deletes don't have an updateTime.
                             var n = t.updateTime ? _n(t.updateTime) : _n(e);
@@ -14917,7 +14999,7 @@ var app = (function () {
                 return this.listener.Tr(n, e);
             }
             // The first response is always the handshake response
-                    return P$1(!t.writeResults || 0 === t.writeResults.length), this.gr = !0, 
+                    return P(!t.writeResults || 0 === t.writeResults.length), this.gr = !0, 
             this.listener.Ir();
         }, 
         /**
@@ -15034,7 +15116,7 @@ var app = (function () {
             t !== this.state && (this.state = t, this.onlineStateHandler(t));
         }, t.prototype.Cr = function(t) {
             var e = "Could not reach Cloud Firestore backend. " + t + "\nThis typically indicates that your device does not have a healthy Internet connection at the moment. The client will operate in offline mode until it is able to successfully connect to the backend.";
-            this.Vr ? (x(e), this.Vr = !1) : C("OnlineStateTracker", e);
+            this.Vr ? (x(e), this.Vr = !1) : C$1("OnlineStateTracker", e);
         }, t.prototype.Fr = function() {
             null !== this.Pr && (this.Pr.cancel(), this.Pr = null);
         }, t;
@@ -15093,7 +15175,7 @@ var app = (function () {
                     return __generator(this, (function(t) {
                         switch (t.label) {
                           case 0:
-                            return zo(this) ? (C("RemoteStore", "Restarting streams for network reachability change."), 
+                            return zo(this) ? (C$1("RemoteStore", "Restarting streams for network reachability change."), 
                             [ 4 /*yield*/ , function(t) {
                                 return __awaiter(this, void 0, void 0, (function() {
                                     var e;
@@ -15360,7 +15442,7 @@ var app = (function () {
                     return a.sent(), [ 3 /*break*/ , 5 ];
 
                   case 3:
-                    return o = a.sent(), C("RemoteStore", "Failed to remove targets %s: %s ", e.targetIds.join(","), o), 
+                    return o = a.sent(), C$1("RemoteStore", "Failed to remove targets %s: %s ", e.targetIds.join(","), o), 
                     [ 4 /*yield*/ , Xo(t, o) ];
 
                   case 4:
@@ -15426,7 +15508,7 @@ var app = (function () {
                     return [ 3 /*break*/ , 13 ];
 
                   case 11:
-                    return C("RemoteStore", "Failed to raise snapshot:", u = a.sent()), [ 4 /*yield*/ , Xo(t, u) ];
+                    return C$1("RemoteStore", "Failed to raise snapshot:", u = a.sent()), [ 4 /*yield*/ , Xo(t, u) ];
 
                   case 12:
                     return a.sent(), [ 3 /*break*/ , 13 ];
@@ -15471,7 +15553,7 @@ var app = (function () {
                             return __generator(this, (function(e) {
                                 switch (e.label) {
                                   case 0:
-                                    return C("RemoteStore", "Retrying IndexedDB access"), [ 4 /*yield*/ , i() ];
+                                    return C$1("RemoteStore", "Retrying IndexedDB access"), [ 4 /*yield*/ , i() ];
 
                                   case 1:
                                     return e.sent(), t.Or.delete(1 /* IndexedDbFailed */), [ 4 /*yield*/ , Vo(t) ];
@@ -15755,7 +15837,7 @@ var app = (function () {
                         return [ 4 /*yield*/ , t.Kr.stop() ];
 
                       case 3:
-                        e.sent(), t.kr.length > 0 && (C("RemoteStore", "Stopping write stream with " + t.kr.length + " pending writes"), 
+                        e.sent(), t.kr.length > 0 && (C$1("RemoteStore", "Stopping write stream with " + t.kr.length + " pending writes"), 
                         t.kr = []), e.label = 4;
 
                       case 4:
@@ -16743,8 +16825,8 @@ var app = (function () {
                         r && (
                         // Since this is a limbo resolution lookup, it's for a single document
                         // and it could be added, modified, or removed, but not a combination.
-                        P$1(t.addedDocuments.size + t.modifiedDocuments.size + t.removedDocuments.size <= 1), 
-                        t.addedDocuments.size > 0 ? r.bo = !0 : t.modifiedDocuments.size > 0 ? P$1(r.bo) : t.removedDocuments.size > 0 && (P$1(r.bo), 
+                        P(t.addedDocuments.size + t.modifiedDocuments.size + t.removedDocuments.size <= 1), 
+                        t.addedDocuments.size > 0 ? r.bo = !0 : t.modifiedDocuments.size > 0 ? P(r.bo) : t.removedDocuments.size > 0 && (P(r.bo), 
                         r.bo = !1));
                     })), [ 4 /*yield*/ , Ys(n, i, e) ];
 
@@ -16895,7 +16977,7 @@ var app = (function () {
                         return n.persistence.runTransaction("Reject batch", "readwrite-primary", (function(t) {
                             var r;
                             return n._n.lookupMutationBatch(t, e).next((function(e) {
-                                return P$1(null !== e), r = e.keys(), n._n.removeMutationBatch(t, e);
+                                return P(null !== e), r = e.keys(), n._n.removeMutationBatch(t, e);
                             })).next((function() {
                                 return n._n.performConsistencyCheck(t);
                             })).next((function() {
@@ -16942,7 +17024,7 @@ var app = (function () {
             return __generator(this, (function(r) {
                 switch (r.label) {
                   case 0:
-                    zo((n = F(t)).remoteStore) || C("SyncEngine", "The network is disabled. The task returned by 'awaitPendingWrites()' will not complete until the network is enabled."), 
+                    zo((n = F(t)).remoteStore) || C$1("SyncEngine", "The network is disabled. The task returned by 'awaitPendingWrites()' will not complete until the network is enabled."), 
                     r.label = 1;
 
                   case 1:
@@ -17012,7 +17094,7 @@ var app = (function () {
     function zs(t, e, n) {
         for (var r = 0, i = n; r < i.length; r++) {
             var o = i[r];
-            o instanceof Ns ? (t.No.addReference(o.key, e), Ws(t, o)) : o instanceof Ds ? (C("SyncEngine", "Document no longer in limbo: " + o.key), 
+            o instanceof Ns ? (t.No.addReference(o.key, e), Ws(t, o)) : o instanceof Ds ? (C$1("SyncEngine", "Document no longer in limbo: " + o.key), 
             t.No.removeReference(o.key, e), t.No.containsKey(o.key) || 
             // We removed the last reference for this key
             Gs(t, o.key)) : O();
@@ -17021,7 +17103,7 @@ var app = (function () {
 
     function Ws(t, e) {
         var n = e.key, r = n.path.canonicalString();
-        t.Do.get(n) || t.So.has(r) || (C("SyncEngine", "New document in limbo: " + n), t.So.add(r), 
+        t.Do.get(n) || t.So.has(r) || (C$1("SyncEngine", "New document in limbo: " + n), t.So.add(r), 
         Hs(t));
     }
 
@@ -17089,7 +17171,7 @@ var app = (function () {
                                     // number for the documents that were included in this transaction.
                                     // This might trigger them to be deleted earlier than they otherwise
                                     // would have, but it should not invalidate the integrity of the data.
-                                                                    return C("LocalStore", "Failed to update sequence numbers: " + i), 
+                                                                    return C$1("LocalStore", "Failed to update sequence numbers: " + i), 
                                     [ 3 /*break*/ , 4 ];
 
                                   case 4:
@@ -17119,7 +17201,7 @@ var app = (function () {
             return __generator(this, (function(r) {
                 switch (r.label) {
                   case 0:
-                    return (n = F(t)).currentUser.isEqual(e) ? [ 3 /*break*/ , 3 ] : (C("SyncEngine", "User change. New user:", e.toKey()), 
+                    return (n = F(t)).currentUser.isEqual(e) ? [ 3 /*break*/ , 3 ] : (C$1("SyncEngine", "User change. New user:", e.toKey()), 
                     [ 4 /*yield*/ , Bi(n.localStore, e) ]);
 
                   case 1:
@@ -17241,7 +17323,7 @@ var app = (function () {
                     // had, we would have cached the affected documents), and so we will just
                     // see any resulting document changes via normal remote document updates
                     // as applicable.
-                    C("SyncEngine", "Cannot apply mutation batch with id: " + e), r.label = 7;
+                    C$1("SyncEngine", "Cannot apply mutation batch with id: " + e), r.label = 7;
 
                   case 7:
                     return [ 2 /*return*/ ];
@@ -17389,7 +17471,7 @@ var app = (function () {
                     return (n = F(t)).$o ? (
                     // If we receive a target state notification via WebStorage, we are
                     // either already secondary or another tab has taken the primary lease.
-                    C("SyncEngine", "Ignoring unexpected query state notification."), [ 3 /*break*/ , 8 ]) : [ 3 /*break*/ , 1 ];
+                    C$1("SyncEngine", "Ignoring unexpected query state notification."), [ 3 /*break*/ , 8 ]) : [ 3 /*break*/ , 1 ];
 
                   case 1:
                     if (!n.Vo.has(e)) return [ 3 /*break*/ , 8 ];
@@ -17442,7 +17524,7 @@ var app = (function () {
                   case 1:
                     return o < s.length ? (u = s[o], n.Vo.has(u) ? (
                     // A target might have been added in a previous attempt
-                    C("SyncEngine", "Adding an already active target " + u), [ 3 /*break*/ , 5 ]) : [ 4 /*yield*/ , $i(n.localStore, u) ]) : [ 3 /*break*/ , 6 ];
+                    C$1("SyncEngine", "Adding an already active target " + u), [ 3 /*break*/ , 5 ]) : [ 4 /*yield*/ , $i(n.localStore, u) ]) : [ 3 /*break*/ , 6 ];
 
                   case 2:
                     return a = p.sent(), [ 4 /*yield*/ , Wi(n.localStore, a) ];
@@ -17707,7 +17789,7 @@ var app = (function () {
                     return __generator(this, (function(n) {
                         switch (n.label) {
                           case 0:
-                            return e = F(t), C("RemoteStore", "RemoteStore shutting down."), e.Or.add(5 /* Shutdown */), 
+                            return e = F(t), C$1("RemoteStore", "RemoteStore shutting down."), e.Or.add(5 /* Shutdown */), 
                             [ 4 /*yield*/ , qo(e) ];
 
                           case 1:
@@ -17823,7 +17905,7 @@ var app = (function () {
                                         return s = r.sent(), u = new Map, s.forEach((function(t) {
                                             var e = function(t, e) {
                                                 return "found" in e ? function(t, e) {
-                                                    P$1(!!e.found), e.found.name, e.found.updateTime;
+                                                    P(!!e.found), e.found.name, e.found.updateTime;
                                                     var n = An(t, e.found.name), r = _n(e.found.updateTime), i = new _t({
                                                         mapValue: {
                                                             fields: e.found.fields
@@ -17831,7 +17913,7 @@ var app = (function () {
                                                     });
                                                     return Nt.newFoundDocument(n, r, i);
                                                 }(t, e) : "missing" in e ? function(t, e) {
-                                                    P$1(!!e.missing), P$1(!!e.readTime);
+                                                    P(!!e.missing), P(!!e.readTime);
                                                     var n = An(t, e.missing), r = _n(e.readTime);
                                                     return Nt.newNoDocument(n, r);
                                                 }(t, e) : O();
@@ -17839,7 +17921,7 @@ var app = (function () {
                                             u.set(e.key.toString(), e);
                                         })), a = [], [ 2 /*return*/ , (e.forEach((function(t) {
                                             var e = u.get(t.toString());
-                                            P$1(!!e), a.push(e);
+                                            P(!!e), a.push(e);
                                         })), a) ];
                                     }
                                 }));
@@ -18027,7 +18109,7 @@ var app = (function () {
                     return __generator(this, (function(e) {
                         switch (e.label) {
                           case 0:
-                            return C("FirestoreClient", "Received user=", t.uid), [ 4 /*yield*/ , this.credentialListener(t) ];
+                            return C$1("FirestoreClient", "Received user=", t.uid), [ 4 /*yield*/ , this.credentialListener(t) ];
 
                           case 1:
                             return e.sent(), this.user = t, [ 2 /*return*/ ];
@@ -18124,7 +18206,7 @@ var app = (function () {
             return __generator(this, (function(u) {
                 switch (u.label) {
                   case 0:
-                    return t.asyncQueue.verifyOperationInProgress(), C("FirestoreClient", "Initializing OfflineComponentProvider"), 
+                    return t.asyncQueue.verifyOperationInProgress(), C$1("FirestoreClient", "Initializing OfflineComponentProvider"), 
                     [ 4 /*yield*/ , t.getConfiguration() ];
 
                   case 1:
@@ -18166,7 +18248,7 @@ var app = (function () {
                     return t.asyncQueue.verifyOperationInProgress(), [ 4 /*yield*/ , Tu(t) ];
 
                   case 1:
-                    return i = s.sent(), C("FirestoreClient", "Initializing OnlineComponentProvider"), 
+                    return i = s.sent(), C$1("FirestoreClient", "Initializing OnlineComponentProvider"), 
                     [ 4 /*yield*/ , t.getConfiguration() ];
 
                   case 2:
@@ -18183,7 +18265,7 @@ var app = (function () {
                                 return __generator(this, (function(r) {
                                     switch (r.label) {
                                       case 0:
-                                        return (n = F(t)).asyncQueue.verifyOperationInProgress(), C("RemoteStore", "RemoteStore received new credentials"), 
+                                        return (n = F(t)).asyncQueue.verifyOperationInProgress(), C$1("RemoteStore", "RemoteStore received new credentials"), 
                                         i = zo(n), 
                                         // Tear down and re-create our network streams. This will ensure we get a
                                         // fresh auth token for the new user and re-fill the write pipeline with
@@ -18218,7 +18300,7 @@ var app = (function () {
             return __generator(this, (function(e) {
                 switch (e.label) {
                   case 0:
-                    return t.offlineComponents ? [ 3 /*break*/ , 2 ] : (C("FirestoreClient", "Using default OfflineComponentProvider"), 
+                    return t.offlineComponents ? [ 3 /*break*/ , 2 ] : (C$1("FirestoreClient", "Using default OfflineComponentProvider"), 
                     [ 4 /*yield*/ , bu(t, new hu) ]);
 
                   case 1:
@@ -18236,7 +18318,7 @@ var app = (function () {
             return __generator(this, (function(e) {
                 switch (e.label) {
                   case 0:
-                    return t.onlineComponents ? [ 3 /*break*/ , 2 ] : (C("FirestoreClient", "Using default OnlineComponentProvider"), 
+                    return t.onlineComponents ? [ 3 /*break*/ , 2 ] : (C$1("FirestoreClient", "Using default OnlineComponentProvider"), 
                     [ 4 /*yield*/ , Iu(t, new du) ]);
 
                   case 1:
@@ -18469,7 +18551,7 @@ var app = (function () {
                 }));
             };
             var n = function(t) {
-                C("FirebaseCredentialsProvider", "Auth detected"), e.auth = t, e.auth.addAuthTokenListener(e.uc);
+                C$1("FirebaseCredentialsProvider", "Auth detected"), e.auth = t, e.auth.addAuthTokenListener(e.uc);
             };
             t.onInit((function(t) {
                 return n(t);
@@ -18484,7 +18566,7 @@ var app = (function () {
                     });
                     r ? n(r) : (
                     // If auth is still not available, proceed with `null` user
-                    C("FirebaseCredentialsProvider", "Auth not yet detected"), e.oc.resolve());
+                    C$1("FirebaseCredentialsProvider", "Auth not yet detected"), e.oc.resolve());
                 }
             }), 0);
         }
@@ -18497,8 +18579,8 @@ var app = (function () {
                 // Cancel the request since the token changed while the request was
                 // outstanding so the response is potentially for a previous user (which
                 // user, we can't be sure).
-                return t.cc !== e ? (C("FirebaseCredentialsProvider", "getToken aborted due to token change."), 
-                t.getToken()) : n ? (P$1("string" == typeof n.accessToken), new Ou(n.accessToken, t.currentUser)) : null;
+                return t.cc !== e ? (C$1("FirebaseCredentialsProvider", "getToken aborted due to token change."), 
+                t.getToken()) : n ? (P("string" == typeof n.accessToken), new Ou(n.accessToken, t.currentUser)) : null;
             })) : Promise.resolve(null);
         }, t.prototype.invalidateToken = function() {
             this.forceRefresh = !0;
@@ -18533,7 +18615,7 @@ var app = (function () {
         // to guarantee to get the actual user.
         t.prototype.ac = function() {
             var t = this.auth && this.auth.getUid();
-            return P$1(null === t || "string" == typeof t), new fo(t);
+            return P(null === t || "string" == typeof t), new fo(t);
         }, t;
     }(), Vu = /** @class */ function() {
         function t(t, e, n) {
@@ -18706,6 +18788,9 @@ var app = (function () {
     }(), Yu = /** @class */ function() {
         /** @hideconstructor */
         function t(t, e) {
+            /**
+             * Whether it's a Firestore or Firestore Lite instance.
+             */
             this.type = "firestore-lite", this._persistenceKey = "(lite)", this._settings = new Hu({}), 
             this._settingsFrozen = !1, t instanceof Ru ? (this._databaseId = t, this._credentials = new Pu) : (this._app = t, 
             this._databaseId = function(t) {
@@ -18744,7 +18829,7 @@ var app = (function () {
                   case "gapi":
                     var e = t.client;
                     // Make sure this really is a Gapi client.
-                                    return P$1(!("object" != typeof e || null === e || !e.auth || !e.auth.getAuthHeaderValueForFirstParty)), 
+                                    return P(!("object" != typeof e || null === e || !e.auth || !e.auth.getAuthHeaderValueForFirstParty)), 
                     new qu(e, t.sessionIndex || "0", t.iamToken || null);
 
                   case "provider":
@@ -18780,7 +18865,7 @@ var app = (function () {
      * Removes all components associated with the provided instance. Must be called
      * when the `Firestore` instance is terminated.
      */
-            return t = this, (e = Lu.get(t)) && (C("ComponentProvider", "Removing Datastore"), 
+            return t = this, (e = Lu.get(t)) && (C$1("ComponentProvider", "Removing Datastore"), 
             Lu.delete(t), e.terminate()), Promise.resolve();
             var t, e;
         }, t;
@@ -19011,7 +19096,7 @@ var app = (function () {
             // after page comes into foreground.
             this.Ic = function() {
                 var e = ko();
-                e && C("AsyncQueue", "Visibility state changed to " + e.visibilityState), t.Zi.Gi();
+                e && C$1("AsyncQueue", "Visibility state changed to " + e.visibilityState), t.Zi.Gi();
             };
             var e = ko();
             e && "function" == typeof e.addEventListener && e.addEventListener("visibilitychange", this.Ic);
@@ -19082,7 +19167,7 @@ var app = (function () {
                       case 3:
                         if (!Nr(t = n.sent())) throw t;
                         // Failure will be handled by AsyncQueue
-                                            return C("AsyncQueue", "Operation failed with retryable error: " + t), 
+                                            return C$1("AsyncQueue", "Operation failed with retryable error: " + t), 
                         [ 3 /*break*/ , 4 ];
 
                       case 4:
@@ -19229,6 +19314,9 @@ var app = (function () {
         /** @hideconstructor */
         function n(t, n) {
             var r = this;
+            /**
+                 * Whether it's a Firestore or Firestore Lite instance.
+                 */
             return (r = e.call(this, t, n) || this).type = "firestore", r._queue = new ra, r._persistenceKey = "name" in t ? t.name : "[DEFAULT]", 
             r;
         }
@@ -20742,7 +20830,7 @@ var app = (function () {
             return new j(e.seconds, e.nanos);
         }, t.prototype.convertDocumentKey = function(t, e) {
             var n = H.fromString(t);
-            P$1($n(n));
+            P($n(n));
             var r = new Ru(n.get(1), n.get(3)), i = new ct(n.popFirst(5));
             return r.isEqual(e) || 
             // TODO(b/64130202): Somehow support foreign references.
@@ -22223,7 +22311,48 @@ var app = (function () {
         }, t;
     }();
 
-    var I = {
+    /**
+     * Component for service name T, e.g. `auth`, `auth-internal`
+     */
+    var Component$1 = /** @class */ (function () {
+        /**
+         *
+         * @param name The public service name, e.g. app, auth, firestore, database
+         * @param instanceFactory Service factory responsible for creating the public interface
+         * @param type whether the service provided by the component is public or private
+         */
+        function Component(name, instanceFactory, type) {
+            this.name = name;
+            this.instanceFactory = instanceFactory;
+            this.type = type;
+            this.multipleInstances = false;
+            /**
+             * Properties to be added to the service namespace
+             */
+            this.serviceProps = {};
+            this.instantiationMode = "LAZY" /* LAZY */;
+            this.onInstanceCreated = null;
+        }
+        Component.prototype.setInstantiationMode = function (mode) {
+            this.instantiationMode = mode;
+            return this;
+        };
+        Component.prototype.setMultipleInstances = function (multipleInstances) {
+            this.multipleInstances = multipleInstances;
+            return this;
+        };
+        Component.prototype.setServiceProps = function (props) {
+            this.serviceProps = props;
+            return this;
+        };
+        Component.prototype.setInstanceCreatedCallback = function (callback) {
+            this.onInstanceCreated = callback;
+            return this;
+        };
+        return Component;
+    }());
+
+    var C = {
         Firestore: _c,
         GeoPoint: ya,
         Timestamp: j,
@@ -22262,7 +22391,7 @@ var app = (function () {
      * Registers the main Firestore build with the components framework.
      * Persistence can be enabled via `firebase.firestore().enablePersistence()`.
      */
-    function P(e) {
+    function I(e) {
         !
         /**
      * Configures Firestore as part of the Firebase SDK by calling registerService.
@@ -22272,16 +22401,125 @@ var app = (function () {
      *    instance.
      */
         function(e, r) {
-            e.INTERNAL.registerComponent(new Component("firestore", (function(e) {
+            e.INTERNAL.registerComponent(new Component$1("firestore", (function(e) {
                 var t = e.getProvider("app").getImmediate();
                 return r(t, e.getProvider("auth-internal"));
-            }), "PUBLIC" /* PUBLIC */).setServiceProps(Object.assign({}, I)));
+            }), "PUBLIC" /* PUBLIC */).setServiceProps(Object.assign({}, C)));
         }(e, (function(e, s) {
             return new _c(e, new ua(e, s), new Ec);
-        })), e.registerVersion("@firebase/firestore", "2.3.9");
+        })), e.registerVersion("@firebase/firestore", "2.3.10");
     }
 
-    P(firebase);
+    I(firebase);
+
+    /**
+     * @license
+     * Copyright 2017 Google LLC
+     *
+     * Licensed under the Apache License, Version 2.0 (the "License");
+     * you may not use this file except in compliance with the License.
+     * You may obtain a copy of the License at
+     *
+     *   http://www.apache.org/licenses/LICENSE-2.0
+     *
+     * Unless required by applicable law or agreed to in writing, software
+     * distributed under the License is distributed on an "AS IS" BASIS,
+     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     * See the License for the specific language governing permissions and
+     * limitations under the License.
+     */
+    var ERROR_NAME = 'FirebaseError';
+    // Based on code from:
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#Custom_Error_Types
+    var FirebaseError = /** @class */ (function (_super) {
+        __extends$1(FirebaseError, _super);
+        function FirebaseError(code, message, customData) {
+            var _this = _super.call(this, message) || this;
+            _this.code = code;
+            _this.customData = customData;
+            _this.name = ERROR_NAME;
+            // Fix For ES5
+            // https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
+            Object.setPrototypeOf(_this, FirebaseError.prototype);
+            // Maintains proper stack trace for where our error was thrown.
+            // Only available on V8.
+            if (Error.captureStackTrace) {
+                Error.captureStackTrace(_this, ErrorFactory.prototype.create);
+            }
+            return _this;
+        }
+        return FirebaseError;
+    }(Error));
+    var ErrorFactory = /** @class */ (function () {
+        function ErrorFactory(service, serviceName, errors) {
+            this.service = service;
+            this.serviceName = serviceName;
+            this.errors = errors;
+        }
+        ErrorFactory.prototype.create = function (code) {
+            var data = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                data[_i - 1] = arguments[_i];
+            }
+            var customData = data[0] || {};
+            var fullCode = this.service + "/" + code;
+            var template = this.errors[code];
+            var message = template ? replaceTemplate(template, customData) : 'Error';
+            // Service Name: Error message (service/code).
+            var fullMessage = this.serviceName + ": " + message + " (" + fullCode + ").";
+            var error = new FirebaseError(fullCode, fullMessage, customData);
+            return error;
+        };
+        return ErrorFactory;
+    }());
+    function replaceTemplate(template, data) {
+        return template.replace(PATTERN, function (_, key) {
+            var value = data[key];
+            return value != null ? String(value) : "<" + key + "?>";
+        });
+    }
+    var PATTERN = /\{\$([^}]+)}/g;
+
+    /**
+     * Component for service name T, e.g. `auth`, `auth-internal`
+     */
+    var Component = /** @class */ (function () {
+        /**
+         *
+         * @param name The public service name, e.g. app, auth, firestore, database
+         * @param instanceFactory Service factory responsible for creating the public interface
+         * @param type whether the service provided by the component is public or private
+         */
+        function Component(name, instanceFactory, type) {
+            this.name = name;
+            this.instanceFactory = instanceFactory;
+            this.type = type;
+            this.multipleInstances = false;
+            /**
+             * Properties to be added to the service namespace
+             */
+            this.serviceProps = {};
+            this.instantiationMode = "LAZY" /* LAZY */;
+            this.onInstanceCreated = null;
+        }
+        Component.prototype.setInstantiationMode = function (mode) {
+            this.instantiationMode = mode;
+            return this;
+        };
+        Component.prototype.setMultipleInstances = function (multipleInstances) {
+            this.multipleInstances = multipleInstances;
+            return this;
+        };
+        Component.prototype.setServiceProps = function (props) {
+            this.serviceProps = props;
+            return this;
+        };
+        Component.prototype.setInstanceCreatedCallback = function (callback) {
+            this.onInstanceCreated = callback;
+            return this;
+        };
+        return Component;
+    }());
 
     /**
      * @license
@@ -22962,7 +23200,7 @@ var app = (function () {
     }
 
     var name = "@firebase/functions";
-    var version = "0.6.13";
+    var version = "0.6.14";
 
     /**
      * @license
@@ -24425,37 +24663,37 @@ var app = (function () {
     }
 
     // Create the default instance to be exported
-    var axios$1 = createInstance(defaults_1);
+    var axios$2 = createInstance(defaults_1);
 
     // Expose Axios class to allow class inheritance
-    axios$1.Axios = Axios_1;
+    axios$2.Axios = Axios_1;
 
     // Factory for creating new instances
-    axios$1.create = function create(instanceConfig) {
-      return createInstance(mergeConfig(axios$1.defaults, instanceConfig));
+    axios$2.create = function create(instanceConfig) {
+      return createInstance(mergeConfig(axios$2.defaults, instanceConfig));
     };
 
     // Expose Cancel & CancelToken
-    axios$1.Cancel = Cancel_1;
-    axios$1.CancelToken = CancelToken_1;
-    axios$1.isCancel = isCancel;
+    axios$2.Cancel = Cancel_1;
+    axios$2.CancelToken = CancelToken_1;
+    axios$2.isCancel = isCancel;
 
     // Expose all/spread
-    axios$1.all = function all(promises) {
+    axios$2.all = function all(promises) {
       return Promise.all(promises);
     };
-    axios$1.spread = spread;
+    axios$2.spread = spread;
 
     // Expose isAxiosError
-    axios$1.isAxiosError = isAxiosError;
+    axios$2.isAxiosError = isAxiosError;
 
-    var axios_1 = axios$1;
+    var axios_1 = axios$2;
 
     // Allow use of default import syntax in TypeScript
-    var _default = axios$1;
+    var _default = axios$2;
     axios_1.default = _default;
 
-    var axios = axios_1;
+    var axios$1 = axios_1;
 
     /**
      * Checks if cachedData exists and if true returns cached data and expiry status.
@@ -24488,247 +24726,52 @@ var app = (function () {
       localStorage.setItem(`${key}`, JSON.stringify(cacheData));
     }
 
-    /* src/Item.svelte generated by Svelte v3.41.0 */
+    /* src\Banner.svelte generated by Svelte v3.42.1 */
 
-    const { console: console_1$1 } = globals;
-    const file$2 = "src/Item.svelte";
+    const { console: console_1$2 } = globals;
+    const file$3 = "src\\Banner.svelte";
 
-    // (178:0) {#if isActive}
-    function create_if_block$1(ctx) {
-    	let await_block_anchor;
-
-    	let info = {
-    		ctx,
-    		current: null,
-    		token: null,
-    		hasCatch: false,
-    		pending: create_pending_block,
-    		then: create_then_block,
-    		catch: create_catch_block,
-    		value: 8
-    	};
-
-    	handle_promise(/*fetchDetails*/ ctx[6](), info);
-
-    	const block = {
-    		c: function create() {
-    			await_block_anchor = empty();
-    			info.block.c();
-    		},
-    		m: function mount(target, anchor) {
-    			insert_dev(target, await_block_anchor, anchor);
-    			info.block.m(target, info.anchor = anchor);
-    			info.mount = () => await_block_anchor.parentNode;
-    			info.anchor = await_block_anchor;
-    		},
-    		p: function update(new_ctx, dirty) {
-    			ctx = new_ctx;
-    			update_await_block_branch(info, ctx, dirty);
-    		},
-    		d: function destroy(detaching) {
-    			if (detaching) detach_dev(await_block_anchor);
-    			info.block.d(detaching);
-    			info.token = null;
-    			info = null;
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_if_block$1.name,
-    		type: "if",
-    		source: "(178:0) {#if isActive}",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    // (1:0) <script>   import axios from "axios";   import { afterUpdate }
-    function create_catch_block(ctx) {
-    	const block = { c: noop$1, m: noop$1, p: noop$1, d: noop$1 };
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_catch_block.name,
-    		type: "catch",
-    		source: "(1:0) <script>   import axios from \\\"axios\\\";   import { afterUpdate }",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    // (183:2) {:then anime}
-    function create_then_block(ctx) {
-    	let div;
-    	let raw_value = /*anime*/ ctx[8].description + "";
-
-    	const block = {
-    		c: function create() {
-    			div = element("div");
-    			attr_dev(div, "class", "card-content");
-    			add_location(div, file$2, 183, 4, 4183);
-    		},
-    		m: function mount(target, anchor) {
-    			insert_dev(target, div, anchor);
-    			div.innerHTML = raw_value;
-    		},
-    		p: noop$1,
-    		d: function destroy(detaching) {
-    			if (detaching) detach_dev(div);
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_then_block.name,
-    		type: "then",
-    		source: "(183:2) {:then anime}",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    // (179:25)      <div class="card-content">       <p>Loading...</p>     </div>   {:then anime}
-    function create_pending_block(ctx) {
-    	let div;
-    	let p;
-
-    	const block = {
-    		c: function create() {
-    			div = element("div");
-    			p = element("p");
-    			p.textContent = "Loading...";
-    			add_location(p, file$2, 180, 6, 4134);
-    			attr_dev(div, "class", "card-content");
-    			add_location(div, file$2, 179, 4, 4101);
-    		},
-    		m: function mount(target, anchor) {
-    			insert_dev(target, div, anchor);
-    			append_dev(div, p);
-    		},
-    		p: noop$1,
-    		d: function destroy(detaching) {
-    			if (detaching) detach_dev(div);
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_pending_block.name,
-    		type: "pending",
-    		source: "(179:25)      <div class=\\\"card-content\\\">       <p>Loading...</p>     </div>   {:then anime}",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    function create_fragment$2(ctx) {
-    	let div3;
-    	let div0;
-    	let t0;
-    	let t1;
+    function create_fragment$3(ctx) {
     	let div1;
-    	let t2;
-    	let t3;
-    	let div2;
-    	let t4;
-    	let t5;
-    	let t6;
-    	let if_block_anchor;
-    	let mounted;
-    	let dispose;
-    	let if_block = /*isActive*/ ctx[0] && create_if_block$1(ctx);
+    	let div0;
+    	let t;
 
     	const block = {
     		c: function create() {
-    			div3 = element("div");
-    			div0 = element("div");
-    			t0 = text(/*rank*/ ctx[1]);
-    			t1 = space();
     			div1 = element("div");
-    			t2 = text(/*title*/ ctx[2]);
-    			t3 = space();
-    			div2 = element("div");
-    			t4 = text(/*votes*/ ctx[3]);
-    			t5 = text("%");
-    			t6 = space();
-    			if (if_block) if_block.c();
-    			if_block_anchor = empty();
-    			attr_dev(div0, "class", "card--rank svelte-v8obr1");
-    			add_location(div0, file$2, 163, 2, 3799);
-    			attr_dev(div1, "class", "card--title--img svelte-v8obr1");
-    			set_style(div1, "background-image", "linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(" + /*src*/ ctx[4] + ")");
-    			add_location(div1, file$2, 166, 2, 3846);
-    			attr_dev(div2, "class", "card--votes svelte-v8obr1");
-    			add_location(div2, file$2, 172, 2, 4000);
-    			attr_dev(div3, "class", "card svelte-v8obr1");
-    			add_location(div3, file$2, 162, 0, 3754);
+    			div0 = element("div");
+    			t = text(/*title*/ ctx[0]);
+    			attr_dev(div0, "class", "title svelte-119me8c");
+    			add_location(div0, file$3, 70, 2, 1658);
+    			attr_dev(div1, "class", "banner svelte-119me8c");
+    			set_style(div1, "background-image", "linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(" + /*src*/ ctx[1] + ")");
+    			add_location(div1, file$3, 66, 0, 1537);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, div3, anchor);
-    			append_dev(div3, div0);
-    			append_dev(div0, t0);
-    			append_dev(div3, t1);
-    			append_dev(div3, div1);
-    			append_dev(div1, t2);
-    			append_dev(div3, t3);
-    			append_dev(div3, div2);
-    			append_dev(div2, t4);
-    			append_dev(div2, t5);
-    			insert_dev(target, t6, anchor);
-    			if (if_block) if_block.m(target, anchor);
-    			insert_dev(target, if_block_anchor, anchor);
-
-    			if (!mounted) {
-    				dispose = listen_dev(div3, "click", /*toggleActive*/ ctx[5], false, false, false);
-    				mounted = true;
-    			}
+    			insert_dev(target, div1, anchor);
+    			append_dev(div1, div0);
+    			append_dev(div0, t);
     		},
     		p: function update(ctx, [dirty]) {
-    			if (dirty & /*rank*/ 2) set_data_dev(t0, /*rank*/ ctx[1]);
-    			if (dirty & /*title*/ 4) set_data_dev(t2, /*title*/ ctx[2]);
+    			if (dirty & /*title*/ 1) set_data_dev(t, /*title*/ ctx[0]);
 
-    			if (dirty & /*src*/ 16) {
-    				set_style(div1, "background-image", "linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(" + /*src*/ ctx[4] + ")");
-    			}
-
-    			if (dirty & /*votes*/ 8) set_data_dev(t4, /*votes*/ ctx[3]);
-
-    			if (/*isActive*/ ctx[0]) {
-    				if (if_block) {
-    					if_block.p(ctx, dirty);
-    				} else {
-    					if_block = create_if_block$1(ctx);
-    					if_block.c();
-    					if_block.m(if_block_anchor.parentNode, if_block_anchor);
-    				}
-    			} else if (if_block) {
-    				if_block.d(1);
-    				if_block = null;
+    			if (dirty & /*src*/ 2) {
+    				set_style(div1, "background-image", "linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(" + /*src*/ ctx[1] + ")");
     			}
     		},
     		i: noop$1,
     		o: noop$1,
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(div3);
-    			if (detaching) detach_dev(t6);
-    			if (if_block) if_block.d(detaching);
-    			if (detaching) detach_dev(if_block_anchor);
-    			mounted = false;
-    			dispose();
+    			if (detaching) detach_dev(div1);
     		}
     	};
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_fragment$2.name,
+    		id: create_fragment$3.name,
     		type: "component",
     		source: "",
     		ctx
@@ -24737,103 +24780,15 @@ var app = (function () {
     	return block;
     }
 
-    function instance$2($$self, $$props, $$invalidate) {
+    function instance$3($$self, $$props, $$invalidate) {
     	let { $$slots: slots = {}, $$scope } = $$props;
-    	validate_slots('Item', slots, []);
-    	let { rank } = $$props;
+    	validate_slots('Banner', slots, []);
     	let { title } = $$props;
-    	let { votes } = $$props;
-    	let { isActive } = $$props;
     	let src;
 
     	afterUpdate(async () => {
-    		$$invalidate(4, src = await fetchBannerImg());
+    		$$invalidate(1, src = await fetchBannerImg());
     	});
-
-    	function toggleActive() {
-    		$$invalidate(0, isActive = !isActive);
-    	}
-
-    	const fetchDetails = async () => {
-    		let data;
-    		let key = `${title} Details`;
-    		let cache = checkCache(key);
-
-    		// If cached data exists and is not expired then return data
-    		if (cache.cachedData && !cache.expired) {
-    			return cache.cachedData.data;
-    		} else {
-    			// Otherwise fetch data from Anilist
-    			const query = `
-  query ($title: String){
-    Media (search: $title, type: ANIME) {
-      rankings {
-        allTime
-        rank
-        context
-      }
-      genres
-      description
-      externalLinks {
-        url
-      }
-      coverImage {
-        extraLarge
-      }
-    }
-  } 
-  `;
-
-    			const variables = { title };
-
-    			const headers = {
-    				"Content-Type": "application/json",
-    				Accept: "application/json"
-    			};
-
-    			await axios({
-    				method: "post",
-    				url: "https://graphql.anilist.co/",
-    				headers,
-    				data: JSON.stringify({ query, variables })
-    			}).then(result => data = result.data.data.Media).// if HTTP status = 404, fetch data from Kitsu
-    			catch(async err => {
-    				console.log(err.message);
-    				console.log("Trying Kitsu...");
-
-    				const headers = {
-    					"Content-Type": "application/vnd.api+json",
-    					Accept: "application/vnd.api+json"
-    				};
-
-    				const fetchAnimeKitsu = async () => {
-    					const result = {};
-
-    					const response = await axios({
-    						method: "get",
-    						url: `https://kitsu.io/api/edge/anime?filter[text]=${title}`,
-    						headers
-    					}).catch(err => console.log(err.message));
-
-    					result.description = response.data.data[0].attributes.synopsis.replace(
-    						// Replace \n with <br />
-    						/\n/g,
-    						"<br />"
-    					);
-
-    					return result;
-    				};
-
-    				data = await fetchAnimeKitsu();
-    			});
-
-    			// Save data in local storage
-    			cacheData(key, data);
-
-    			console.log(`${title} details fetched`, data);
-    			return data;
-    		}
-    	};
 
     	const fetchBannerImg = async () => {
     		let data;
@@ -24880,6 +24835,415 @@ var app = (function () {
     		return data;
     	};
 
+    	const writable_props = ['title'];
+
+    	Object.keys($$props).forEach(key => {
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console_1$2.warn(`<Banner> was created with unknown prop '${key}'`);
+    	});
+
+    	$$self.$$set = $$props => {
+    		if ('title' in $$props) $$invalidate(0, title = $$props.title);
+    	};
+
+    	$$self.$capture_state = () => ({
+    		afterUpdate,
+    		checkCache,
+    		cacheData,
+    		title,
+    		src,
+    		fetchBannerImg
+    	});
+
+    	$$self.$inject_state = $$props => {
+    		if ('title' in $$props) $$invalidate(0, title = $$props.title);
+    		if ('src' in $$props) $$invalidate(1, src = $$props.src);
+    	};
+
+    	if ($$props && "$$inject" in $$props) {
+    		$$self.$inject_state($$props.$$inject);
+    	}
+
+    	return [title, src];
+    }
+
+    class Banner extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+    		init(this, options, instance$3, create_fragment$3, safe_not_equal, { title: 0 });
+
+    		dispatch_dev("SvelteRegisterComponent", {
+    			component: this,
+    			tagName: "Banner",
+    			options,
+    			id: create_fragment$3.name
+    		});
+
+    		const { ctx } = this.$$;
+    		const props = options.props || {};
+
+    		if (/*title*/ ctx[0] === undefined && !('title' in props)) {
+    			console_1$2.warn("<Banner> was created without expected prop 'title'");
+    		}
+    	}
+
+    	get title() {
+    		throw new Error("<Banner>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set title(value) {
+    		throw new Error("<Banner>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+    }
+
+    /* src\Item.svelte generated by Svelte v3.42.1 */
+
+    const { console: console_1$1 } = globals;
+    const file$2 = "src\\Item.svelte";
+
+    // (113:0) {#if isActive}
+    function create_if_block$1(ctx) {
+    	let await_block_anchor;
+
+    	let info = {
+    		ctx,
+    		current: null,
+    		token: null,
+    		hasCatch: false,
+    		pending: create_pending_block,
+    		then: create_then_block,
+    		catch: create_catch_block,
+    		value: 6
+    	};
+
+    	handle_promise(/*fetchDetails*/ ctx[5](), info);
+
+    	const block = {
+    		c: function create() {
+    			await_block_anchor = empty();
+    			info.block.c();
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, await_block_anchor, anchor);
+    			info.block.m(target, info.anchor = anchor);
+    			info.mount = () => await_block_anchor.parentNode;
+    			info.anchor = await_block_anchor;
+    		},
+    		p: function update(new_ctx, dirty) {
+    			ctx = new_ctx;
+    			update_await_block_branch(info, ctx, dirty);
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(await_block_anchor);
+    			info.block.d(detaching);
+    			info.token = null;
+    			info = null;
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block$1.name,
+    		type: "if",
+    		source: "(113:0) {#if isActive}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (1:0) <script>    import axios from "axios";    import Banner from "./Banner.svelte";    import { checkCache, cacheData }
+    function create_catch_block(ctx) {
+    	const block = { c: noop$1, m: noop$1, p: noop$1, d: noop$1 };
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_catch_block.name,
+    		type: "catch",
+    		source: "(1:0) <script>    import axios from \\\"axios\\\";    import Banner from \\\"./Banner.svelte\\\";    import { checkCache, cacheData }",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (118:2) {:then anime}
+    function create_then_block(ctx) {
+    	let div;
+    	let raw_value = /*anime*/ ctx[6].description + "";
+
+    	const block = {
+    		c: function create() {
+    			div = element("div");
+    			attr_dev(div, "class", "card-content");
+    			add_location(div, file$2, 118, 4, 2828);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+    			div.innerHTML = raw_value;
+    		},
+    		p: noop$1,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_then_block.name,
+    		type: "then",
+    		source: "(118:2) {:then anime}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (114:25)       <div class="card-content">        <p>Loading...</p>      </div>    {:then anime}
+    function create_pending_block(ctx) {
+    	let div;
+    	let p;
+
+    	const block = {
+    		c: function create() {
+    			div = element("div");
+    			p = element("p");
+    			p.textContent = "Loading...";
+    			add_location(p, file$2, 115, 6, 2776);
+    			attr_dev(div, "class", "card-content");
+    			add_location(div, file$2, 114, 4, 2742);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+    			append_dev(div, p);
+    		},
+    		p: noop$1,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_pending_block.name,
+    		type: "pending",
+    		source: "(114:25)       <div class=\\\"card-content\\\">        <p>Loading...</p>      </div>    {:then anime}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function create_fragment$2(ctx) {
+    	let div2;
+    	let div0;
+    	let t0;
+    	let t1;
+    	let banner;
+    	let t2;
+    	let div1;
+    	let t3;
+    	let t4;
+    	let t5;
+    	let if_block_anchor;
+    	let current;
+    	let mounted;
+    	let dispose;
+
+    	banner = new Banner({
+    			props: { title: /*title*/ ctx[2] },
+    			$$inline: true
+    		});
+
+    	let if_block = /*isActive*/ ctx[0] && create_if_block$1(ctx);
+
+    	const block = {
+    		c: function create() {
+    			div2 = element("div");
+    			div0 = element("div");
+    			t0 = text(/*rank*/ ctx[1]);
+    			t1 = space();
+    			create_component(banner.$$.fragment);
+    			t2 = space();
+    			div1 = element("div");
+    			t3 = text(/*votes*/ ctx[3]);
+    			t4 = text("%");
+    			t5 = space();
+    			if (if_block) if_block.c();
+    			if_block_anchor = empty();
+    			attr_dev(div0, "class", "card--rank svelte-1oipboj");
+    			add_location(div0, file$2, 103, 2, 2562);
+    			attr_dev(div1, "class", "card--votes svelte-1oipboj");
+    			add_location(div1, file$2, 107, 2, 2634);
+    			attr_dev(div2, "class", "card svelte-1oipboj");
+    			add_location(div2, file$2, 102, 0, 2516);
+    		},
+    		l: function claim(nodes) {
+    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div2, anchor);
+    			append_dev(div2, div0);
+    			append_dev(div0, t0);
+    			append_dev(div2, t1);
+    			mount_component(banner, div2, null);
+    			append_dev(div2, t2);
+    			append_dev(div2, div1);
+    			append_dev(div1, t3);
+    			append_dev(div1, t4);
+    			insert_dev(target, t5, anchor);
+    			if (if_block) if_block.m(target, anchor);
+    			insert_dev(target, if_block_anchor, anchor);
+    			current = true;
+
+    			if (!mounted) {
+    				dispose = listen_dev(div2, "click", /*toggleActive*/ ctx[4], false, false, false);
+    				mounted = true;
+    			}
+    		},
+    		p: function update(ctx, [dirty]) {
+    			if (!current || dirty & /*rank*/ 2) set_data_dev(t0, /*rank*/ ctx[1]);
+    			const banner_changes = {};
+    			if (dirty & /*title*/ 4) banner_changes.title = /*title*/ ctx[2];
+    			banner.$set(banner_changes);
+    			if (!current || dirty & /*votes*/ 8) set_data_dev(t3, /*votes*/ ctx[3]);
+
+    			if (/*isActive*/ ctx[0]) {
+    				if (if_block) {
+    					if_block.p(ctx, dirty);
+    				} else {
+    					if_block = create_if_block$1(ctx);
+    					if_block.c();
+    					if_block.m(if_block_anchor.parentNode, if_block_anchor);
+    				}
+    			} else if (if_block) {
+    				if_block.d(1);
+    				if_block = null;
+    			}
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(banner.$$.fragment, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(banner.$$.fragment, local);
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div2);
+    			destroy_component(banner);
+    			if (detaching) detach_dev(t5);
+    			if (if_block) if_block.d(detaching);
+    			if (detaching) detach_dev(if_block_anchor);
+    			mounted = false;
+    			dispose();
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_fragment$2.name,
+    		type: "component",
+    		source: "",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function instance$2($$self, $$props, $$invalidate) {
+    	let { $$slots: slots = {}, $$scope } = $$props;
+    	validate_slots('Item', slots, []);
+    	let { rank } = $$props;
+    	let { title } = $$props;
+    	let { votes } = $$props;
+    	let { isActive } = $$props;
+
+    	function toggleActive() {
+    		$$invalidate(0, isActive = !isActive);
+    	}
+
+    	const fetchDetails = async () => {
+    		let data;
+    		let key = `${title} Details`;
+    		let cache = checkCache(key);
+
+    		// If cached data exists and is not expired then return data
+    		if (cache.cachedData && !cache.expired) {
+    			return cache.cachedData.data;
+    		} else {
+    			// Otherwise fetch data from Anilist
+    			const query = `
+  query ($title: String){
+    Media (search: $title, type: ANIME) {
+      rankings {
+        allTime
+        rank
+        context
+      }
+      genres
+      description
+      externalLinks {
+        url
+      }
+      coverImage {
+        extraLarge
+      }
+    }
+  } 
+  `;
+
+    			const variables = { title };
+
+    			const headers = {
+    				"Content-Type": "application/json",
+    				Accept: "application/json"
+    			};
+
+    			await axios$1({
+    				method: "post",
+    				url: "https://graphql.anilist.co/",
+    				headers,
+    				data: JSON.stringify({ query, variables })
+    			}).then(result => data = result.data.data.Media).// if HTTP status = 404, fetch data from Kitsu
+    			catch(async err => {
+    				console.log(err.message);
+    				console.log("Trying Kitsu...");
+
+    				const headers = {
+    					"Content-Type": "application/vnd.api+json",
+    					Accept: "application/vnd.api+json"
+    				};
+
+    				const fetchAnimeKitsu = async () => {
+    					const result = {};
+
+    					const response = await axios$1({
+    						method: "get",
+    						url: `https://kitsu.io/api/edge/anime?filter[text]=${title}`,
+    						headers
+    					}).catch(err => console.log(err.message));
+
+    					result.description = response.data.data[0].attributes.synopsis.replace(
+    						// Replace \n with <br />
+    						/\n/g,
+    						"<br />"
+    					);
+
+    					return result;
+    				};
+
+    				data = await fetchAnimeKitsu();
+    			});
+
+    			// Save data in local storage
+    			cacheData(key, data);
+
+    			console.log(`${title} details fetched`, data);
+    			return data;
+    		}
+    	};
+
     	const writable_props = ['rank', 'title', 'votes', 'isActive'];
 
     	Object.keys($$props).forEach(key => {
@@ -24894,18 +25258,16 @@ var app = (function () {
     	};
 
     	$$self.$capture_state = () => ({
-    		axios,
-    		afterUpdate,
+    		axios: axios$1,
+    		Banner,
     		checkCache,
     		cacheData,
     		rank,
     		title,
     		votes,
     		isActive,
-    		src,
     		toggleActive,
-    		fetchDetails,
-    		fetchBannerImg
+    		fetchDetails
     	});
 
     	$$self.$inject_state = $$props => {
@@ -24913,14 +25275,13 @@ var app = (function () {
     		if ('title' in $$props) $$invalidate(2, title = $$props.title);
     		if ('votes' in $$props) $$invalidate(3, votes = $$props.votes);
     		if ('isActive' in $$props) $$invalidate(0, isActive = $$props.isActive);
-    		if ('src' in $$props) $$invalidate(4, src = $$props.src);
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [isActive, rank, title, votes, src, toggleActive, fetchDetails];
+    	return [isActive, rank, title, votes, toggleActive, fetchDetails];
     }
 
     class Item extends SvelteComponentDev {
@@ -25041,10 +25402,10 @@ var app = (function () {
     const week = writable("Week-04");
     const isActive = writable(false);
 
-    /* src/Leaderboard.svelte generated by Svelte v3.41.0 */
+    /* src\Leaderboard.svelte generated by Svelte v3.42.1 */
 
     const { console: console_1 } = globals;
-    const file$1 = "src/Leaderboard.svelte";
+    const file$1 = "src\\Leaderboard.svelte";
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
@@ -25086,7 +25447,7 @@ var app = (function () {
     			}
 
     			if (/*$season*/ ctx[4] === void 0) add_render_callback(() => /*select_change_handler*/ ctx[11].call(select));
-    			add_location(select, file$1, 229, 2, 6156);
+    			add_location(select, file$1, 229, 2, 6385);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -25166,8 +25527,8 @@ var app = (function () {
     			option.textContent = "Loading...";
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file$1, 225, 4, 6055);
-    			add_location(select, file$1, 224, 2, 6042);
+    			add_location(option, file$1, 225, 4, 6280);
+    			add_location(select, file$1, 224, 2, 6266);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -25203,7 +25564,7 @@ var app = (function () {
     			t = text(t_value);
     			option.__value = option_value_value = /*season*/ ctx[24];
     			option.value = option.__value;
-    			add_location(option, file$1, 231, 6, 6247);
+    			add_location(option, file$1, 231, 6, 6478);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
@@ -25255,7 +25616,7 @@ var app = (function () {
     			}
 
     			if (/*$week*/ ctx[3] === void 0) add_render_callback(() => /*select_change_handler_1*/ ctx[12].call(select));
-    			add_location(select, file$1, 242, 2, 6459);
+    			add_location(select, file$1, 242, 2, 6701);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -25335,8 +25696,8 @@ var app = (function () {
     			option.textContent = "Loading...";
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file$1, 238, 4, 6358);
-    			add_location(select, file$1, 237, 2, 6345);
+    			add_location(option, file$1, 238, 4, 6596);
+    			add_location(select, file$1, 237, 2, 6582);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -25372,7 +25733,7 @@ var app = (function () {
     			t = text(t_value);
     			option.__value = option_value_value = /*week*/ ctx[21];
     			option.value = option.__value;
-    			add_location(option, file$1, 244, 6, 6543);
+    			add_location(option, file$1, 244, 6, 6787);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
@@ -25506,7 +25867,7 @@ var app = (function () {
     		c: function create() {
     			p = element("p");
     			p.textContent = "Loading...";
-    			add_location(p, file$1, 255, 4, 6769);
+    			add_location(p, file$1, 255, 4, 7024);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, p, anchor);
@@ -25659,16 +26020,16 @@ var app = (function () {
     			button2.textContent = "Show more rankings";
     			attr_dev(button0, "id", "prev-btn");
     			attr_dev(button0, "class", "svelte-1hn3a7v");
-    			add_location(button0, file$1, 221, 0, 5962);
+    			add_location(button0, file$1, 221, 0, 6183);
     			attr_dev(button1, "id", "next-btn");
     			attr_dev(button1, "class", "svelte-1hn3a7v");
-    			add_location(button1, file$1, 249, 0, 6629);
-    			add_location(p, file$1, 251, 0, 6684);
+    			add_location(button1, file$1, 249, 0, 6878);
+    			add_location(p, file$1, 251, 0, 6935);
     			attr_dev(div, "class", "svelte-1hn3a7v");
-    			add_location(div, file$1, 253, 0, 6733);
+    			add_location(div, file$1, 253, 0, 6986);
     			attr_dev(button2, "id", "showMore");
     			attr_dev(button2, "class", "svelte-1hn3a7v");
-    			add_location(button2, file$1, 263, 0, 6897);
+    			add_location(button2, file$1, 263, 0, 7160);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -26098,8 +26459,8 @@ var app = (function () {
     	}
     }
 
-    /* src/App.svelte generated by Svelte v3.41.0 */
-    const file = "src/App.svelte";
+    /* src\App.svelte generated by Svelte v3.42.1 */
+    const file = "src\\App.svelte";
 
     function create_fragment(ctx) {
     	let main;
@@ -26117,9 +26478,9 @@ var app = (function () {
     			t1 = space();
     			create_component(leaderboard.$$.fragment);
     			attr_dev(h1, "class", "svelte-11a7f76");
-    			add_location(h1, file, 5, 2, 79);
+    			add_location(h1, file, 5, 2, 84);
     			attr_dev(main, "class", "svelte-11a7f76");
-    			add_location(main, file, 4, 0, 70);
+    			add_location(main, file, 4, 0, 74);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");

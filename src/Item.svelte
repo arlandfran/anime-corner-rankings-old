@@ -1,18 +1,12 @@
 <script>
   import axios from "axios";
-  import { afterUpdate } from "svelte";
+  import Banner from "./Banner.svelte";
   import { checkCache, cacheData } from "./cache";
 
   export let rank;
   export let title;
   export let votes;
   export let isActive;
-
-  let src;
-
-  afterUpdate(async () => {
-    src = await fetchBannerImg();
-  });
 
   function toggleActive() {
     isActive = !isActive;
@@ -104,72 +98,13 @@
       return data;
     }
   };
-
-  const fetchBannerImg = async () => {
-    let data;
-    const key = `${title} Banner`;
-    let cache = checkCache(key);
-
-    if (cache.cachedData && !cache.expired) {
-      return cache.cachedData.data;
-    } else {
-      const query = `
-  query ($title: String){
-    Media (search: $title, type: ANIME) {
-      bannerImage
-    }
-  }
-  `;
-
-      const variables = {
-        title: title,
-      };
-
-      const headers = {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      };
-
-      await axios({
-        method: "post",
-        url: "https://graphql.anilist.co/",
-        headers,
-        data: JSON.stringify({
-          query: query,
-          variables: variables,
-        }),
-      })
-        .then((result) => {
-          data = result.data.data.Media.bannerImage;
-
-          if (data === null) {
-            data =
-              "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
-          }
-        })
-        .catch((err) => {
-          data =
-            "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
-          console.log(err.message);
-        });
-
-      cacheData(key, data);
-    }
-
-    return data;
-  };
 </script>
 
 <div class="card" on:click={toggleActive}>
   <div class="card--rank">
     {rank}
   </div>
-  <div
-    class="card--title--img"
-    style="background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url({src});"
-  >
-    {title}
-  </div>
+  <Banner {title} />
   <div class="card--votes">
     {votes}%
   </div>
@@ -203,22 +138,6 @@
     font-weight: bold;
     text-align: center;
   }
-
-  .card--title--img {
-    display: flex;
-    align-items: flex-end;
-    width: 100%;
-    height: 100%;
-    color: #fff;
-    padding-left: 0.5rem;
-    font-size: 1rem;
-    font-weight: bold;
-    text-transform: uppercase;
-    text-shadow: 0px 2px 2px rgba(0, 0, 0, 0.6);
-    background-size: cover;
-    background-position: center;
-  }
-
   .card--votes {
     width: 6rem;
     text-align: center;
