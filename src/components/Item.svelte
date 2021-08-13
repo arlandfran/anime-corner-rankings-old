@@ -105,7 +105,7 @@
 <div class="card" on:click={toggleActive}>
   <ItemRank {rank} />
   <ItemBanner {title} />
-  <ItemDetails {votes} />
+  <ItemDetails {rank} {title} {votes} />
 </div>
 
 {#if isActive}
