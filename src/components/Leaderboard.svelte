@@ -3,7 +3,7 @@
   import { onMount } from "svelte";
   import { db, cf } from "../firebase";
   import Item from "./Item.svelte";
-  import { year, season, week, isActive } from "../stores";
+  import { year, season, week, page, isActive } from "../stores";
   import { checkCache, cacheData } from "../cache";
 
   let seasons = [];
@@ -26,7 +26,7 @@
   });
 
   const fetchData = async () => {
-    let key = `${$season}-${$week}`;
+    let key = `${$season}-${$week}-page-${$page}`;
     let cache = checkCache(key);
 
     // If cached data exists and is not expired then return data
@@ -52,46 +52,65 @@
   };
 
   const fetchNextData = async () => {
-    let item = [];
+    $page += 1;
+    let item;
+    let key = `${$season}-${$week}-page-${$page}`;
+    let cache = checkCache(key);
 
-    await query.get().then((snapshots) => {
-      // Get the last visible document
-      let lastVisible = snapshots.docs[snapshots.docs.length - 1];
+    if (cache.cachedData && !cache.expired) {
+      // Update items array with cached documents
+      let data = cache.cachedData.data;
+      for (let i = 0; i < data.length; i++) {
+        item = {
+          rank: data[i].rank,
+          title: data[i].title,
+          votes: data[i].votes,
+          banner: data[i].banner,
+        };
+        items = [...items, item];
+      }
+    } else {
+      await query.get().then((snapshots) => {
+        // Get the last visible document
+        let lastVisible = snapshots.docs[snapshots.docs.length - 1];
 
-      query = db
-        .collection($year)
-        .doc($season)
-        .collection($week)
-        .orderBy("rank", "asc")
-        .startAfter(lastVisible)
-        .limit(10);
+        query = db
+          .collection($year)
+          .doc($season)
+          .collection($week)
+          .orderBy("rank", "asc")
+          .startAfter(lastVisible)
+          .limit(10);
 
-      query.get().then(async (snapshots) => {
-        // Converts newly fetched collection into array of documents
-        let data = snapshots.docs.map((doc) => doc.data());
+        query.get().then(async (snapshots) => {
+          // Converts newly fetched collection into array of documents
+          let data = snapshots.docs.map((doc) => doc.data());
 
-        await fetchBanners(data);
+          await fetchBanners(data);
 
-        // Update items array with new documents
-        for (let i = 0; i < data.length; i++) {
-          item = {
-            rank: data[i].rank,
-            title: data[i].title,
-            votes: data[i].votes,
-            banner: data[i].banner,
-          };
-          items = [...items, item];
-        }
+          // Update items array with new documents
+          for (let i = 0; i < data.length; i++) {
+            item = {
+              rank: data[i].rank,
+              title: data[i].title,
+              votes: data[i].votes,
+              banner: data[i].banner,
+            };
+            items = [...items, item];
+          }
 
-        // Disable show more button if there is no more data to be fetched
-        if (snapshots.size < 10) {
-          document.getElementById("showMore").disabled = true;
-          console.log("No more data to be fetched");
-        } else {
-          console.log("Next batch of data fetched");
-        }
+          cacheData(key, data);
+
+          // Disable show more button if there is no more data to be fetched
+          if (snapshots.size < 10) {
+            document.getElementById("showMore").disabled = true;
+            console.log("No more data to be fetched");
+          } else {
+            console.log("Next batch of data fetched");
+          }
+        });
       });
-    });
+    }
   };
 
   const fetchSeasons = async () => {
