@@ -129,9 +129,6 @@ var app = (function () {
     function onMount(fn) {
         get_current_component().$$.on_mount.push(fn);
     }
-    function afterUpdate(fn) {
-        get_current_component().$$.after_update.push(fn);
-    }
 
     const dirty_components = [];
     const binding_callbacks = [];
@@ -488,7 +485,7 @@ var app = (function () {
     }
 
     function dispatch_dev(type, detail) {
-        document.dispatchEvent(custom_event(type, Object.assign({ version: '3.42.1' }, detail), true));
+        document.dispatchEvent(custom_event(type, Object.assign({ version: '3.41.0' }, detail), true));
     }
     function append_dev(target, node) {
         dispatch_dev('SvelteDOMInsert', { target, node });
@@ -568,6 +565,1463 @@ var app = (function () {
         $capture_state() { }
         $inject_state() { }
     }
+
+    var bind = function bind(fn, thisArg) {
+      return function wrap() {
+        var args = new Array(arguments.length);
+        for (var i = 0; i < args.length; i++) {
+          args[i] = arguments[i];
+        }
+        return fn.apply(thisArg, args);
+      };
+    };
+
+    /*global toString:true*/
+
+    // utils is a library of generic helper functions non-specific to axios
+
+    var toString = Object.prototype.toString;
+
+    /**
+     * Determine if a value is an Array
+     *
+     * @param {Object} val The value to test
+     * @returns {boolean} True if value is an Array, otherwise false
+     */
+    function isArray(val) {
+      return toString.call(val) === '[object Array]';
+    }
+
+    /**
+     * Determine if a value is undefined
+     *
+     * @param {Object} val The value to test
+     * @returns {boolean} True if the value is undefined, otherwise false
+     */
+    function isUndefined(val) {
+      return typeof val === 'undefined';
+    }
+
+    /**
+     * Determine if a value is a Buffer
+     *
+     * @param {Object} val The value to test
+     * @returns {boolean} True if value is a Buffer, otherwise false
+     */
+    function isBuffer(val) {
+      return val !== null && !isUndefined(val) && val.constructor !== null && !isUndefined(val.constructor)
+        && typeof val.constructor.isBuffer === 'function' && val.constructor.isBuffer(val);
+    }
+
+    /**
+     * Determine if a value is an ArrayBuffer
+     *
+     * @param {Object} val The value to test
+     * @returns {boolean} True if value is an ArrayBuffer, otherwise false
+     */
+    function isArrayBuffer(val) {
+      return toString.call(val) === '[object ArrayBuffer]';
+    }
+
+    /**
+     * Determine if a value is a FormData
+     *
+     * @param {Object} val The value to test
+     * @returns {boolean} True if value is an FormData, otherwise false
+     */
+    function isFormData(val) {
+      return (typeof FormData !== 'undefined') && (val instanceof FormData);
+    }
+
+    /**
+     * Determine if a value is a view on an ArrayBuffer
+     *
+     * @param {Object} val The value to test
+     * @returns {boolean} True if value is a view on an ArrayBuffer, otherwise false
+     */
+    function isArrayBufferView(val) {
+      var result;
+      if ((typeof ArrayBuffer !== 'undefined') && (ArrayBuffer.isView)) {
+        result = ArrayBuffer.isView(val);
+      } else {
+        result = (val) && (val.buffer) && (val.buffer instanceof ArrayBuffer);
+      }
+      return result;
+    }
+
+    /**
+     * Determine if a value is a String
+     *
+     * @param {Object} val The value to test
+     * @returns {boolean} True if value is a String, otherwise false
+     */
+    function isString(val) {
+      return typeof val === 'string';
+    }
+
+    /**
+     * Determine if a value is a Number
+     *
+     * @param {Object} val The value to test
+     * @returns {boolean} True if value is a Number, otherwise false
+     */
+    function isNumber(val) {
+      return typeof val === 'number';
+    }
+
+    /**
+     * Determine if a value is an Object
+     *
+     * @param {Object} val The value to test
+     * @returns {boolean} True if value is an Object, otherwise false
+     */
+    function isObject(val) {
+      return val !== null && typeof val === 'object';
+    }
+
+    /**
+     * Determine if a value is a plain Object
+     *
+     * @param {Object} val The value to test
+     * @return {boolean} True if value is a plain Object, otherwise false
+     */
+    function isPlainObject(val) {
+      if (toString.call(val) !== '[object Object]') {
+        return false;
+      }
+
+      var prototype = Object.getPrototypeOf(val);
+      return prototype === null || prototype === Object.prototype;
+    }
+
+    /**
+     * Determine if a value is a Date
+     *
+     * @param {Object} val The value to test
+     * @returns {boolean} True if value is a Date, otherwise false
+     */
+    function isDate(val) {
+      return toString.call(val) === '[object Date]';
+    }
+
+    /**
+     * Determine if a value is a File
+     *
+     * @param {Object} val The value to test
+     * @returns {boolean} True if value is a File, otherwise false
+     */
+    function isFile(val) {
+      return toString.call(val) === '[object File]';
+    }
+
+    /**
+     * Determine if a value is a Blob
+     *
+     * @param {Object} val The value to test
+     * @returns {boolean} True if value is a Blob, otherwise false
+     */
+    function isBlob(val) {
+      return toString.call(val) === '[object Blob]';
+    }
+
+    /**
+     * Determine if a value is a Function
+     *
+     * @param {Object} val The value to test
+     * @returns {boolean} True if value is a Function, otherwise false
+     */
+    function isFunction(val) {
+      return toString.call(val) === '[object Function]';
+    }
+
+    /**
+     * Determine if a value is a Stream
+     *
+     * @param {Object} val The value to test
+     * @returns {boolean} True if value is a Stream, otherwise false
+     */
+    function isStream(val) {
+      return isObject(val) && isFunction(val.pipe);
+    }
+
+    /**
+     * Determine if a value is a URLSearchParams object
+     *
+     * @param {Object} val The value to test
+     * @returns {boolean} True if value is a URLSearchParams object, otherwise false
+     */
+    function isURLSearchParams(val) {
+      return typeof URLSearchParams !== 'undefined' && val instanceof URLSearchParams;
+    }
+
+    /**
+     * Trim excess whitespace off the beginning and end of a string
+     *
+     * @param {String} str The String to trim
+     * @returns {String} The String freed of excess whitespace
+     */
+    function trim(str) {
+      return str.replace(/^\s*/, '').replace(/\s*$/, '');
+    }
+
+    /**
+     * Determine if we're running in a standard browser environment
+     *
+     * This allows axios to run in a web worker, and react-native.
+     * Both environments support XMLHttpRequest, but not fully standard globals.
+     *
+     * web workers:
+     *  typeof window -> undefined
+     *  typeof document -> undefined
+     *
+     * react-native:
+     *  navigator.product -> 'ReactNative'
+     * nativescript
+     *  navigator.product -> 'NativeScript' or 'NS'
+     */
+    function isStandardBrowserEnv() {
+      if (typeof navigator !== 'undefined' && (navigator.product === 'ReactNative' ||
+                                               navigator.product === 'NativeScript' ||
+                                               navigator.product === 'NS')) {
+        return false;
+      }
+      return (
+        typeof window !== 'undefined' &&
+        typeof document !== 'undefined'
+      );
+    }
+
+    /**
+     * Iterate over an Array or an Object invoking a function for each item.
+     *
+     * If `obj` is an Array callback will be called passing
+     * the value, index, and complete array for each item.
+     *
+     * If 'obj' is an Object callback will be called passing
+     * the value, key, and complete object for each property.
+     *
+     * @param {Object|Array} obj The object to iterate
+     * @param {Function} fn The callback to invoke for each item
+     */
+    function forEach(obj, fn) {
+      // Don't bother if no value provided
+      if (obj === null || typeof obj === 'undefined') {
+        return;
+      }
+
+      // Force an array if not already something iterable
+      if (typeof obj !== 'object') {
+        /*eslint no-param-reassign:0*/
+        obj = [obj];
+      }
+
+      if (isArray(obj)) {
+        // Iterate over array values
+        for (var i = 0, l = obj.length; i < l; i++) {
+          fn.call(null, obj[i], i, obj);
+        }
+      } else {
+        // Iterate over object keys
+        for (var key in obj) {
+          if (Object.prototype.hasOwnProperty.call(obj, key)) {
+            fn.call(null, obj[key], key, obj);
+          }
+        }
+      }
+    }
+
+    /**
+     * Accepts varargs expecting each argument to be an object, then
+     * immutably merges the properties of each object and returns result.
+     *
+     * When multiple objects contain the same key the later object in
+     * the arguments list will take precedence.
+     *
+     * Example:
+     *
+     * ```js
+     * var result = merge({foo: 123}, {foo: 456});
+     * console.log(result.foo); // outputs 456
+     * ```
+     *
+     * @param {Object} obj1 Object to merge
+     * @returns {Object} Result of all merge properties
+     */
+    function merge(/* obj1, obj2, obj3, ... */) {
+      var result = {};
+      function assignValue(val, key) {
+        if (isPlainObject(result[key]) && isPlainObject(val)) {
+          result[key] = merge(result[key], val);
+        } else if (isPlainObject(val)) {
+          result[key] = merge({}, val);
+        } else if (isArray(val)) {
+          result[key] = val.slice();
+        } else {
+          result[key] = val;
+        }
+      }
+
+      for (var i = 0, l = arguments.length; i < l; i++) {
+        forEach(arguments[i], assignValue);
+      }
+      return result;
+    }
+
+    /**
+     * Extends object a by mutably adding to it the properties of object b.
+     *
+     * @param {Object} a The object to be extended
+     * @param {Object} b The object to copy properties from
+     * @param {Object} thisArg The object to bind function to
+     * @return {Object} The resulting value of object a
+     */
+    function extend(a, b, thisArg) {
+      forEach(b, function assignValue(val, key) {
+        if (thisArg && typeof val === 'function') {
+          a[key] = bind(val, thisArg);
+        } else {
+          a[key] = val;
+        }
+      });
+      return a;
+    }
+
+    /**
+     * Remove byte order marker. This catches EF BB BF (the UTF-8 BOM)
+     *
+     * @param {string} content with BOM
+     * @return {string} content value without BOM
+     */
+    function stripBOM(content) {
+      if (content.charCodeAt(0) === 0xFEFF) {
+        content = content.slice(1);
+      }
+      return content;
+    }
+
+    var utils = {
+      isArray: isArray,
+      isArrayBuffer: isArrayBuffer,
+      isBuffer: isBuffer,
+      isFormData: isFormData,
+      isArrayBufferView: isArrayBufferView,
+      isString: isString,
+      isNumber: isNumber,
+      isObject: isObject,
+      isPlainObject: isPlainObject,
+      isUndefined: isUndefined,
+      isDate: isDate,
+      isFile: isFile,
+      isBlob: isBlob,
+      isFunction: isFunction,
+      isStream: isStream,
+      isURLSearchParams: isURLSearchParams,
+      isStandardBrowserEnv: isStandardBrowserEnv,
+      forEach: forEach,
+      merge: merge,
+      extend: extend,
+      trim: trim,
+      stripBOM: stripBOM
+    };
+
+    function encode(val) {
+      return encodeURIComponent(val).
+        replace(/%3A/gi, ':').
+        replace(/%24/g, '$').
+        replace(/%2C/gi, ',').
+        replace(/%20/g, '+').
+        replace(/%5B/gi, '[').
+        replace(/%5D/gi, ']');
+    }
+
+    /**
+     * Build a URL by appending params to the end
+     *
+     * @param {string} url The base of the url (e.g., http://www.google.com)
+     * @param {object} [params] The params to be appended
+     * @returns {string} The formatted url
+     */
+    var buildURL = function buildURL(url, params, paramsSerializer) {
+      /*eslint no-param-reassign:0*/
+      if (!params) {
+        return url;
+      }
+
+      var serializedParams;
+      if (paramsSerializer) {
+        serializedParams = paramsSerializer(params);
+      } else if (utils.isURLSearchParams(params)) {
+        serializedParams = params.toString();
+      } else {
+        var parts = [];
+
+        utils.forEach(params, function serialize(val, key) {
+          if (val === null || typeof val === 'undefined') {
+            return;
+          }
+
+          if (utils.isArray(val)) {
+            key = key + '[]';
+          } else {
+            val = [val];
+          }
+
+          utils.forEach(val, function parseValue(v) {
+            if (utils.isDate(v)) {
+              v = v.toISOString();
+            } else if (utils.isObject(v)) {
+              v = JSON.stringify(v);
+            }
+            parts.push(encode(key) + '=' + encode(v));
+          });
+        });
+
+        serializedParams = parts.join('&');
+      }
+
+      if (serializedParams) {
+        var hashmarkIndex = url.indexOf('#');
+        if (hashmarkIndex !== -1) {
+          url = url.slice(0, hashmarkIndex);
+        }
+
+        url += (url.indexOf('?') === -1 ? '?' : '&') + serializedParams;
+      }
+
+      return url;
+    };
+
+    function InterceptorManager() {
+      this.handlers = [];
+    }
+
+    /**
+     * Add a new interceptor to the stack
+     *
+     * @param {Function} fulfilled The function to handle `then` for a `Promise`
+     * @param {Function} rejected The function to handle `reject` for a `Promise`
+     *
+     * @return {Number} An ID used to remove interceptor later
+     */
+    InterceptorManager.prototype.use = function use(fulfilled, rejected) {
+      this.handlers.push({
+        fulfilled: fulfilled,
+        rejected: rejected
+      });
+      return this.handlers.length - 1;
+    };
+
+    /**
+     * Remove an interceptor from the stack
+     *
+     * @param {Number} id The ID that was returned by `use`
+     */
+    InterceptorManager.prototype.eject = function eject(id) {
+      if (this.handlers[id]) {
+        this.handlers[id] = null;
+      }
+    };
+
+    /**
+     * Iterate over all the registered interceptors
+     *
+     * This method is particularly useful for skipping over any
+     * interceptors that may have become `null` calling `eject`.
+     *
+     * @param {Function} fn The function to call for each interceptor
+     */
+    InterceptorManager.prototype.forEach = function forEach(fn) {
+      utils.forEach(this.handlers, function forEachHandler(h) {
+        if (h !== null) {
+          fn(h);
+        }
+      });
+    };
+
+    var InterceptorManager_1 = InterceptorManager;
+
+    /**
+     * Transform the data for a request or a response
+     *
+     * @param {Object|String} data The data to be transformed
+     * @param {Array} headers The headers for the request or response
+     * @param {Array|Function} fns A single function or Array of functions
+     * @returns {*} The resulting transformed data
+     */
+    var transformData = function transformData(data, headers, fns) {
+      /*eslint no-param-reassign:0*/
+      utils.forEach(fns, function transform(fn) {
+        data = fn(data, headers);
+      });
+
+      return data;
+    };
+
+    var isCancel = function isCancel(value) {
+      return !!(value && value.__CANCEL__);
+    };
+
+    var normalizeHeaderName = function normalizeHeaderName(headers, normalizedName) {
+      utils.forEach(headers, function processHeader(value, name) {
+        if (name !== normalizedName && name.toUpperCase() === normalizedName.toUpperCase()) {
+          headers[normalizedName] = value;
+          delete headers[name];
+        }
+      });
+    };
+
+    /**
+     * Update an Error with the specified config, error code, and response.
+     *
+     * @param {Error} error The error to update.
+     * @param {Object} config The config.
+     * @param {string} [code] The error code (for example, 'ECONNABORTED').
+     * @param {Object} [request] The request.
+     * @param {Object} [response] The response.
+     * @returns {Error} The error.
+     */
+    var enhanceError = function enhanceError(error, config, code, request, response) {
+      error.config = config;
+      if (code) {
+        error.code = code;
+      }
+
+      error.request = request;
+      error.response = response;
+      error.isAxiosError = true;
+
+      error.toJSON = function toJSON() {
+        return {
+          // Standard
+          message: this.message,
+          name: this.name,
+          // Microsoft
+          description: this.description,
+          number: this.number,
+          // Mozilla
+          fileName: this.fileName,
+          lineNumber: this.lineNumber,
+          columnNumber: this.columnNumber,
+          stack: this.stack,
+          // Axios
+          config: this.config,
+          code: this.code
+        };
+      };
+      return error;
+    };
+
+    /**
+     * Create an Error with the specified message, config, error code, request and response.
+     *
+     * @param {string} message The error message.
+     * @param {Object} config The config.
+     * @param {string} [code] The error code (for example, 'ECONNABORTED').
+     * @param {Object} [request] The request.
+     * @param {Object} [response] The response.
+     * @returns {Error} The created error.
+     */
+    var createError = function createError(message, config, code, request, response) {
+      var error = new Error(message);
+      return enhanceError(error, config, code, request, response);
+    };
+
+    /**
+     * Resolve or reject a Promise based on response status.
+     *
+     * @param {Function} resolve A function that resolves the promise.
+     * @param {Function} reject A function that rejects the promise.
+     * @param {object} response The response.
+     */
+    var settle = function settle(resolve, reject, response) {
+      var validateStatus = response.config.validateStatus;
+      if (!response.status || !validateStatus || validateStatus(response.status)) {
+        resolve(response);
+      } else {
+        reject(createError(
+          'Request failed with status code ' + response.status,
+          response.config,
+          null,
+          response.request,
+          response
+        ));
+      }
+    };
+
+    var cookies = (
+      utils.isStandardBrowserEnv() ?
+
+      // Standard browser envs support document.cookie
+        (function standardBrowserEnv() {
+          return {
+            write: function write(name, value, expires, path, domain, secure) {
+              var cookie = [];
+              cookie.push(name + '=' + encodeURIComponent(value));
+
+              if (utils.isNumber(expires)) {
+                cookie.push('expires=' + new Date(expires).toGMTString());
+              }
+
+              if (utils.isString(path)) {
+                cookie.push('path=' + path);
+              }
+
+              if (utils.isString(domain)) {
+                cookie.push('domain=' + domain);
+              }
+
+              if (secure === true) {
+                cookie.push('secure');
+              }
+
+              document.cookie = cookie.join('; ');
+            },
+
+            read: function read(name) {
+              var match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
+              return (match ? decodeURIComponent(match[3]) : null);
+            },
+
+            remove: function remove(name) {
+              this.write(name, '', Date.now() - 86400000);
+            }
+          };
+        })() :
+
+      // Non standard browser env (web workers, react-native) lack needed support.
+        (function nonStandardBrowserEnv() {
+          return {
+            write: function write() {},
+            read: function read() { return null; },
+            remove: function remove() {}
+          };
+        })()
+    );
+
+    /**
+     * Determines whether the specified URL is absolute
+     *
+     * @param {string} url The URL to test
+     * @returns {boolean} True if the specified URL is absolute, otherwise false
+     */
+    var isAbsoluteURL = function isAbsoluteURL(url) {
+      // A URL is considered absolute if it begins with "<scheme>://" or "//" (protocol-relative URL).
+      // RFC 3986 defines scheme name as a sequence of characters beginning with a letter and followed
+      // by any combination of letters, digits, plus, period, or hyphen.
+      return /^([a-z][a-z\d\+\-\.]*:)?\/\//i.test(url);
+    };
+
+    /**
+     * Creates a new URL by combining the specified URLs
+     *
+     * @param {string} baseURL The base URL
+     * @param {string} relativeURL The relative URL
+     * @returns {string} The combined URL
+     */
+    var combineURLs = function combineURLs(baseURL, relativeURL) {
+      return relativeURL
+        ? baseURL.replace(/\/+$/, '') + '/' + relativeURL.replace(/^\/+/, '')
+        : baseURL;
+    };
+
+    /**
+     * Creates a new URL by combining the baseURL with the requestedURL,
+     * only when the requestedURL is not already an absolute URL.
+     * If the requestURL is absolute, this function returns the requestedURL untouched.
+     *
+     * @param {string} baseURL The base URL
+     * @param {string} requestedURL Absolute or relative URL to combine
+     * @returns {string} The combined full path
+     */
+    var buildFullPath = function buildFullPath(baseURL, requestedURL) {
+      if (baseURL && !isAbsoluteURL(requestedURL)) {
+        return combineURLs(baseURL, requestedURL);
+      }
+      return requestedURL;
+    };
+
+    // Headers whose duplicates are ignored by node
+    // c.f. https://nodejs.org/api/http.html#http_message_headers
+    var ignoreDuplicateOf = [
+      'age', 'authorization', 'content-length', 'content-type', 'etag',
+      'expires', 'from', 'host', 'if-modified-since', 'if-unmodified-since',
+      'last-modified', 'location', 'max-forwards', 'proxy-authorization',
+      'referer', 'retry-after', 'user-agent'
+    ];
+
+    /**
+     * Parse headers into an object
+     *
+     * ```
+     * Date: Wed, 27 Aug 2014 08:58:49 GMT
+     * Content-Type: application/json
+     * Connection: keep-alive
+     * Transfer-Encoding: chunked
+     * ```
+     *
+     * @param {String} headers Headers needing to be parsed
+     * @returns {Object} Headers parsed into an object
+     */
+    var parseHeaders = function parseHeaders(headers) {
+      var parsed = {};
+      var key;
+      var val;
+      var i;
+
+      if (!headers) { return parsed; }
+
+      utils.forEach(headers.split('\n'), function parser(line) {
+        i = line.indexOf(':');
+        key = utils.trim(line.substr(0, i)).toLowerCase();
+        val = utils.trim(line.substr(i + 1));
+
+        if (key) {
+          if (parsed[key] && ignoreDuplicateOf.indexOf(key) >= 0) {
+            return;
+          }
+          if (key === 'set-cookie') {
+            parsed[key] = (parsed[key] ? parsed[key] : []).concat([val]);
+          } else {
+            parsed[key] = parsed[key] ? parsed[key] + ', ' + val : val;
+          }
+        }
+      });
+
+      return parsed;
+    };
+
+    var isURLSameOrigin = (
+      utils.isStandardBrowserEnv() ?
+
+      // Standard browser envs have full support of the APIs needed to test
+      // whether the request URL is of the same origin as current location.
+        (function standardBrowserEnv() {
+          var msie = /(msie|trident)/i.test(navigator.userAgent);
+          var urlParsingNode = document.createElement('a');
+          var originURL;
+
+          /**
+        * Parse a URL to discover it's components
+        *
+        * @param {String} url The URL to be parsed
+        * @returns {Object}
+        */
+          function resolveURL(url) {
+            var href = url;
+
+            if (msie) {
+            // IE needs attribute set twice to normalize properties
+              urlParsingNode.setAttribute('href', href);
+              href = urlParsingNode.href;
+            }
+
+            urlParsingNode.setAttribute('href', href);
+
+            // urlParsingNode provides the UrlUtils interface - http://url.spec.whatwg.org/#urlutils
+            return {
+              href: urlParsingNode.href,
+              protocol: urlParsingNode.protocol ? urlParsingNode.protocol.replace(/:$/, '') : '',
+              host: urlParsingNode.host,
+              search: urlParsingNode.search ? urlParsingNode.search.replace(/^\?/, '') : '',
+              hash: urlParsingNode.hash ? urlParsingNode.hash.replace(/^#/, '') : '',
+              hostname: urlParsingNode.hostname,
+              port: urlParsingNode.port,
+              pathname: (urlParsingNode.pathname.charAt(0) === '/') ?
+                urlParsingNode.pathname :
+                '/' + urlParsingNode.pathname
+            };
+          }
+
+          originURL = resolveURL(window.location.href);
+
+          /**
+        * Determine if a URL shares the same origin as the current location
+        *
+        * @param {String} requestURL The URL to test
+        * @returns {boolean} True if URL shares the same origin, otherwise false
+        */
+          return function isURLSameOrigin(requestURL) {
+            var parsed = (utils.isString(requestURL)) ? resolveURL(requestURL) : requestURL;
+            return (parsed.protocol === originURL.protocol &&
+                parsed.host === originURL.host);
+          };
+        })() :
+
+      // Non standard browser envs (web workers, react-native) lack needed support.
+        (function nonStandardBrowserEnv() {
+          return function isURLSameOrigin() {
+            return true;
+          };
+        })()
+    );
+
+    var xhr = function xhrAdapter(config) {
+      return new Promise(function dispatchXhrRequest(resolve, reject) {
+        var requestData = config.data;
+        var requestHeaders = config.headers;
+
+        if (utils.isFormData(requestData)) {
+          delete requestHeaders['Content-Type']; // Let the browser set it
+        }
+
+        var request = new XMLHttpRequest();
+
+        // HTTP basic authentication
+        if (config.auth) {
+          var username = config.auth.username || '';
+          var password = config.auth.password ? unescape(encodeURIComponent(config.auth.password)) : '';
+          requestHeaders.Authorization = 'Basic ' + btoa(username + ':' + password);
+        }
+
+        var fullPath = buildFullPath(config.baseURL, config.url);
+        request.open(config.method.toUpperCase(), buildURL(fullPath, config.params, config.paramsSerializer), true);
+
+        // Set the request timeout in MS
+        request.timeout = config.timeout;
+
+        // Listen for ready state
+        request.onreadystatechange = function handleLoad() {
+          if (!request || request.readyState !== 4) {
+            return;
+          }
+
+          // The request errored out and we didn't get a response, this will be
+          // handled by onerror instead
+          // With one exception: request that using file: protocol, most browsers
+          // will return status as 0 even though it's a successful request
+          if (request.status === 0 && !(request.responseURL && request.responseURL.indexOf('file:') === 0)) {
+            return;
+          }
+
+          // Prepare the response
+          var responseHeaders = 'getAllResponseHeaders' in request ? parseHeaders(request.getAllResponseHeaders()) : null;
+          var responseData = !config.responseType || config.responseType === 'text' ? request.responseText : request.response;
+          var response = {
+            data: responseData,
+            status: request.status,
+            statusText: request.statusText,
+            headers: responseHeaders,
+            config: config,
+            request: request
+          };
+
+          settle(resolve, reject, response);
+
+          // Clean up request
+          request = null;
+        };
+
+        // Handle browser request cancellation (as opposed to a manual cancellation)
+        request.onabort = function handleAbort() {
+          if (!request) {
+            return;
+          }
+
+          reject(createError('Request aborted', config, 'ECONNABORTED', request));
+
+          // Clean up request
+          request = null;
+        };
+
+        // Handle low level network errors
+        request.onerror = function handleError() {
+          // Real errors are hidden from us by the browser
+          // onerror should only fire if it's a network error
+          reject(createError('Network Error', config, null, request));
+
+          // Clean up request
+          request = null;
+        };
+
+        // Handle timeout
+        request.ontimeout = function handleTimeout() {
+          var timeoutErrorMessage = 'timeout of ' + config.timeout + 'ms exceeded';
+          if (config.timeoutErrorMessage) {
+            timeoutErrorMessage = config.timeoutErrorMessage;
+          }
+          reject(createError(timeoutErrorMessage, config, 'ECONNABORTED',
+            request));
+
+          // Clean up request
+          request = null;
+        };
+
+        // Add xsrf header
+        // This is only done if running in a standard browser environment.
+        // Specifically not if we're in a web worker, or react-native.
+        if (utils.isStandardBrowserEnv()) {
+          // Add xsrf header
+          var xsrfValue = (config.withCredentials || isURLSameOrigin(fullPath)) && config.xsrfCookieName ?
+            cookies.read(config.xsrfCookieName) :
+            undefined;
+
+          if (xsrfValue) {
+            requestHeaders[config.xsrfHeaderName] = xsrfValue;
+          }
+        }
+
+        // Add headers to the request
+        if ('setRequestHeader' in request) {
+          utils.forEach(requestHeaders, function setRequestHeader(val, key) {
+            if (typeof requestData === 'undefined' && key.toLowerCase() === 'content-type') {
+              // Remove Content-Type if data is undefined
+              delete requestHeaders[key];
+            } else {
+              // Otherwise add header to the request
+              request.setRequestHeader(key, val);
+            }
+          });
+        }
+
+        // Add withCredentials to request if needed
+        if (!utils.isUndefined(config.withCredentials)) {
+          request.withCredentials = !!config.withCredentials;
+        }
+
+        // Add responseType to request if needed
+        if (config.responseType) {
+          try {
+            request.responseType = config.responseType;
+          } catch (e) {
+            // Expected DOMException thrown by browsers not compatible XMLHttpRequest Level 2.
+            // But, this can be suppressed for 'json' type as it can be parsed by default 'transformResponse' function.
+            if (config.responseType !== 'json') {
+              throw e;
+            }
+          }
+        }
+
+        // Handle progress if needed
+        if (typeof config.onDownloadProgress === 'function') {
+          request.addEventListener('progress', config.onDownloadProgress);
+        }
+
+        // Not all browsers support upload events
+        if (typeof config.onUploadProgress === 'function' && request.upload) {
+          request.upload.addEventListener('progress', config.onUploadProgress);
+        }
+
+        if (config.cancelToken) {
+          // Handle cancellation
+          config.cancelToken.promise.then(function onCanceled(cancel) {
+            if (!request) {
+              return;
+            }
+
+            request.abort();
+            reject(cancel);
+            // Clean up request
+            request = null;
+          });
+        }
+
+        if (!requestData) {
+          requestData = null;
+        }
+
+        // Send the request
+        request.send(requestData);
+      });
+    };
+
+    var DEFAULT_CONTENT_TYPE = {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    };
+
+    function setContentTypeIfUnset(headers, value) {
+      if (!utils.isUndefined(headers) && utils.isUndefined(headers['Content-Type'])) {
+        headers['Content-Type'] = value;
+      }
+    }
+
+    function getDefaultAdapter() {
+      var adapter;
+      if (typeof XMLHttpRequest !== 'undefined') {
+        // For browsers use XHR adapter
+        adapter = xhr;
+      } else if (typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]') {
+        // For node use HTTP adapter
+        adapter = xhr;
+      }
+      return adapter;
+    }
+
+    var defaults = {
+      adapter: getDefaultAdapter(),
+
+      transformRequest: [function transformRequest(data, headers) {
+        normalizeHeaderName(headers, 'Accept');
+        normalizeHeaderName(headers, 'Content-Type');
+        if (utils.isFormData(data) ||
+          utils.isArrayBuffer(data) ||
+          utils.isBuffer(data) ||
+          utils.isStream(data) ||
+          utils.isFile(data) ||
+          utils.isBlob(data)
+        ) {
+          return data;
+        }
+        if (utils.isArrayBufferView(data)) {
+          return data.buffer;
+        }
+        if (utils.isURLSearchParams(data)) {
+          setContentTypeIfUnset(headers, 'application/x-www-form-urlencoded;charset=utf-8');
+          return data.toString();
+        }
+        if (utils.isObject(data)) {
+          setContentTypeIfUnset(headers, 'application/json;charset=utf-8');
+          return JSON.stringify(data);
+        }
+        return data;
+      }],
+
+      transformResponse: [function transformResponse(data) {
+        /*eslint no-param-reassign:0*/
+        if (typeof data === 'string') {
+          try {
+            data = JSON.parse(data);
+          } catch (e) { /* Ignore */ }
+        }
+        return data;
+      }],
+
+      /**
+       * A timeout in milliseconds to abort a request. If set to 0 (default) a
+       * timeout is not created.
+       */
+      timeout: 0,
+
+      xsrfCookieName: 'XSRF-TOKEN',
+      xsrfHeaderName: 'X-XSRF-TOKEN',
+
+      maxContentLength: -1,
+      maxBodyLength: -1,
+
+      validateStatus: function validateStatus(status) {
+        return status >= 200 && status < 300;
+      }
+    };
+
+    defaults.headers = {
+      common: {
+        'Accept': 'application/json, text/plain, */*'
+      }
+    };
+
+    utils.forEach(['delete', 'get', 'head'], function forEachMethodNoData(method) {
+      defaults.headers[method] = {};
+    });
+
+    utils.forEach(['post', 'put', 'patch'], function forEachMethodWithData(method) {
+      defaults.headers[method] = utils.merge(DEFAULT_CONTENT_TYPE);
+    });
+
+    var defaults_1 = defaults;
+
+    /**
+     * Throws a `Cancel` if cancellation has been requested.
+     */
+    function throwIfCancellationRequested(config) {
+      if (config.cancelToken) {
+        config.cancelToken.throwIfRequested();
+      }
+    }
+
+    /**
+     * Dispatch a request to the server using the configured adapter.
+     *
+     * @param {object} config The config that is to be used for the request
+     * @returns {Promise} The Promise to be fulfilled
+     */
+    var dispatchRequest = function dispatchRequest(config) {
+      throwIfCancellationRequested(config);
+
+      // Ensure headers exist
+      config.headers = config.headers || {};
+
+      // Transform request data
+      config.data = transformData(
+        config.data,
+        config.headers,
+        config.transformRequest
+      );
+
+      // Flatten headers
+      config.headers = utils.merge(
+        config.headers.common || {},
+        config.headers[config.method] || {},
+        config.headers
+      );
+
+      utils.forEach(
+        ['delete', 'get', 'head', 'post', 'put', 'patch', 'common'],
+        function cleanHeaderConfig(method) {
+          delete config.headers[method];
+        }
+      );
+
+      var adapter = config.adapter || defaults_1.adapter;
+
+      return adapter(config).then(function onAdapterResolution(response) {
+        throwIfCancellationRequested(config);
+
+        // Transform response data
+        response.data = transformData(
+          response.data,
+          response.headers,
+          config.transformResponse
+        );
+
+        return response;
+      }, function onAdapterRejection(reason) {
+        if (!isCancel(reason)) {
+          throwIfCancellationRequested(config);
+
+          // Transform response data
+          if (reason && reason.response) {
+            reason.response.data = transformData(
+              reason.response.data,
+              reason.response.headers,
+              config.transformResponse
+            );
+          }
+        }
+
+        return Promise.reject(reason);
+      });
+    };
+
+    /**
+     * Config-specific merge-function which creates a new config-object
+     * by merging two configuration objects together.
+     *
+     * @param {Object} config1
+     * @param {Object} config2
+     * @returns {Object} New object resulting from merging config2 to config1
+     */
+    var mergeConfig = function mergeConfig(config1, config2) {
+      // eslint-disable-next-line no-param-reassign
+      config2 = config2 || {};
+      var config = {};
+
+      var valueFromConfig2Keys = ['url', 'method', 'data'];
+      var mergeDeepPropertiesKeys = ['headers', 'auth', 'proxy', 'params'];
+      var defaultToConfig2Keys = [
+        'baseURL', 'transformRequest', 'transformResponse', 'paramsSerializer',
+        'timeout', 'timeoutMessage', 'withCredentials', 'adapter', 'responseType', 'xsrfCookieName',
+        'xsrfHeaderName', 'onUploadProgress', 'onDownloadProgress', 'decompress',
+        'maxContentLength', 'maxBodyLength', 'maxRedirects', 'transport', 'httpAgent',
+        'httpsAgent', 'cancelToken', 'socketPath', 'responseEncoding'
+      ];
+      var directMergeKeys = ['validateStatus'];
+
+      function getMergedValue(target, source) {
+        if (utils.isPlainObject(target) && utils.isPlainObject(source)) {
+          return utils.merge(target, source);
+        } else if (utils.isPlainObject(source)) {
+          return utils.merge({}, source);
+        } else if (utils.isArray(source)) {
+          return source.slice();
+        }
+        return source;
+      }
+
+      function mergeDeepProperties(prop) {
+        if (!utils.isUndefined(config2[prop])) {
+          config[prop] = getMergedValue(config1[prop], config2[prop]);
+        } else if (!utils.isUndefined(config1[prop])) {
+          config[prop] = getMergedValue(undefined, config1[prop]);
+        }
+      }
+
+      utils.forEach(valueFromConfig2Keys, function valueFromConfig2(prop) {
+        if (!utils.isUndefined(config2[prop])) {
+          config[prop] = getMergedValue(undefined, config2[prop]);
+        }
+      });
+
+      utils.forEach(mergeDeepPropertiesKeys, mergeDeepProperties);
+
+      utils.forEach(defaultToConfig2Keys, function defaultToConfig2(prop) {
+        if (!utils.isUndefined(config2[prop])) {
+          config[prop] = getMergedValue(undefined, config2[prop]);
+        } else if (!utils.isUndefined(config1[prop])) {
+          config[prop] = getMergedValue(undefined, config1[prop]);
+        }
+      });
+
+      utils.forEach(directMergeKeys, function merge(prop) {
+        if (prop in config2) {
+          config[prop] = getMergedValue(config1[prop], config2[prop]);
+        } else if (prop in config1) {
+          config[prop] = getMergedValue(undefined, config1[prop]);
+        }
+      });
+
+      var axiosKeys = valueFromConfig2Keys
+        .concat(mergeDeepPropertiesKeys)
+        .concat(defaultToConfig2Keys)
+        .concat(directMergeKeys);
+
+      var otherKeys = Object
+        .keys(config1)
+        .concat(Object.keys(config2))
+        .filter(function filterAxiosKeys(key) {
+          return axiosKeys.indexOf(key) === -1;
+        });
+
+      utils.forEach(otherKeys, mergeDeepProperties);
+
+      return config;
+    };
+
+    /**
+     * Create a new instance of Axios
+     *
+     * @param {Object} instanceConfig The default config for the instance
+     */
+    function Axios(instanceConfig) {
+      this.defaults = instanceConfig;
+      this.interceptors = {
+        request: new InterceptorManager_1(),
+        response: new InterceptorManager_1()
+      };
+    }
+
+    /**
+     * Dispatch a request
+     *
+     * @param {Object} config The config specific for this request (merged with this.defaults)
+     */
+    Axios.prototype.request = function request(config) {
+      /*eslint no-param-reassign:0*/
+      // Allow for axios('example/url'[, config]) a la fetch API
+      if (typeof config === 'string') {
+        config = arguments[1] || {};
+        config.url = arguments[0];
+      } else {
+        config = config || {};
+      }
+
+      config = mergeConfig(this.defaults, config);
+
+      // Set config.method
+      if (config.method) {
+        config.method = config.method.toLowerCase();
+      } else if (this.defaults.method) {
+        config.method = this.defaults.method.toLowerCase();
+      } else {
+        config.method = 'get';
+      }
+
+      // Hook up interceptors middleware
+      var chain = [dispatchRequest, undefined];
+      var promise = Promise.resolve(config);
+
+      this.interceptors.request.forEach(function unshiftRequestInterceptors(interceptor) {
+        chain.unshift(interceptor.fulfilled, interceptor.rejected);
+      });
+
+      this.interceptors.response.forEach(function pushResponseInterceptors(interceptor) {
+        chain.push(interceptor.fulfilled, interceptor.rejected);
+      });
+
+      while (chain.length) {
+        promise = promise.then(chain.shift(), chain.shift());
+      }
+
+      return promise;
+    };
+
+    Axios.prototype.getUri = function getUri(config) {
+      config = mergeConfig(this.defaults, config);
+      return buildURL(config.url, config.params, config.paramsSerializer).replace(/^\?/, '');
+    };
+
+    // Provide aliases for supported request methods
+    utils.forEach(['delete', 'get', 'head', 'options'], function forEachMethodNoData(method) {
+      /*eslint func-names:0*/
+      Axios.prototype[method] = function(url, config) {
+        return this.request(mergeConfig(config || {}, {
+          method: method,
+          url: url,
+          data: (config || {}).data
+        }));
+      };
+    });
+
+    utils.forEach(['post', 'put', 'patch'], function forEachMethodWithData(method) {
+      /*eslint func-names:0*/
+      Axios.prototype[method] = function(url, data, config) {
+        return this.request(mergeConfig(config || {}, {
+          method: method,
+          url: url,
+          data: data
+        }));
+      };
+    });
+
+    var Axios_1 = Axios;
+
+    /**
+     * A `Cancel` is an object that is thrown when an operation is canceled.
+     *
+     * @class
+     * @param {string=} message The message.
+     */
+    function Cancel(message) {
+      this.message = message;
+    }
+
+    Cancel.prototype.toString = function toString() {
+      return 'Cancel' + (this.message ? ': ' + this.message : '');
+    };
+
+    Cancel.prototype.__CANCEL__ = true;
+
+    var Cancel_1 = Cancel;
+
+    /**
+     * A `CancelToken` is an object that can be used to request cancellation of an operation.
+     *
+     * @class
+     * @param {Function} executor The executor function.
+     */
+    function CancelToken(executor) {
+      if (typeof executor !== 'function') {
+        throw new TypeError('executor must be a function.');
+      }
+
+      var resolvePromise;
+      this.promise = new Promise(function promiseExecutor(resolve) {
+        resolvePromise = resolve;
+      });
+
+      var token = this;
+      executor(function cancel(message) {
+        if (token.reason) {
+          // Cancellation has already been requested
+          return;
+        }
+
+        token.reason = new Cancel_1(message);
+        resolvePromise(token.reason);
+      });
+    }
+
+    /**
+     * Throws a `Cancel` if cancellation has been requested.
+     */
+    CancelToken.prototype.throwIfRequested = function throwIfRequested() {
+      if (this.reason) {
+        throw this.reason;
+      }
+    };
+
+    /**
+     * Returns an object that contains a new `CancelToken` and a function that, when called,
+     * cancels the `CancelToken`.
+     */
+    CancelToken.source = function source() {
+      var cancel;
+      var token = new CancelToken(function executor(c) {
+        cancel = c;
+      });
+      return {
+        token: token,
+        cancel: cancel
+      };
+    };
+
+    var CancelToken_1 = CancelToken;
+
+    /**
+     * Syntactic sugar for invoking a function and expanding an array for arguments.
+     *
+     * Common use case would be to use `Function.prototype.apply`.
+     *
+     *  ```js
+     *  function f(x, y, z) {}
+     *  var args = [1, 2, 3];
+     *  f.apply(null, args);
+     *  ```
+     *
+     * With `spread` this example can be re-written.
+     *
+     *  ```js
+     *  spread(function(x, y, z) {})([1, 2, 3]);
+     *  ```
+     *
+     * @param {Function} callback
+     * @returns {Function}
+     */
+    var spread = function spread(callback) {
+      return function wrap(arr) {
+        return callback.apply(null, arr);
+      };
+    };
+
+    /**
+     * Determines whether the payload is an error thrown by Axios
+     *
+     * @param {*} payload The value to test
+     * @returns {boolean} True if the payload is an error thrown by Axios, otherwise false
+     */
+    var isAxiosError = function isAxiosError(payload) {
+      return (typeof payload === 'object') && (payload.isAxiosError === true);
+    };
+
+    /**
+     * Create an instance of Axios
+     *
+     * @param {Object} defaultConfig The default config for the instance
+     * @return {Axios} A new instance of Axios
+     */
+    function createInstance(defaultConfig) {
+      var context = new Axios_1(defaultConfig);
+      var instance = bind(Axios_1.prototype.request, context);
+
+      // Copy axios.prototype to instance
+      utils.extend(instance, Axios_1.prototype, context);
+
+      // Copy context to instance
+      utils.extend(instance, context);
+
+      return instance;
+    }
+
+    // Create the default instance to be exported
+    var axios$1 = createInstance(defaults_1);
+
+    // Expose Axios class to allow class inheritance
+    axios$1.Axios = Axios_1;
+
+    // Factory for creating new instances
+    axios$1.create = function create(instanceConfig) {
+      return createInstance(mergeConfig(axios$1.defaults, instanceConfig));
+    };
+
+    // Expose Cancel & CancelToken
+    axios$1.Cancel = Cancel_1;
+    axios$1.CancelToken = CancelToken_1;
+    axios$1.isCancel = isCancel;
+
+    // Expose all/spread
+    axios$1.all = function all(promises) {
+      return Promise.all(promises);
+    };
+    axios$1.spread = spread;
+
+    // Expose isAxiosError
+    axios$1.isAxiosError = isAxiosError;
+
+    var axios_1 = axios$1;
+
+    // Allow use of default import syntax in TypeScript
+    var _default = axios$1;
+    axios_1.default = _default;
+
+    var axios = axios_1;
 
     /*! *****************************************************************************
     Copyright (c) Microsoft Corporation.
@@ -704,6 +2158,282 @@ var app = (function () {
      * See the License for the specific language governing permissions and
      * limitations under the License.
      */
+    var stringToByteArray = function (str) {
+        // TODO(user): Use native implementations if/when available
+        var out = [];
+        var p = 0;
+        for (var i = 0; i < str.length; i++) {
+            var c = str.charCodeAt(i);
+            if (c < 128) {
+                out[p++] = c;
+            }
+            else if (c < 2048) {
+                out[p++] = (c >> 6) | 192;
+                out[p++] = (c & 63) | 128;
+            }
+            else if ((c & 0xfc00) === 0xd800 &&
+                i + 1 < str.length &&
+                (str.charCodeAt(i + 1) & 0xfc00) === 0xdc00) {
+                // Surrogate Pair
+                c = 0x10000 + ((c & 0x03ff) << 10) + (str.charCodeAt(++i) & 0x03ff);
+                out[p++] = (c >> 18) | 240;
+                out[p++] = ((c >> 12) & 63) | 128;
+                out[p++] = ((c >> 6) & 63) | 128;
+                out[p++] = (c & 63) | 128;
+            }
+            else {
+                out[p++] = (c >> 12) | 224;
+                out[p++] = ((c >> 6) & 63) | 128;
+                out[p++] = (c & 63) | 128;
+            }
+        }
+        return out;
+    };
+    /**
+     * Turns an array of numbers into the string given by the concatenation of the
+     * characters to which the numbers correspond.
+     * @param bytes Array of numbers representing characters.
+     * @return Stringification of the array.
+     */
+    var byteArrayToString = function (bytes) {
+        // TODO(user): Use native implementations if/when available
+        var out = [];
+        var pos = 0, c = 0;
+        while (pos < bytes.length) {
+            var c1 = bytes[pos++];
+            if (c1 < 128) {
+                out[c++] = String.fromCharCode(c1);
+            }
+            else if (c1 > 191 && c1 < 224) {
+                var c2 = bytes[pos++];
+                out[c++] = String.fromCharCode(((c1 & 31) << 6) | (c2 & 63));
+            }
+            else if (c1 > 239 && c1 < 365) {
+                // Surrogate Pair
+                var c2 = bytes[pos++];
+                var c3 = bytes[pos++];
+                var c4 = bytes[pos++];
+                var u = (((c1 & 7) << 18) | ((c2 & 63) << 12) | ((c3 & 63) << 6) | (c4 & 63)) -
+                    0x10000;
+                out[c++] = String.fromCharCode(0xd800 + (u >> 10));
+                out[c++] = String.fromCharCode(0xdc00 + (u & 1023));
+            }
+            else {
+                var c2 = bytes[pos++];
+                var c3 = bytes[pos++];
+                out[c++] = String.fromCharCode(((c1 & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
+            }
+        }
+        return out.join('');
+    };
+    // We define it as an object literal instead of a class because a class compiled down to es5 can't
+    // be treeshaked. https://github.com/rollup/rollup/issues/1691
+    // Static lookup maps, lazily populated by init_()
+    var base64 = {
+        /**
+         * Maps bytes to characters.
+         */
+        byteToCharMap_: null,
+        /**
+         * Maps characters to bytes.
+         */
+        charToByteMap_: null,
+        /**
+         * Maps bytes to websafe characters.
+         * @private
+         */
+        byteToCharMapWebSafe_: null,
+        /**
+         * Maps websafe characters to bytes.
+         * @private
+         */
+        charToByteMapWebSafe_: null,
+        /**
+         * Our default alphabet, shared between
+         * ENCODED_VALS and ENCODED_VALS_WEBSAFE
+         */
+        ENCODED_VALS_BASE: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' + 'abcdefghijklmnopqrstuvwxyz' + '0123456789',
+        /**
+         * Our default alphabet. Value 64 (=) is special; it means "nothing."
+         */
+        get ENCODED_VALS() {
+            return this.ENCODED_VALS_BASE + '+/=';
+        },
+        /**
+         * Our websafe alphabet.
+         */
+        get ENCODED_VALS_WEBSAFE() {
+            return this.ENCODED_VALS_BASE + '-_.';
+        },
+        /**
+         * Whether this browser supports the atob and btoa functions. This extension
+         * started at Mozilla but is now implemented by many browsers. We use the
+         * ASSUME_* variables to avoid pulling in the full useragent detection library
+         * but still allowing the standard per-browser compilations.
+         *
+         */
+        HAS_NATIVE_SUPPORT: typeof atob === 'function',
+        /**
+         * Base64-encode an array of bytes.
+         *
+         * @param input An array of bytes (numbers with
+         *     value in [0, 255]) to encode.
+         * @param webSafe Boolean indicating we should use the
+         *     alternative alphabet.
+         * @return The base64 encoded string.
+         */
+        encodeByteArray: function (input, webSafe) {
+            if (!Array.isArray(input)) {
+                throw Error('encodeByteArray takes an array as a parameter');
+            }
+            this.init_();
+            var byteToCharMap = webSafe
+                ? this.byteToCharMapWebSafe_
+                : this.byteToCharMap_;
+            var output = [];
+            for (var i = 0; i < input.length; i += 3) {
+                var byte1 = input[i];
+                var haveByte2 = i + 1 < input.length;
+                var byte2 = haveByte2 ? input[i + 1] : 0;
+                var haveByte3 = i + 2 < input.length;
+                var byte3 = haveByte3 ? input[i + 2] : 0;
+                var outByte1 = byte1 >> 2;
+                var outByte2 = ((byte1 & 0x03) << 4) | (byte2 >> 4);
+                var outByte3 = ((byte2 & 0x0f) << 2) | (byte3 >> 6);
+                var outByte4 = byte3 & 0x3f;
+                if (!haveByte3) {
+                    outByte4 = 64;
+                    if (!haveByte2) {
+                        outByte3 = 64;
+                    }
+                }
+                output.push(byteToCharMap[outByte1], byteToCharMap[outByte2], byteToCharMap[outByte3], byteToCharMap[outByte4]);
+            }
+            return output.join('');
+        },
+        /**
+         * Base64-encode a string.
+         *
+         * @param input A string to encode.
+         * @param webSafe If true, we should use the
+         *     alternative alphabet.
+         * @return The base64 encoded string.
+         */
+        encodeString: function (input, webSafe) {
+            // Shortcut for Mozilla browsers that implement
+            // a native base64 encoder in the form of "btoa/atob"
+            if (this.HAS_NATIVE_SUPPORT && !webSafe) {
+                return btoa(input);
+            }
+            return this.encodeByteArray(stringToByteArray(input), webSafe);
+        },
+        /**
+         * Base64-decode a string.
+         *
+         * @param input to decode.
+         * @param webSafe True if we should use the
+         *     alternative alphabet.
+         * @return string representing the decoded value.
+         */
+        decodeString: function (input, webSafe) {
+            // Shortcut for Mozilla browsers that implement
+            // a native base64 encoder in the form of "btoa/atob"
+            if (this.HAS_NATIVE_SUPPORT && !webSafe) {
+                return atob(input);
+            }
+            return byteArrayToString(this.decodeStringToByteArray(input, webSafe));
+        },
+        /**
+         * Base64-decode a string.
+         *
+         * In base-64 decoding, groups of four characters are converted into three
+         * bytes.  If the encoder did not apply padding, the input length may not
+         * be a multiple of 4.
+         *
+         * In this case, the last group will have fewer than 4 characters, and
+         * padding will be inferred.  If the group has one or two characters, it decodes
+         * to one byte.  If the group has three characters, it decodes to two bytes.
+         *
+         * @param input Input to decode.
+         * @param webSafe True if we should use the web-safe alphabet.
+         * @return bytes representing the decoded value.
+         */
+        decodeStringToByteArray: function (input, webSafe) {
+            this.init_();
+            var charToByteMap = webSafe
+                ? this.charToByteMapWebSafe_
+                : this.charToByteMap_;
+            var output = [];
+            for (var i = 0; i < input.length;) {
+                var byte1 = charToByteMap[input.charAt(i++)];
+                var haveByte2 = i < input.length;
+                var byte2 = haveByte2 ? charToByteMap[input.charAt(i)] : 0;
+                ++i;
+                var haveByte3 = i < input.length;
+                var byte3 = haveByte3 ? charToByteMap[input.charAt(i)] : 64;
+                ++i;
+                var haveByte4 = i < input.length;
+                var byte4 = haveByte4 ? charToByteMap[input.charAt(i)] : 64;
+                ++i;
+                if (byte1 == null || byte2 == null || byte3 == null || byte4 == null) {
+                    throw Error();
+                }
+                var outByte1 = (byte1 << 2) | (byte2 >> 4);
+                output.push(outByte1);
+                if (byte3 !== 64) {
+                    var outByte2 = ((byte2 << 4) & 0xf0) | (byte3 >> 2);
+                    output.push(outByte2);
+                    if (byte4 !== 64) {
+                        var outByte3 = ((byte3 << 6) & 0xc0) | byte4;
+                        output.push(outByte3);
+                    }
+                }
+            }
+            return output;
+        },
+        /**
+         * Lazy static initialization function. Called before
+         * accessing any of the static map variables.
+         * @private
+         */
+        init_: function () {
+            if (!this.byteToCharMap_) {
+                this.byteToCharMap_ = {};
+                this.charToByteMap_ = {};
+                this.byteToCharMapWebSafe_ = {};
+                this.charToByteMapWebSafe_ = {};
+                // We want quick mappings back and forth, so we precompute two maps.
+                for (var i = 0; i < this.ENCODED_VALS.length; i++) {
+                    this.byteToCharMap_[i] = this.ENCODED_VALS.charAt(i);
+                    this.charToByteMap_[this.byteToCharMap_[i]] = i;
+                    this.byteToCharMapWebSafe_[i] = this.ENCODED_VALS_WEBSAFE.charAt(i);
+                    this.charToByteMapWebSafe_[this.byteToCharMapWebSafe_[i]] = i;
+                    // Be forgiving when decoding and correctly decode both encodings.
+                    if (i >= this.ENCODED_VALS_BASE.length) {
+                        this.charToByteMap_[this.ENCODED_VALS_WEBSAFE.charAt(i)] = i;
+                        this.charToByteMapWebSafe_[this.ENCODED_VALS.charAt(i)] = i;
+                    }
+                }
+            }
+        }
+    };
+
+    /**
+     * @license
+     * Copyright 2017 Google LLC
+     *
+     * Licensed under the Apache License, Version 2.0 (the "License");
+     * you may not use this file except in compliance with the License.
+     * You may obtain a copy of the License at
+     *
+     *   http://www.apache.org/licenses/LICENSE-2.0
+     *
+     * Unless required by applicable law or agreed to in writing, software
+     * distributed under the License is distributed on an "AS IS" BASIS,
+     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     * See the License for the specific language governing permissions and
+     * limitations under the License.
+     */
     /**
      * Do a deep-copy of basic JavaScript Objects or Arrays.
      */
@@ -817,25 +2547,51 @@ var app = (function () {
         };
         return Deferred;
     }());
+
     /**
-     * Detect Node.js.
+     * @license
+     * Copyright 2021 Google LLC
      *
-     * @return true if Node.js environment is detected.
+     * Licensed under the Apache License, Version 2.0 (the "License");
+     * you may not use this file except in compliance with the License.
+     * You may obtain a copy of the License at
+     *
+     *   http://www.apache.org/licenses/LICENSE-2.0
+     *
+     * Unless required by applicable law or agreed to in writing, software
+     * distributed under the License is distributed on an "AS IS" BASIS,
+     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     * See the License for the specific language governing permissions and
+     * limitations under the License.
      */
-    // Node detection logic from: https://github.com/iliakan/detect-node/
-    function isNode$1() {
-        try {
-            return (Object.prototype.toString.call(global.process) === '[object process]');
+    function createMockUserToken(token, projectId) {
+        if (token.uid) {
+            throw new Error('The "uid" field is no longer supported by mockUserToken. Please use "sub" instead for Firebase Auth User ID.');
         }
-        catch (e) {
-            return false;
+        // Unsecured JWTs use "none" as the algorithm.
+        var header = {
+            alg: 'none',
+            type: 'JWT'
+        };
+        var project = projectId || 'demo-project';
+        var iat = token.iat || 0;
+        var sub = token.sub || token.user_id;
+        if (!sub) {
+            throw new Error("mockUserToken must contain 'sub' or 'user_id' field!");
         }
-    }
-    /**
-     * Detect Browser Environment
-     */
-    function isBrowser() {
-        return typeof self === 'object' && self.self === self;
+        var payload = __assign({ 
+            // Set all required fields to decent defaults
+            iss: "https://securetoken.google.com/" + project, aud: project, iat: iat, exp: iat + 3600, auth_time: iat, sub: sub, user_id: sub, firebase: {
+                sign_in_provider: 'custom',
+                identities: {}
+            } }, token);
+        // Unsecured JWTs use the empty string as a signature.
+        var signature = '';
+        return [
+            base64.encodeString(JSON.stringify(header), /*webSafe=*/ false),
+            base64.encodeString(JSON.stringify(payload), /*webSafe=*/ false),
+            signature
+        ].join('.');
     }
 
     /**
@@ -854,29 +2610,128 @@ var app = (function () {
      * See the License for the specific language governing permissions and
      * limitations under the License.
      */
-    var ERROR_NAME$2 = 'FirebaseError';
+    /**
+     * Returns navigator.userAgent string or '' if it's not defined.
+     * @return user agent string
+     */
+    function getUA() {
+        if (typeof navigator !== 'undefined' &&
+            typeof navigator['userAgent'] === 'string') {
+            return navigator['userAgent'];
+        }
+        else {
+            return '';
+        }
+    }
+    /**
+     * Detect Cordova / PhoneGap / Ionic frameworks on a mobile device.
+     *
+     * Deliberately does not rely on checking `file://` URLs (as this fails PhoneGap
+     * in the Ripple emulator) nor Cordova `onDeviceReady`, which would normally
+     * wait for a callback.
+     */
+    function isMobileCordova() {
+        return (typeof window !== 'undefined' &&
+            // @ts-ignore Setting up an broadly applicable index signature for Window
+            // just to deal with this case would probably be a bad idea.
+            !!(window['cordova'] || window['phonegap'] || window['PhoneGap']) &&
+            /ios|iphone|ipod|ipad|android|blackberry|iemobile/i.test(getUA()));
+    }
+    /**
+     * Detect Node.js.
+     *
+     * @return true if Node.js environment is detected.
+     */
+    // Node detection logic from: https://github.com/iliakan/detect-node/
+    function isNode() {
+        try {
+            return (Object.prototype.toString.call(global.process) === '[object process]');
+        }
+        catch (e) {
+            return false;
+        }
+    }
+    /**
+     * Detect Browser Environment
+     */
+    function isBrowser() {
+        return typeof self === 'object' && self.self === self;
+    }
+    function isBrowserExtension() {
+        var runtime = typeof chrome === 'object'
+            ? chrome.runtime
+            : typeof browser === 'object'
+                ? browser.runtime
+                : undefined;
+        return typeof runtime === 'object' && runtime.id !== undefined;
+    }
+    /**
+     * Detect React Native.
+     *
+     * @return true if ReactNative environment is detected.
+     */
+    function isReactNative() {
+        return (typeof navigator === 'object' && navigator['product'] === 'ReactNative');
+    }
+    /** Detects Electron apps. */
+    function isElectron() {
+        return getUA().indexOf('Electron/') >= 0;
+    }
+    /** Detects Internet Explorer. */
+    function isIE() {
+        var ua = getUA();
+        return ua.indexOf('MSIE ') >= 0 || ua.indexOf('Trident/') >= 0;
+    }
+    /** Detects Universal Windows Platform apps. */
+    function isUWP() {
+        return getUA().indexOf('MSAppHost/') >= 0;
+    }
+    /** Returns true if we are running in Safari. */
+    function isSafari() {
+        return (!isNode() &&
+            navigator.userAgent.includes('Safari') &&
+            !navigator.userAgent.includes('Chrome'));
+    }
+
+    /**
+     * @license
+     * Copyright 2017 Google LLC
+     *
+     * Licensed under the Apache License, Version 2.0 (the "License");
+     * you may not use this file except in compliance with the License.
+     * You may obtain a copy of the License at
+     *
+     *   http://www.apache.org/licenses/LICENSE-2.0
+     *
+     * Unless required by applicable law or agreed to in writing, software
+     * distributed under the License is distributed on an "AS IS" BASIS,
+     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     * See the License for the specific language governing permissions and
+     * limitations under the License.
+     */
+    var ERROR_NAME = 'FirebaseError';
     // Based on code from:
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#Custom_Error_Types
-    var FirebaseError$2 = /** @class */ (function (_super) {
+    var FirebaseError = /** @class */ (function (_super) {
         __extends$1(FirebaseError, _super);
         function FirebaseError(code, message, customData) {
             var _this = _super.call(this, message) || this;
             _this.code = code;
             _this.customData = customData;
-            _this.name = ERROR_NAME$2;
+            _this.name = ERROR_NAME;
             // Fix For ES5
             // https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
             Object.setPrototypeOf(_this, FirebaseError.prototype);
             // Maintains proper stack trace for where our error was thrown.
             // Only available on V8.
             if (Error.captureStackTrace) {
-                Error.captureStackTrace(_this, ErrorFactory$2.prototype.create);
+                Error.captureStackTrace(_this, ErrorFactory.prototype.create);
             }
             return _this;
         }
         return FirebaseError;
     }(Error));
-    var ErrorFactory$2 = /** @class */ (function () {
+    var ErrorFactory = /** @class */ (function () {
         function ErrorFactory(service, serviceName, errors) {
             this.service = service;
             this.serviceName = serviceName;
@@ -890,21 +2745,21 @@ var app = (function () {
             var customData = data[0] || {};
             var fullCode = this.service + "/" + code;
             var template = this.errors[code];
-            var message = template ? replaceTemplate$2(template, customData) : 'Error';
+            var message = template ? replaceTemplate(template, customData) : 'Error';
             // Service Name: Error message (service/code).
             var fullMessage = this.serviceName + ": " + message + " (" + fullCode + ").";
-            var error = new FirebaseError$2(fullCode, fullMessage, customData);
+            var error = new FirebaseError(fullCode, fullMessage, customData);
             return error;
         };
         return ErrorFactory;
     }());
-    function replaceTemplate$2(template, data) {
-        return template.replace(PATTERN$2, function (_, key) {
+    function replaceTemplate(template, data) {
+        return template.replace(PATTERN, function (_, key) {
             var value = data[key];
             return value != null ? String(value) : "<" + key + "?>";
         });
     }
-    var PATTERN$2 = /\{\$([^}]+)}/g;
+    var PATTERN = /\{\$([^}]+)}/g;
 
     /**
      * @license
@@ -1131,9 +2986,34 @@ var app = (function () {
     }
 
     /**
+     * @license
+     * Copyright 2021 Google LLC
+     *
+     * Licensed under the Apache License, Version 2.0 (the "License");
+     * you may not use this file except in compliance with the License.
+     * You may obtain a copy of the License at
+     *
+     *   http://www.apache.org/licenses/LICENSE-2.0
+     *
+     * Unless required by applicable law or agreed to in writing, software
+     * distributed under the License is distributed on an "AS IS" BASIS,
+     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     * See the License for the specific language governing permissions and
+     * limitations under the License.
+     */
+    function getModularInstance(service) {
+        if (service && service._delegate) {
+            return service._delegate;
+        }
+        else {
+            return service;
+        }
+    }
+
+    /**
      * Component for service name T, e.g. `auth`, `auth-internal`
      */
-    var Component$2 = /** @class */ (function () {
+    var Component = /** @class */ (function () {
         /**
          *
          * @param name The public service name, e.g. app, auth, firestore, database
@@ -1890,10 +3770,10 @@ var app = (function () {
             'Firebase App instance.',
         _a$1["invalid-log-argument" /* INVALID_LOG_ARGUMENT */] = 'First argument to `onLog` must be null or a function.',
         _a$1);
-    var ERROR_FACTORY = new ErrorFactory$2('app', 'Firebase', ERRORS);
+    var ERROR_FACTORY = new ErrorFactory('app', 'Firebase', ERRORS);
 
     var name$c = "@firebase/app";
-    var version$1$1 = "0.6.29";
+    var version$1$1 = "0.6.28";
 
     var name$b = "@firebase/analytics";
 
@@ -2003,7 +3883,7 @@ var app = (function () {
             this.options_ = deepCopy(options);
             this.container = new ComponentContainer(config.name);
             // add itself to container
-            this._addComponent(new Component$2('app', function () { return _this; }, "PUBLIC" /* PUBLIC */));
+            this._addComponent(new Component('app', function () { return _this; }, "PUBLIC" /* PUBLIC */));
             // populate ComponentContainer with existing components
             this.firebase_.INTERNAL.components.forEach(function (component) {
                 return _this._addComponent(component);
@@ -2133,7 +4013,7 @@ var app = (function () {
         FirebaseAppImpl.prototype.delete ||
         console.log('dc');
 
-    var version$2 = "8.8.1";
+    var version$2 = "8.7.0";
 
     /**
      * @license
@@ -2333,7 +4213,7 @@ var app = (function () {
                 logger.warn(warning.join(' '));
                 return;
             }
-            registerComponent(new Component$2(library + "-version", function () { return ({ library: library, version: version }); }, "VERSION" /* VERSION */));
+            registerComponent(new Component(library + "-version", function () { return ({ library: library, version: version }); }, "VERSION" /* VERSION */));
         }
         function onLog(logCallback, options) {
             if (logCallback !== null && typeof logCallback !== 'function') {
@@ -2381,7 +4261,7 @@ var app = (function () {
         namespace.INTERNAL = __assign(__assign({}, namespace.INTERNAL), { createFirebaseNamespace: createFirebaseNamespace,
             extendNamespace: extendNamespace,
             createSubscribe: createSubscribe,
-            ErrorFactory: ErrorFactory$2,
+            ErrorFactory: ErrorFactory,
             deepExtend: deepExtend });
         /**
          * Patch the top-level firebase namespace with additional properties.
@@ -2466,7 +4346,7 @@ var app = (function () {
      * limitations under the License.
      */
     function registerCoreComponents(firebase, variant) {
-        firebase.INTERNAL.registerComponent(new Component$2('platform-logger', function (container) { return new PlatformLoggerService(container); }, "PRIVATE" /* PRIVATE */));
+        firebase.INTERNAL.registerComponent(new Component('platform-logger', function (container) { return new PlatformLoggerService(container); }, "PRIVATE" /* PRIVATE */));
         // Register `app` package.
         firebase.registerVersion(name$c, version$1$1, variant);
         // Register platform SDK identifier (no version).
@@ -2511,7 +4391,7 @@ var app = (function () {
         // Environment check before initializing app
         // Do the check in initializeApp, so people have a chance to disable it by setting logLevel
         // in @firebase/logger
-        if (isNode$1()) {
+        if (isNode()) {
             logger.warn("\n      Warning: This is a browser-targeted Firebase bundle but it appears it is being\n      run in a Node environment.  If running in a Node environment, make sure you\n      are using the bundle specified by the \"main\" field in package.json.\n      \n      If you are using Webpack, you can specify \"main\" as the first item in\n      \"resolve.mainFields\":\n      https://webpack.js.org/configuration/resolve/#resolvemainfields\n      \n      If using Rollup, use the @rollup/plugin-node-resolve plugin and specify \"main\"\n      as the first item in \"mainFields\", e.g. ['main', 'module'].\n      https://github.com/rollup/@rollup/plugin-node-resolve\n      ");
         }
         return initializeApp.apply(undefined, args);
@@ -2520,7 +4400,7 @@ var app = (function () {
     registerCoreComponents(firebase);
 
     var name$1 = "firebase";
-    var version$1 = "8.9.1";
+    var version$1 = "8.8.0";
 
     /**
      * @license
@@ -2540,514 +4420,6 @@ var app = (function () {
      */
     firebase.registerVersion(name$1, version$1, 'app');
     firebase.SDK_VERSION = version$1;
-
-    /**
-     * @license
-     * Copyright 2017 Google LLC
-     *
-     * Licensed under the Apache License, Version 2.0 (the "License");
-     * you may not use this file except in compliance with the License.
-     * You may obtain a copy of the License at
-     *
-     *   http://www.apache.org/licenses/LICENSE-2.0
-     *
-     * Unless required by applicable law or agreed to in writing, software
-     * distributed under the License is distributed on an "AS IS" BASIS,
-     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     * See the License for the specific language governing permissions and
-     * limitations under the License.
-     */
-    var stringToByteArray$1 = function (str) {
-        // TODO(user): Use native implementations if/when available
-        var out = [];
-        var p = 0;
-        for (var i = 0; i < str.length; i++) {
-            var c = str.charCodeAt(i);
-            if (c < 128) {
-                out[p++] = c;
-            }
-            else if (c < 2048) {
-                out[p++] = (c >> 6) | 192;
-                out[p++] = (c & 63) | 128;
-            }
-            else if ((c & 0xfc00) === 0xd800 &&
-                i + 1 < str.length &&
-                (str.charCodeAt(i + 1) & 0xfc00) === 0xdc00) {
-                // Surrogate Pair
-                c = 0x10000 + ((c & 0x03ff) << 10) + (str.charCodeAt(++i) & 0x03ff);
-                out[p++] = (c >> 18) | 240;
-                out[p++] = ((c >> 12) & 63) | 128;
-                out[p++] = ((c >> 6) & 63) | 128;
-                out[p++] = (c & 63) | 128;
-            }
-            else {
-                out[p++] = (c >> 12) | 224;
-                out[p++] = ((c >> 6) & 63) | 128;
-                out[p++] = (c & 63) | 128;
-            }
-        }
-        return out;
-    };
-    /**
-     * Turns an array of numbers into the string given by the concatenation of the
-     * characters to which the numbers correspond.
-     * @param bytes Array of numbers representing characters.
-     * @return Stringification of the array.
-     */
-    var byteArrayToString = function (bytes) {
-        // TODO(user): Use native implementations if/when available
-        var out = [];
-        var pos = 0, c = 0;
-        while (pos < bytes.length) {
-            var c1 = bytes[pos++];
-            if (c1 < 128) {
-                out[c++] = String.fromCharCode(c1);
-            }
-            else if (c1 > 191 && c1 < 224) {
-                var c2 = bytes[pos++];
-                out[c++] = String.fromCharCode(((c1 & 31) << 6) | (c2 & 63));
-            }
-            else if (c1 > 239 && c1 < 365) {
-                // Surrogate Pair
-                var c2 = bytes[pos++];
-                var c3 = bytes[pos++];
-                var c4 = bytes[pos++];
-                var u = (((c1 & 7) << 18) | ((c2 & 63) << 12) | ((c3 & 63) << 6) | (c4 & 63)) -
-                    0x10000;
-                out[c++] = String.fromCharCode(0xd800 + (u >> 10));
-                out[c++] = String.fromCharCode(0xdc00 + (u & 1023));
-            }
-            else {
-                var c2 = bytes[pos++];
-                var c3 = bytes[pos++];
-                out[c++] = String.fromCharCode(((c1 & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
-            }
-        }
-        return out.join('');
-    };
-    // We define it as an object literal instead of a class because a class compiled down to es5 can't
-    // be treeshaked. https://github.com/rollup/rollup/issues/1691
-    // Static lookup maps, lazily populated by init_()
-    var base64 = {
-        /**
-         * Maps bytes to characters.
-         */
-        byteToCharMap_: null,
-        /**
-         * Maps characters to bytes.
-         */
-        charToByteMap_: null,
-        /**
-         * Maps bytes to websafe characters.
-         * @private
-         */
-        byteToCharMapWebSafe_: null,
-        /**
-         * Maps websafe characters to bytes.
-         * @private
-         */
-        charToByteMapWebSafe_: null,
-        /**
-         * Our default alphabet, shared between
-         * ENCODED_VALS and ENCODED_VALS_WEBSAFE
-         */
-        ENCODED_VALS_BASE: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' + 'abcdefghijklmnopqrstuvwxyz' + '0123456789',
-        /**
-         * Our default alphabet. Value 64 (=) is special; it means "nothing."
-         */
-        get ENCODED_VALS() {
-            return this.ENCODED_VALS_BASE + '+/=';
-        },
-        /**
-         * Our websafe alphabet.
-         */
-        get ENCODED_VALS_WEBSAFE() {
-            return this.ENCODED_VALS_BASE + '-_.';
-        },
-        /**
-         * Whether this browser supports the atob and btoa functions. This extension
-         * started at Mozilla but is now implemented by many browsers. We use the
-         * ASSUME_* variables to avoid pulling in the full useragent detection library
-         * but still allowing the standard per-browser compilations.
-         *
-         */
-        HAS_NATIVE_SUPPORT: typeof atob === 'function',
-        /**
-         * Base64-encode an array of bytes.
-         *
-         * @param input An array of bytes (numbers with
-         *     value in [0, 255]) to encode.
-         * @param webSafe Boolean indicating we should use the
-         *     alternative alphabet.
-         * @return The base64 encoded string.
-         */
-        encodeByteArray: function (input, webSafe) {
-            if (!Array.isArray(input)) {
-                throw Error('encodeByteArray takes an array as a parameter');
-            }
-            this.init_();
-            var byteToCharMap = webSafe
-                ? this.byteToCharMapWebSafe_
-                : this.byteToCharMap_;
-            var output = [];
-            for (var i = 0; i < input.length; i += 3) {
-                var byte1 = input[i];
-                var haveByte2 = i + 1 < input.length;
-                var byte2 = haveByte2 ? input[i + 1] : 0;
-                var haveByte3 = i + 2 < input.length;
-                var byte3 = haveByte3 ? input[i + 2] : 0;
-                var outByte1 = byte1 >> 2;
-                var outByte2 = ((byte1 & 0x03) << 4) | (byte2 >> 4);
-                var outByte3 = ((byte2 & 0x0f) << 2) | (byte3 >> 6);
-                var outByte4 = byte3 & 0x3f;
-                if (!haveByte3) {
-                    outByte4 = 64;
-                    if (!haveByte2) {
-                        outByte3 = 64;
-                    }
-                }
-                output.push(byteToCharMap[outByte1], byteToCharMap[outByte2], byteToCharMap[outByte3], byteToCharMap[outByte4]);
-            }
-            return output.join('');
-        },
-        /**
-         * Base64-encode a string.
-         *
-         * @param input A string to encode.
-         * @param webSafe If true, we should use the
-         *     alternative alphabet.
-         * @return The base64 encoded string.
-         */
-        encodeString: function (input, webSafe) {
-            // Shortcut for Mozilla browsers that implement
-            // a native base64 encoder in the form of "btoa/atob"
-            if (this.HAS_NATIVE_SUPPORT && !webSafe) {
-                return btoa(input);
-            }
-            return this.encodeByteArray(stringToByteArray$1(input), webSafe);
-        },
-        /**
-         * Base64-decode a string.
-         *
-         * @param input to decode.
-         * @param webSafe True if we should use the
-         *     alternative alphabet.
-         * @return string representing the decoded value.
-         */
-        decodeString: function (input, webSafe) {
-            // Shortcut for Mozilla browsers that implement
-            // a native base64 encoder in the form of "btoa/atob"
-            if (this.HAS_NATIVE_SUPPORT && !webSafe) {
-                return atob(input);
-            }
-            return byteArrayToString(this.decodeStringToByteArray(input, webSafe));
-        },
-        /**
-         * Base64-decode a string.
-         *
-         * In base-64 decoding, groups of four characters are converted into three
-         * bytes.  If the encoder did not apply padding, the input length may not
-         * be a multiple of 4.
-         *
-         * In this case, the last group will have fewer than 4 characters, and
-         * padding will be inferred.  If the group has one or two characters, it decodes
-         * to one byte.  If the group has three characters, it decodes to two bytes.
-         *
-         * @param input Input to decode.
-         * @param webSafe True if we should use the web-safe alphabet.
-         * @return bytes representing the decoded value.
-         */
-        decodeStringToByteArray: function (input, webSafe) {
-            this.init_();
-            var charToByteMap = webSafe
-                ? this.charToByteMapWebSafe_
-                : this.charToByteMap_;
-            var output = [];
-            for (var i = 0; i < input.length;) {
-                var byte1 = charToByteMap[input.charAt(i++)];
-                var haveByte2 = i < input.length;
-                var byte2 = haveByte2 ? charToByteMap[input.charAt(i)] : 0;
-                ++i;
-                var haveByte3 = i < input.length;
-                var byte3 = haveByte3 ? charToByteMap[input.charAt(i)] : 64;
-                ++i;
-                var haveByte4 = i < input.length;
-                var byte4 = haveByte4 ? charToByteMap[input.charAt(i)] : 64;
-                ++i;
-                if (byte1 == null || byte2 == null || byte3 == null || byte4 == null) {
-                    throw Error();
-                }
-                var outByte1 = (byte1 << 2) | (byte2 >> 4);
-                output.push(outByte1);
-                if (byte3 !== 64) {
-                    var outByte2 = ((byte2 << 4) & 0xf0) | (byte3 >> 2);
-                    output.push(outByte2);
-                    if (byte4 !== 64) {
-                        var outByte3 = ((byte3 << 6) & 0xc0) | byte4;
-                        output.push(outByte3);
-                    }
-                }
-            }
-            return output;
-        },
-        /**
-         * Lazy static initialization function. Called before
-         * accessing any of the static map variables.
-         * @private
-         */
-        init_: function () {
-            if (!this.byteToCharMap_) {
-                this.byteToCharMap_ = {};
-                this.charToByteMap_ = {};
-                this.byteToCharMapWebSafe_ = {};
-                this.charToByteMapWebSafe_ = {};
-                // We want quick mappings back and forth, so we precompute two maps.
-                for (var i = 0; i < this.ENCODED_VALS.length; i++) {
-                    this.byteToCharMap_[i] = this.ENCODED_VALS.charAt(i);
-                    this.charToByteMap_[this.byteToCharMap_[i]] = i;
-                    this.byteToCharMapWebSafe_[i] = this.ENCODED_VALS_WEBSAFE.charAt(i);
-                    this.charToByteMapWebSafe_[this.byteToCharMapWebSafe_[i]] = i;
-                    // Be forgiving when decoding and correctly decode both encodings.
-                    if (i >= this.ENCODED_VALS_BASE.length) {
-                        this.charToByteMap_[this.ENCODED_VALS_WEBSAFE.charAt(i)] = i;
-                        this.charToByteMapWebSafe_[this.ENCODED_VALS.charAt(i)] = i;
-                    }
-                }
-            }
-        }
-    };
-
-    /**
-     * @license
-     * Copyright 2021 Google LLC
-     *
-     * Licensed under the Apache License, Version 2.0 (the "License");
-     * you may not use this file except in compliance with the License.
-     * You may obtain a copy of the License at
-     *
-     *   http://www.apache.org/licenses/LICENSE-2.0
-     *
-     * Unless required by applicable law or agreed to in writing, software
-     * distributed under the License is distributed on an "AS IS" BASIS,
-     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     * See the License for the specific language governing permissions and
-     * limitations under the License.
-     */
-    function createMockUserToken(token, projectId) {
-        if (token.uid) {
-            throw new Error('The "uid" field is no longer supported by mockUserToken. Please use "sub" instead for Firebase Auth User ID.');
-        }
-        // Unsecured JWTs use "none" as the algorithm.
-        var header = {
-            alg: 'none',
-            type: 'JWT'
-        };
-        var project = projectId || 'demo-project';
-        var iat = token.iat || 0;
-        var sub = token.sub || token.user_id;
-        if (!sub) {
-            throw new Error("mockUserToken must contain 'sub' or 'user_id' field!");
-        }
-        var payload = __assign({ 
-            // Set all required fields to decent defaults
-            iss: "https://securetoken.google.com/" + project, aud: project, iat: iat, exp: iat + 3600, auth_time: iat, sub: sub, user_id: sub, firebase: {
-                sign_in_provider: 'custom',
-                identities: {}
-            } }, token);
-        // Unsecured JWTs use the empty string as a signature.
-        var signature = '';
-        return [
-            base64.encodeString(JSON.stringify(header), /*webSafe=*/ false),
-            base64.encodeString(JSON.stringify(payload), /*webSafe=*/ false),
-            signature
-        ].join('.');
-    }
-
-    /**
-     * @license
-     * Copyright 2017 Google LLC
-     *
-     * Licensed under the Apache License, Version 2.0 (the "License");
-     * you may not use this file except in compliance with the License.
-     * You may obtain a copy of the License at
-     *
-     *   http://www.apache.org/licenses/LICENSE-2.0
-     *
-     * Unless required by applicable law or agreed to in writing, software
-     * distributed under the License is distributed on an "AS IS" BASIS,
-     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     * See the License for the specific language governing permissions and
-     * limitations under the License.
-     */
-    /**
-     * Returns navigator.userAgent string or '' if it's not defined.
-     * @return user agent string
-     */
-    function getUA() {
-        if (typeof navigator !== 'undefined' &&
-            typeof navigator['userAgent'] === 'string') {
-            return navigator['userAgent'];
-        }
-        else {
-            return '';
-        }
-    }
-    /**
-     * Detect Cordova / PhoneGap / Ionic frameworks on a mobile device.
-     *
-     * Deliberately does not rely on checking `file://` URLs (as this fails PhoneGap
-     * in the Ripple emulator) nor Cordova `onDeviceReady`, which would normally
-     * wait for a callback.
-     */
-    function isMobileCordova() {
-        return (typeof window !== 'undefined' &&
-            // @ts-ignore Setting up an broadly applicable index signature for Window
-            // just to deal with this case would probably be a bad idea.
-            !!(window['cordova'] || window['phonegap'] || window['PhoneGap']) &&
-            /ios|iphone|ipod|ipad|android|blackberry|iemobile/i.test(getUA()));
-    }
-    /**
-     * Detect Node.js.
-     *
-     * @return true if Node.js environment is detected.
-     */
-    // Node detection logic from: https://github.com/iliakan/detect-node/
-    function isNode() {
-        try {
-            return (Object.prototype.toString.call(global.process) === '[object process]');
-        }
-        catch (e) {
-            return false;
-        }
-    }
-    function isBrowserExtension() {
-        var runtime = typeof chrome === 'object'
-            ? chrome.runtime
-            : typeof browser === 'object'
-                ? browser.runtime
-                : undefined;
-        return typeof runtime === 'object' && runtime.id !== undefined;
-    }
-    /**
-     * Detect React Native.
-     *
-     * @return true if ReactNative environment is detected.
-     */
-    function isReactNative() {
-        return (typeof navigator === 'object' && navigator['product'] === 'ReactNative');
-    }
-    /** Detects Electron apps. */
-    function isElectron() {
-        return getUA().indexOf('Electron/') >= 0;
-    }
-    /** Detects Internet Explorer. */
-    function isIE() {
-        var ua = getUA();
-        return ua.indexOf('MSIE ') >= 0 || ua.indexOf('Trident/') >= 0;
-    }
-    /** Detects Universal Windows Platform apps. */
-    function isUWP() {
-        return getUA().indexOf('MSAppHost/') >= 0;
-    }
-    /** Returns true if we are running in Safari. */
-    function isSafari() {
-        return (!isNode() &&
-            navigator.userAgent.includes('Safari') &&
-            !navigator.userAgent.includes('Chrome'));
-    }
-
-    /**
-     * @license
-     * Copyright 2017 Google LLC
-     *
-     * Licensed under the Apache License, Version 2.0 (the "License");
-     * you may not use this file except in compliance with the License.
-     * You may obtain a copy of the License at
-     *
-     *   http://www.apache.org/licenses/LICENSE-2.0
-     *
-     * Unless required by applicable law or agreed to in writing, software
-     * distributed under the License is distributed on an "AS IS" BASIS,
-     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     * See the License for the specific language governing permissions and
-     * limitations under the License.
-     */
-    var ERROR_NAME$1 = 'FirebaseError';
-    // Based on code from:
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#Custom_Error_Types
-    var FirebaseError$1 = /** @class */ (function (_super) {
-        __extends$1(FirebaseError, _super);
-        function FirebaseError(code, message, customData) {
-            var _this = _super.call(this, message) || this;
-            _this.code = code;
-            _this.customData = customData;
-            _this.name = ERROR_NAME$1;
-            // Fix For ES5
-            // https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
-            Object.setPrototypeOf(_this, FirebaseError.prototype);
-            // Maintains proper stack trace for where our error was thrown.
-            // Only available on V8.
-            if (Error.captureStackTrace) {
-                Error.captureStackTrace(_this, ErrorFactory$1.prototype.create);
-            }
-            return _this;
-        }
-        return FirebaseError;
-    }(Error));
-    var ErrorFactory$1 = /** @class */ (function () {
-        function ErrorFactory(service, serviceName, errors) {
-            this.service = service;
-            this.serviceName = serviceName;
-            this.errors = errors;
-        }
-        ErrorFactory.prototype.create = function (code) {
-            var data = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                data[_i - 1] = arguments[_i];
-            }
-            var customData = data[0] || {};
-            var fullCode = this.service + "/" + code;
-            var template = this.errors[code];
-            var message = template ? replaceTemplate$1(template, customData) : 'Error';
-            // Service Name: Error message (service/code).
-            var fullMessage = this.serviceName + ": " + message + " (" + fullCode + ").";
-            var error = new FirebaseError$1(fullCode, fullMessage, customData);
-            return error;
-        };
-        return ErrorFactory;
-    }());
-    function replaceTemplate$1(template, data) {
-        return template.replace(PATTERN$1, function (_, key) {
-            var value = data[key];
-            return value != null ? String(value) : "<" + key + "?>";
-        });
-    }
-    var PATTERN$1 = /\{\$([^}]+)}/g;
-
-    /**
-     * @license
-     * Copyright 2021 Google LLC
-     *
-     * Licensed under the Apache License, Version 2.0 (the "License");
-     * you may not use this file except in compliance with the License.
-     * You may obtain a copy of the License at
-     *
-     *   http://www.apache.org/licenses/LICENSE-2.0
-     *
-     * Unless required by applicable law or agreed to in writing, software
-     * distributed under the License is distributed on an "AS IS" BASIS,
-     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     * See the License for the specific language governing permissions and
-     * limitations under the License.
-     */
-    function getModularInstance(service) {
-        if (service && service._delegate) {
-            return service._delegate;
-        }
-        else {
-            return service;
-        }
-    }
 
     /*! *****************************************************************************
     Copyright (c) Microsoft Corporation.
@@ -3338,10 +4710,10 @@ var app = (function () {
     var pb = "__closure_events_fn_" + (1E9 * Math.random() >>> 0);
     function hb(a) { if ("function" === typeof a)
         return a; a[pb] || (a[pb] = function (b) { return a.handleEvent(b); }); return a[pb]; }
-    function C$2() { v.call(this); this.i = new $a$1(this); this.P = this; this.I = null; }
-    t(C$2, v);
-    C$2.prototype[B$1] = !0;
-    C$2.prototype.removeEventListener = function (a, b, c, d) { nb(this, a, b, c, d); };
+    function C$1() { v.call(this); this.i = new $a$1(this); this.P = this; this.I = null; }
+    t(C$1, v);
+    C$1.prototype[B$1] = !0;
+    C$1.prototype.removeEventListener = function (a, b, c, d) { nb(this, a, b, c, d); };
     function D$1(a, b) { var c, d = a.I; if (d)
         for (c = []; d; d = d.I)
             c.push(d); a = a.P; d = b.type || b; if ("string" === typeof b)
@@ -3359,7 +4731,7 @@ var app = (function () {
         } h = b.g = a; e = qb(h, d, !0, b) && e; e = qb(h, d, !1, b) && e; if (c)
         for (f = 0; f < c.length; f++)
             h = b.g = c[f], e = qb(h, d, !1, b) && e; }
-    C$2.prototype.M = function () { C$2.Z.M.call(this); if (this.i) {
+    C$1.prototype.M = function () { C$1.Z.M.call(this); if (this.i) {
         var a = this.i, c;
         for (c in a.g) {
             for (var d = a.g[c], e = 0; e < d.length; e++)
@@ -3368,8 +4740,8 @@ var app = (function () {
             a.h--;
         }
     } this.I = null; };
-    C$2.prototype.N = function (a, b, c, d) { return this.i.add(String(a), b, !1, c, d); };
-    C$2.prototype.O = function (a, b, c, d) { return this.i.add(String(a), b, !0, c, d); };
+    C$1.prototype.N = function (a, b, c, d) { return this.i.add(String(a), b, !1, c, d); };
+    C$1.prototype.O = function (a, b, c, d) { return this.i.add(String(a), b, !0, c, d); };
     function qb(a, b, c, d) { b = a.i.g[String(b)]; if (!b)
         return !0; b = b.concat(); for (var e = !0, f = 0; f < b.length; ++f) {
         var h = b[f];
@@ -3422,8 +4794,8 @@ var app = (function () {
         b.j(a);
         100 > b.h && (b.h++, a.next = b.g, b.g = a);
     } Cb = !1; }
-    function Eb(a, b) { C$2.call(this); this.h = a || 1; this.g = b || l; this.j = q$1(this.kb, this); this.l = Date.now(); }
-    t(Eb, C$2);
+    function Eb(a, b) { C$1.call(this); this.h = a || 1; this.g = b || l; this.j = q$1(this.kb, this); this.l = Date.now(); }
+    t(Eb, C$1);
     k$1 = Eb.prototype;
     k$1.da = !1;
     k$1.S = null;
@@ -3515,7 +4887,7 @@ var app = (function () {
         return b;
     } }
     var H$1 = {}, Rb = null;
-    function Sb() { return Rb = Rb || new C$2; }
+    function Sb() { return Rb = Rb || new C$1; }
     H$1.Ma = "serverreachability";
     function Tb(a) { z$1.call(this, H$1.Ma, a); }
     t(Tb, z$1);
@@ -3572,7 +4944,7 @@ var app = (function () {
                             var e = d.length, f = 4 == O$1(this.g);
                             if (!this.h.i) {
                                 if ("undefined" === typeof TextDecoder) {
-                                    P$1(this);
+                                    P$2(this);
                                     rc$1(this);
                                     var h = "";
                                     break b;
@@ -3608,18 +4980,18 @@ var app = (function () {
                                     this.i = !1;
                                     this.o = 3;
                                     J$1(12);
-                                    P$1(this);
+                                    P$2(this);
                                     rc$1(this);
                                     break a;
                                 }
                             }
                             this.U ? (tc$1(this, r, h), Ja$1 && this.i && 3 == r && (Kb(this.V, this.W, "tick", this.fb),
                                 this.W.start())) : (F$1(this.j, this.m, h, null), sc$1(this, h));
-                            4 == r && P$1(this);
+                            4 == r && P$2(this);
                             this.i && !this.I && (4 == r ? uc$1(this.l, this) : (this.i = !1, lc$1(this)));
                         }
                         else
-                            400 == c && 0 < h.indexOf("Unknown SID") ? (this.o = 3, J$1(12)) : (this.o = 0, J$1(13)), P$1(this), rc$1(this);
+                            400 == c && 0 < h.indexOf("Unknown SID") ? (this.o = 3, J$1(12)) : (this.o = 0, J$1(13)), P$2(this), rc$1(this);
                     }
                 }
         }
@@ -3647,7 +5019,7 @@ var app = (function () {
         qc$1(a) && e != hc$1 && e != gc$1 && (a.h.g = "", a.C = 0);
         4 != b || 0 != c.length || a.h.h || (a.o = 1, J$1(16), d = !1);
         a.i = a.i && d;
-        d ? 0 < c.length && !a.aa && (a.aa = !0, b = a.l, b.g == a && b.$ && !b.L && (b.h.info("Great, no buffering proxy detected. Bytes received: " + c.length), wc$1(b), b.L = !0, J$1(11))) : (F$1(a.j, a.m, c, "[Invalid Chunked Response]"), P$1(a), rc$1(a));
+        d ? 0 < c.length && !a.aa && (a.aa = !0, b = a.l, b.g == a && b.$ && !b.L && (b.h.info("Great, no buffering proxy detected. Bytes received: " + c.length), wc$1(b), b.L = !0, J$1(11))) : (F$1(a.j, a.m, c, "[Invalid Chunked Response]"), P$2(a), rc$1(a));
     }
     k$1.fb = function () { if (this.g) {
         var a = O$1(this.g), b = this.g.ga();
@@ -3657,14 +5029,14 @@ var app = (function () {
         return hc$1; c = Number(b.substring(c, d)); if (isNaN(c))
         return gc$1; d += 1; if (d + c > b.length)
         return hc$1; b = b.substr(d, c); a.C = d + c; return b; }
-    k$1.cancel = function () { this.I = !0; P$1(this); };
+    k$1.cancel = function () { this.I = !0; P$2(this); };
     function lc$1(a) { a.Y = Date.now() + a.P; xc$1(a, a.P); }
     function xc$1(a, b) { if (null != a.B)
         throw Error("WatchDog timer not null"); a.B = K$1(q$1(a.eb, a), b); }
     function pc$1(a) { a.B && (l.clearTimeout(a.B), a.B = null); }
-    k$1.eb = function () { this.B = null; var a = Date.now(); 0 <= a - this.Y ? (Qb(this.j, this.A), 2 != this.K && (I$1(3), J$1(17)), P$1(this), this.o = 2, rc$1(this)) : xc$1(this, this.Y - a); };
+    k$1.eb = function () { this.B = null; var a = Date.now(); 0 <= a - this.Y ? (Qb(this.j, this.A), 2 != this.K && (I$1(3), J$1(17)), P$2(this), this.o = 2, rc$1(this)) : xc$1(this, this.Y - a); };
     function rc$1(a) { 0 == a.l.G || a.I || uc$1(a.l, a); }
-    function P$1(a) { pc$1(a); var b = a.L; b && "function" == typeof b.na && b.na(); a.L = null; Fb(a.W); Lb(a.V); a.g && (b = a.g, a.g = null, b.abort(), b.na()); }
+    function P$2(a) { pc$1(a); var b = a.L; b && "function" == typeof b.na && b.na(); a.L = null; Fb(a.W); Lb(a.V); a.g && (b = a.g, a.g = null, b.abort(), b.na()); }
     function sc$1(a, b) {
         try {
             var c = a.l;
@@ -4000,8 +5372,8 @@ var app = (function () {
     t(pd, Yb);
     pd.prototype.g = function () { return new qd(this.l, this.j); };
     pd.prototype.i = function (a) { return function () { return a; }; }({});
-    function qd(a, b) { C$2.call(this); this.D = a; this.u = b; this.m = void 0; this.readyState = rd; this.status = 0; this.responseType = this.responseText = this.response = this.statusText = ""; this.onreadystatechange = null; this.v = new Headers; this.h = null; this.C = "GET"; this.B = ""; this.g = !1; this.A = this.j = this.l = null; }
-    t(qd, C$2);
+    function qd(a, b) { C$1.call(this); this.D = a; this.u = b; this.m = void 0; this.readyState = rd; this.status = 0; this.responseType = this.responseText = this.response = this.statusText = ""; this.onreadystatechange = null; this.v = new Headers; this.h = null; this.C = "GET"; this.B = ""; this.g = !1; this.A = this.j = this.l = null; }
+    t(qd, C$1);
     var rd = 0;
     k$1 = qd.prototype;
     k$1.open = function (a, b) { if (this.readyState != rd)
@@ -4052,8 +5424,8 @@ var app = (function () {
     function sd(a) { a.onreadystatechange && a.onreadystatechange.call(a); }
     Object.defineProperty(qd.prototype, "withCredentials", { get: function () { return "include" === this.m; }, set: function (a) { this.m = a ? "include" : "same-origin"; } });
     var vd = l.JSON.parse;
-    function X$1(a) { C$2.call(this); this.headers = new S$1; this.u = a || null; this.h = !1; this.C = this.g = null; this.H = ""; this.m = 0; this.j = ""; this.l = this.F = this.v = this.D = !1; this.B = 0; this.A = null; this.J = wd; this.K = this.L = !1; }
-    t(X$1, C$2);
+    function X$1(a) { C$1.call(this); this.headers = new S$1; this.u = a || null; this.h = !1; this.C = this.g = null; this.H = ""; this.m = 0; this.j = ""; this.l = this.F = this.v = this.D = !1; this.B = 0; this.A = null; this.J = wd; this.K = this.L = !1; }
+    t(X$1, C$1);
     var wd = "", xd = /^https?$/i, yd = ["POST", "PUT"];
     k$1 = X$1.prototype;
     k$1.ea = function (a, b, c, d) {
@@ -4439,7 +5811,7 @@ var app = (function () {
         throw Error("Environmental error: no available transport."); }
     Td.prototype.g = function (a, b) { return new Y$1(a, b); };
     function Y$1(a, b) {
-        C$2.call(this);
+        C$1.call(this);
         this.g = new Id(b);
         this.l = a;
         this.h = b && b.messageUrlParams || null;
@@ -4457,7 +5829,7 @@ var app = (function () {
         (b = b && b.httpSessionIdParam) && !sa$1(b) && (this.g.D = b, a = this.h, null !== a && b in a && (a = this.h, b in a && delete a[b]));
         this.j = new Z$1(this);
     }
-    t(Y$1, C$2);
+    t(Y$1, C$1);
     Y$1.prototype.m = function () { this.g.j = this.j; this.A && (this.g.H = !0); var a = this.g, b = this.l, c = this.h || void 0; a.Wa && (a.h.info("Origin Trials enabled."), zb(q$1(a.hb, a, b))); J$1(0); a.W = b; a.aa = c || {}; a.N = a.X; a.F = Ec$1(a, null, a.W); Hc(a); };
     Y$1.prototype.close = function () { Ic$1(this.g); };
     Y$1.prototype.u = function (a) { if ("string" === typeof a) {
@@ -4519,7 +5891,7 @@ var app = (function () {
     L$1.CLOSE = "b";
     L$1.ERROR = "c";
     L$1.MESSAGE = "d";
-    C$2.prototype.listen = C$2.prototype.N;
+    C$1.prototype.listen = C$1.prototype.N;
     X$1.prototype.listenOnce = X$1.prototype.O;
     X$1.prototype.getLastError = X$1.prototype.La;
     X$1.prototype.getLastErrorCode = X$1.prototype.Da;
@@ -4747,11 +6119,11 @@ var app = (function () {
      *     <li>`error` to log errors only.</li>
      *     <li><code>`silent` to turn off logging.</li>
      *   </ul>
-     */ function C$1(t) {
+     */ function C(t) {
         for (var n = [], r = 1; r < arguments.length; r++) n[r - 1] = arguments[r];
         if (A.logLevel <= LogLevel.DEBUG) {
             var i = n.map(L);
-            A.debug.apply(A, __spreadArray([ "Firestore (8.8.1): " + t ], i));
+            A.debug.apply(A, __spreadArray([ "Firestore (8.8.0): " + t ], i));
         }
     }
 
@@ -4759,7 +6131,7 @@ var app = (function () {
         for (var n = [], r = 1; r < arguments.length; r++) n[r - 1] = arguments[r];
         if (A.logLevel <= LogLevel.ERROR) {
             var i = n.map(L);
-            A.error.apply(A, __spreadArray([ "Firestore (8.8.1): " + t ], i));
+            A.error.apply(A, __spreadArray([ "Firestore (8.8.0): " + t ], i));
         }
     }
 
@@ -4767,7 +6139,7 @@ var app = (function () {
         for (var n = [], r = 1; r < arguments.length; r++) n[r - 1] = arguments[r];
         if (A.logLevel <= LogLevel.WARN) {
             var i = n.map(L);
-            A.warn.apply(A, __spreadArray([ "Firestore (8.8.1): " + t ], i));
+            A.warn.apply(A, __spreadArray([ "Firestore (8.8.0): " + t ], i));
         }
     }
 
@@ -4811,7 +6183,7 @@ var app = (function () {
         void 0 === t && (t = "Unexpected state");
         // Log the failure in addition to throw an exception, just in case the
         // exception is swallowed.
-            var e = "FIRESTORE (8.8.1) INTERNAL ASSERTION FAILED: " + t;
+            var e = "FIRESTORE (8.8.0) INTERNAL ASSERTION FAILED: " + t;
         // NOTE: We don't use FirestoreError here because these are internal failures
         // that cannot be handled by the user. (Also it would create a circular
         // dependency between the error and assert modules which doesn't work.)
@@ -4824,7 +6196,7 @@ var app = (function () {
      */;
     }
 
-    function P(t, e) {
+    function P$1(t, e) {
         t || O();
     }
 
@@ -5372,12 +6744,12 @@ var app = (function () {
         // The json interface (for the browser) will return an iso timestamp string,
         // while the proto js library (for node) will return a
         // google.protobuf.Timestamp instance.
-        if (P(!!t), "string" == typeof t) {
+        if (P$1(!!t), "string" == typeof t) {
             // The date string can have higher precision (nanos) than the Date class
             // (millis), so we do some custom parsing here.
             // Parse the nanos right out of the string.
             var e = 0, n = Z.exec(t);
-            if (P(!!n), n[1]) {
+            if (P$1(!!n), n[1]) {
                 // Pad the fraction out to 9 digits (nanos).
                 var r = n[1];
                 r = (r + "000000000").substr(0, 9), e = Number(r);
@@ -6988,7 +8360,7 @@ var app = (function () {
 
     function Ve(t, e, n) {
         var r = new Map;
-        P(t.length === n.length);
+        P$1(t.length === n.length);
         for (var i = 0; i < n.length; i++) {
             var o = t[i], s = o.transform, u = e.data.field(o.field);
             r.set(o.field, ye(s, u, n[i]));
@@ -7973,7 +9345,7 @@ var app = (function () {
                     // queries.
                     var o = new ct(i.path);
                     this.tt(e, o, Nt.newNoDocument(o, K.min()));
-                } else P(1 === n); else this.ct(e) !== n && (
+                } else P$1(1 === n); else this.ct(e) !== n && (
                 // Existence filter mismatch: We reset the mapping and raise a new
                 // snapshot with `isFromCache:true`.
                 this.it(e), this.Y = this.Y.add(e));
@@ -8077,7 +9449,7 @@ var app = (function () {
          */
         t.prototype.st = function(t) {
             var e = null !== this.ot(t);
-            return e || C$1("WatchChangeAggregator", "Detected inactive target", t), e;
+            return e || C("WatchChangeAggregator", "Detected inactive target", t), e;
         }, 
         /**
          * Returns the TargetData for an active target (i.e. a target that the user
@@ -8194,7 +9566,7 @@ var app = (function () {
     }
 
     function _n(t) {
-        return P(!!t), K.fromTimestamp(function(t) {
+        return P$1(!!t), K.fromTimestamp(function(t) {
             var e = tt(t);
             return new j(e.seconds, e.nanos);
         }(t));
@@ -8208,7 +9580,7 @@ var app = (function () {
 
     function Nn(t) {
         var e = H.fromString(t);
-        return P($n(e)), e;
+        return P$1($n(e)), e;
     }
 
     function Dn(t, e) {
@@ -8240,7 +9612,7 @@ var app = (function () {
     }
 
     function Rn(t) {
-        return P(t.length > 4 && "documents" === t.get(4)), t.popFirst(5)
+        return P$1(t.length > 4 && "documents" === t.get(4)), t.popFirst(5)
         /** Creates a Document proto from key and fields (but no create/update time) */;
     }
 
@@ -8315,7 +9687,7 @@ var app = (function () {
         }(e.currentDocument) : De.none(), r = e.updateTransforms ? e.updateTransforms.map((function(e) {
             return function(t, e) {
                 var n = null;
-                if ("setToServerValue" in e) P("REQUEST_TIME" === e.setToServerValue), n = new me; else if ("appendMissingElements" in e) {
+                if ("setToServerValue" in e) P$1("REQUEST_TIME" === e.setToServerValue), n = new me; else if ("appendMissingElements" in e) {
                     var r = e.appendMissingElements.values || [];
                     n = new ge(r);
                 } else if ("removeAllFromArray" in e) {
@@ -8446,7 +9818,7 @@ var app = (function () {
     function qn(t) {
         var e = Cn(t.parent), n = t.structuredQuery, r = n.from ? n.from.length : 0, i = null;
         if (r > 0) {
-            P(1 === r);
+            P$1(1 === r);
             var o = n.from[0];
             o.allDescendants ? i = o.collectionId : e = e.child(o.collectionId);
         }
@@ -8662,7 +10034,7 @@ var app = (function () {
         // Event the empty path must encode as a path of at least length 2. A path
         // with exactly 2 must be the empty path.
         var e = t.length;
-        if (P(e >= 2), 2 === e) return P("" === t.charAt(0) && "" === t.charAt(1)), H.emptyPath();
+        if (P$1(e >= 2), 2 === e) return P$1("" === t.charAt(0) && "" === t.charAt(1)), H.emptyPath();
         // Escape characters cannot exist past the second-to-last position in the
         // source value.
             for (var n = e - 2, r = [], i = "", o = 0; o < e; ) {
@@ -9366,7 +10738,7 @@ var app = (function () {
             enumerable: !1,
             configurable: !0
         }), t.prototype.abort = function(t) {
-            t && this.ft.reject(t), this.aborted || (C$1("SimpleDb", "Aborting transaction:", t ? t.message : "Client-initiated abort"), 
+            t && this.ft.reject(t), this.aborted || (C("SimpleDb", "Aborting transaction:", t ? t.message : "Client-initiated abort"), 
             this.aborted = !0, this.transaction.abort());
         }, 
         /**
@@ -9401,7 +10773,7 @@ var app = (function () {
             12.2 === t._t(getUA()) && x("Firestore persistence suffers from a bug in iOS 12.2 Safari that may cause your app to stop working. See https://stackoverflow.com/q/56496296/110915 for details and a potential workaround.");
         }
         /** Deletes the specified database. */    return t.delete = function(t) {
-            return C$1("SimpleDb", "Removing database:", t), Ar(window.indexedDB.deleteDatabase(t)).toPromise();
+            return C("SimpleDb", "Removing database:", t), Ar(window.indexedDB.deleteDatabase(t)).toPromise();
         }, 
         /** Returns true if IndexedDB is available in the current environment. */ t.yt = function() {
             if ("undefined" == typeof indexedDB) return !1;
@@ -9456,7 +10828,7 @@ var app = (function () {
                 return __generator(this, (function(r) {
                     switch (r.label) {
                       case 0:
-                        return this.db ? [ 3 /*break*/ , 2 ] : (C$1("SimpleDb", "Opening database:", this.name), 
+                        return this.db ? [ 3 /*break*/ , 2 ] : (C("SimpleDb", "Opening database:", this.name), 
                         e = this, [ 4 /*yield*/ , new Promise((function(e, r) {
                             // TODO(mikelehen): Investigate browser compatibility.
                             // https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB
@@ -9473,10 +10845,10 @@ var app = (function () {
                                 var n = e.target.error;
                                 "VersionError" === n.name ? r(new D(N.FAILED_PRECONDITION, "A newer version of the Firestore SDK was previously used and so the persisted data is not compatible with the version of the SDK you are now using. The SDK will operate with persistence disabled. If you need persistence, please re-upgrade to a newer version of the SDK or else clear the persisted IndexedDB data for your app to start fresh.")) : r(new Sr(t, n));
                             }, i.onupgradeneeded = function(t) {
-                                C$1("SimpleDb", 'Database "' + n.name + '" requires upgrade from version:', t.oldVersion);
+                                C("SimpleDb", 'Database "' + n.name + '" requires upgrade from version:', t.oldVersion);
                                 var e = t.target.result;
                                 n.wt.Rt(e, i.transaction, t.oldVersion, n.version).next((function() {
-                                    C$1("SimpleDb", "Database upgrade to version " + n.version + " complete");
+                                    C("SimpleDb", "Database upgrade to version " + n.version + " complete");
                                 }));
                             };
                         })) ]);
@@ -9528,7 +10900,7 @@ var app = (function () {
                                     r.sent(), u), c) ];
 
                                   case 4:
-                                    return h = r.sent(), f = "FirebaseError" !== h.name && s < 3, C$1("SimpleDb", "Transaction failed with error:", h.message, "Retrying:", f), 
+                                    return h = r.sent(), f = "FirebaseError" !== h.name && s < 3, C("SimpleDb", "Transaction failed with error:", h.message, "Retrying:", f), 
                                     a.close(), f ? [ 3 /*break*/ , 5 ] : [ 2 /*return*/ , {
                                         value: Promise.reject(h)
                                     } ];
@@ -9641,7 +11013,7 @@ var app = (function () {
         }
         return t.prototype.put = function(t, e) {
             var n;
-            return void 0 !== e ? (C$1("SimpleDb", "PUT", this.store.name, t, e), n = this.store.put(e, t)) : (C$1("SimpleDb", "PUT", this.store.name, "<auto-key>", t), 
+            return void 0 !== e ? (C("SimpleDb", "PUT", this.store.name, t, e), n = this.store.put(e, t)) : (C("SimpleDb", "PUT", this.store.name, "<auto-key>", t), 
             n = this.store.put(t)), Ar(n);
         }, 
         /**
@@ -9652,7 +11024,7 @@ var app = (function () {
          * @returns The key of the value to add.
          */
         t.prototype.add = function(t) {
-            return C$1("SimpleDb", "ADD", this.store.name, t, t), Ar(this.store.add(t));
+            return C("SimpleDb", "ADD", this.store.name, t, t), Ar(this.store.add(t));
         }, 
         /**
          * Gets the object with the specified key from the specified store, or null
@@ -9667,10 +11039,10 @@ var app = (function () {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     return Ar(this.store.get(t)).next((function(n) {
                 // Normalize nonexistence to null.
-                return void 0 === n && (n = null), C$1("SimpleDb", "GET", e.store.name, t, n), n;
+                return void 0 === n && (n = null), C("SimpleDb", "GET", e.store.name, t, n), n;
             }));
         }, t.prototype.delete = function(t) {
-            return C$1("SimpleDb", "DELETE", this.store.name, t), Ar(this.store.delete(t));
+            return C("SimpleDb", "DELETE", this.store.name, t), Ar(this.store.delete(t));
         }, 
         /**
          * If we ever need more of the count variants, we can add overloads. For now,
@@ -9679,7 +11051,7 @@ var app = (function () {
          * Returns the number of rows in the store.
          */
         t.prototype.count = function() {
-            return C$1("SimpleDb", "COUNT", this.store.name), Ar(this.store.count());
+            return C("SimpleDb", "COUNT", this.store.name), Ar(this.store.count());
         }, t.prototype.Nt = function(t, e) {
             var n = this.cursor(this.options(t, e)), r = [];
             return this.xt(n, (function(t, e) {
@@ -9688,7 +11060,7 @@ var app = (function () {
                 return r;
             }));
         }, t.prototype.Ft = function(t, e) {
-            C$1("SimpleDb", "DELETE ALL", this.store.name);
+            C("SimpleDb", "DELETE ALL", this.store.name);
             var n = this.options(t, e);
             n.kt = !1;
             var r = this.cursor(n);
@@ -9929,7 +11301,7 @@ var app = (function () {
          */;
         }
         return t.from = function(e, n, r) {
-            P(e.mutations.length === r.length);
+            P$1(e.mutations.length === r.length);
             for (var i = rn(), o = e.mutations, s = 0; s < o.length; s++) i = i.insert(o[s].key, r[s].version);
             return new t(e, n, r, i);
         }, t;
@@ -10077,7 +11449,7 @@ var app = (function () {
 
     /** Decodes a DbTarget into TargetData */ function Qr(t) {
         var e, n, r = jr(t.readTime), i = void 0 !== t.lastLimboFreeSnapshotVersion ? jr(t.lastLimboFreeSnapshotVersion) : K.min();
-        return void 0 !== t.query.documents ? (P(1 === (n = t.query).documents.length), 
+        return void 0 !== t.query.documents ? (P$1(1 === (n = t.query).documents.length), 
         e = ne(Yt(Cn(n.documents[0])))) : e = function(t) {
             return ne(qn(t));
         }(t.query), new Pr(e, t.targetId, 0 /* Listen */ , t.lastListenSequenceNumber, r, i, J.fromBase64String(t.resumeToken))
@@ -10346,7 +11718,7 @@ var app = (function () {
             return u++, n.delete();
         }));
         o.push(a.next((function() {
-            P(1 === u);
+            P$1(1 === u);
         })));
         for (var c = [], h = 0, f = n.mutations; h < f.length; h++) {
             var l = f[h], d = or.key(e, l.key.path, n.batchId);
@@ -10421,7 +11793,7 @@ var app = (function () {
             // In particular, are there any reserved characters? are empty ids allowed?
             // For the moment store these together in the same mutations table assuming
             // that empty userIDs aren't allowed.
-            return P("" !== e.uid), new t(e.isAuthenticated() ? e.uid : "", n, r, i);
+            return P$1("" !== e.uid), new t(e.isAuthenticated() ? e.uid : "", n, r, i);
         }, t.prototype.checkEmpty = function(t) {
             var e = !0, n = IDBKeyRange.bound([ this.userId, Number.NEGATIVE_INFINITY ], [ this.userId, Number.POSITIVE_INFINITY ]);
             return si(t).$t({
@@ -10444,7 +11816,7 @@ var app = (function () {
             // We write an empty object to obtain key
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return s.add({}).next((function(u) {
-                P("number" == typeof u);
+                P$1("number" == typeof u);
                 for (var a = new Lr(u, e, n, r), c = function(t, e, n) {
                     var r = n.baseMutations.map((function(e) {
                         return Pn(t.Lt, e);
@@ -10469,7 +11841,7 @@ var app = (function () {
         }, t.prototype.lookupMutationBatch = function(t, e) {
             var n = this;
             return si(t).get(e).next((function(t) {
-                return t ? (P(t.userId === n.userId), Kr(n.R, t)) : null;
+                return t ? (P$1(t.userId === n.userId), Kr(n.R, t)) : null;
             }));
         }, 
         /**
@@ -10494,7 +11866,7 @@ var app = (function () {
                 index: ir.userMutationsIndex,
                 range: i
             }, (function(t, e, i) {
-                e.userId === n.userId && (P(e.batchId >= r), o = Kr(n.R, e)), i.done();
+                e.userId === n.userId && (P$1(e.batchId >= r), o = Kr(n.R, e)), i.done();
             })).next((function() {
                 return o;
             }));
@@ -10535,7 +11907,7 @@ var app = (function () {
                 // Look up the mutation batch in the store.
                 return si(t).get(c).next((function(t) {
                     if (!t) throw O();
-                    P(t.userId === n.userId), o.push(Kr(n.R, t));
+                    P$1(t.userId === n.userId), o.push(Kr(n.R, t));
                 }));
                 s.done();
             })).next((function() {
@@ -10583,7 +11955,7 @@ var app = (function () {
             return e.forEach((function(e) {
                 i.push(si(t).get(e).next((function(t) {
                     if (null === t) throw O();
-                    P(t.userId === n.userId), r.push(Kr(n.R, t));
+                    P$1(t.userId === n.userId), r.push(Kr(n.R, t));
                 })));
             })), Ir.waitFor(i).next((function() {
                 return r;
@@ -10624,7 +11996,7 @@ var app = (function () {
                         i.push(o);
                     } else r.done();
                 })).next((function() {
-                    P(0 === i.length);
+                    P$1(0 === i.length);
                 }));
             }));
         }, t.prototype.containsKey = function(t, e) {
@@ -10771,7 +12143,7 @@ var app = (function () {
             })).next((function() {
                 return n.Xt(t);
             })).next((function(e) {
-                return P(e.targetCount > 0), e.targetCount -= 1, n.Zt(t, e);
+                return P$1(e.targetCount > 0), e.targetCount -= 1, n.Zt(t, e);
             }));
         }, 
         /**
@@ -10800,7 +12172,7 @@ var app = (function () {
             }));
         }, t.prototype.Xt = function(t) {
             return li(t).get(lr.key).next((function(t) {
-                return P(null !== t), t;
+                return P$1(null !== t), t;
             }));
         }, t.prototype.Zt = function(t, e) {
             return li(t).put(lr.key, e);
@@ -10969,7 +12341,7 @@ var app = (function () {
         return __awaiter(this, void 0, void 0, (function() {
             return __generator(this, (function(e) {
                 if (t.code !== N.FAILED_PRECONDITION || t.message !== gr) throw t;
-                return C$1("LocalStore", "Unexpectedly lost primary lease"), [ 2 /*return*/ ];
+                return C("LocalStore", "Unexpectedly lost primary lease"), [ 2 /*return*/ ];
             }));
         }));
     }
@@ -11039,7 +12411,7 @@ var app = (function () {
             configurable: !0
         }), t.prototype.ue = function(t) {
             var e = this, i = this.oe ? 3e5 : 6e4;
-            C$1("LruGarbageCollector", "Garbage collection scheduled in " + i + "ms"), this.ce = this.asyncQueue.enqueueAfterDelay("lru_garbage_collection" /* LruGarbageCollection */ , i, (function() {
+            C("LruGarbageCollector", "Garbage collection scheduled in " + i + "ms"), this.ce = this.asyncQueue.enqueueAfterDelay("lru_garbage_collection" /* LruGarbageCollection */ , i, (function() {
                 return __awaiter(e, void 0, void 0, (function() {
                     var e;
                     return __generator(this, (function(n) {
@@ -11054,7 +12426,7 @@ var app = (function () {
                             return n.sent(), [ 3 /*break*/ , 7 ];
 
                           case 3:
-                            return Nr(e = n.sent()) ? (C$1("LruGarbageCollector", "Ignoring IndexedDB error during garbage collection: ", e), 
+                            return Nr(e = n.sent()) ? (C("LruGarbageCollector", "Ignoring IndexedDB error during garbage collection: ", e), 
                             [ 3 /*break*/ , 6 ]) : [ 3 /*break*/ , 4 ];
 
                           case 4:
@@ -11103,9 +12475,9 @@ var app = (function () {
             return this.ae.removeOrphanedDocuments(t, e);
         }, t.prototype.collect = function(t, e) {
             var n = this;
-            return -1 === this.params.cacheSizeCollectionThreshold ? (C$1("LruGarbageCollector", "Garbage collection skipped; disabled"), 
+            return -1 === this.params.cacheSizeCollectionThreshold ? (C("LruGarbageCollector", "Garbage collection skipped; disabled"), 
             Ir.resolve(ti)) : this.getCacheSize(t).next((function(r) {
-                return r < n.params.cacheSizeCollectionThreshold ? (C$1("LruGarbageCollector", "Garbage collection skipped; Cache size " + r + " is lower than threshold " + n.params.cacheSizeCollectionThreshold), 
+                return r < n.params.cacheSizeCollectionThreshold ? (C("LruGarbageCollector", "Garbage collection skipped; Cache size " + r + " is lower than threshold " + n.params.cacheSizeCollectionThreshold), 
                 ti) : n.fe(t, e);
             }));
         }, t.prototype.getCacheSize = function(t) {
@@ -11114,14 +12486,14 @@ var app = (function () {
             var n, r, i, o, s, u, a, c = this, h = Date.now();
             return this.calculateTargetCount(t, this.params.percentileToCollect).next((function(e) {
                 // Cap at the configured max
-                return e > c.params.maximumSequenceNumbersToCollect ? (C$1("LruGarbageCollector", "Capping sequence numbers to collect down to the maximum of " + c.params.maximumSequenceNumbersToCollect + " from " + e), 
+                return e > c.params.maximumSequenceNumbersToCollect ? (C("LruGarbageCollector", "Capping sequence numbers to collect down to the maximum of " + c.params.maximumSequenceNumbersToCollect + " from " + e), 
                 r = c.params.maximumSequenceNumbersToCollect) : r = e, o = Date.now(), c.nthSequenceNumber(t, r);
             })).next((function(r) {
                 return n = r, s = Date.now(), c.removeTargets(t, n, e);
             })).next((function(e) {
                 return i = e, u = Date.now(), c.removeOrphanedDocuments(t, n);
             })).next((function(t) {
-                return a = Date.now(), k() <= LogLevel.DEBUG && C$1("LruGarbageCollector", "LRU Garbage Collection\n\tCounted targets in " + (o - h) + "ms\n\tDetermined least recently used " + r + " in " + (s - o) + "ms\n\tRemoved " + i + " targets in " + (u - s) + "ms\n\tRemoved " + t + " documents in " + (a - u) + "ms\nTotal Duration: " + (a - h) + "ms"), 
+                return a = Date.now(), k() <= LogLevel.DEBUG && C("LruGarbageCollector", "LRU Garbage Collection\n\tCounted targets in " + (o - h) + "ms\n\tDetermined least recently used " + r + " in " + (s - o) + "ms\n\tRemoved " + i + " targets in " + (u - s) + "ms\n\tRemoved " + t + " documents in " + (a - u) + "ms\nTotal Duration: " + (a - h) + "ms"), 
                 Ir.resolve({
                     didRun: !0,
                     sequenceNumbersCollected: r,
@@ -11543,7 +12915,7 @@ var app = (function () {
             }));
         }, t.prototype.getMetadata = function(t) {
             return Si(t).get(cr.key).next((function(t) {
-                return P(!!t), t;
+                return P$1(!!t), t;
             }));
         }, t.prototype.me = function(t, e) {
             return Si(t).put(cr.key, e);
@@ -11692,7 +13064,7 @@ var app = (function () {
          * and local feature development.
          */    return t.prototype.Rt = function(t, e, n, r) {
             var i = this;
-            P(n < r && n >= 0 && r <= 11);
+            P$1(n < r && n >= 0 && r <= 11);
             var o = new Tr("createOrUpgrade", e);
             n < 1 && r >= 1 && (function(t) {
                 t.createObjectStore(nr.store);
@@ -11809,7 +13181,7 @@ var app = (function () {
                     var i = IDBKeyRange.bound([ n.userId, -1 ], [ n.userId, n.lastAcknowledgedBatchId ]);
                     return r.Nt(ir.userMutationsIndex, i).next((function(r) {
                         return Ir.forEach(r, (function(r) {
-                            P(r.userId === n.userId);
+                            P$1(r.userId === n.userId);
                             var i = Kr(e.R, r);
                             return ni(t, n.userId, i).next((function() {}));
                         }));
@@ -12050,9 +13422,9 @@ var app = (function () {
                 if (Nr(e)) 
                 // Proceed with the existing state. Any subsequent access to
                 // IndexedDB will verify the lease.
-                return C$1("IndexedDbPersistence", "Failed to extend owner lease: ", e), t.isPrimary;
+                return C("IndexedDbPersistence", "Failed to extend owner lease: ", e), t.isPrimary;
                 if (!t.allowTabSynchronization) throw e;
-                return C$1("IndexedDbPersistence", "Releasing owner lease after error during lease refresh", e), 
+                return C("IndexedDbPersistence", "Releasing owner lease after error during lease refresh", e), 
                 /* isPrimary= */ !1;
             })).then((function(e) {
                 t.isPrimary !== e && t.Se.enqueueRetryable((function() {
@@ -12176,7 +13548,7 @@ var app = (function () {
                     }));
                 }));
             })).next((function(t) {
-                return e.isPrimary !== t && C$1("IndexedDbPersistence", "Client " + (t ? "is" : "is not") + " eligible for a primary lease."), 
+                return e.isPrimary !== t && C("IndexedDbPersistence", "Client " + (t ? "is" : "is not") + " eligible for a primary lease."), 
                 t;
             }));
         }, t.prototype.shutdown = function() {
@@ -12254,7 +13626,7 @@ var app = (function () {
             return this.Ke;
         }, t.prototype.runTransaction = function(t, e, n) {
             var r = this;
-            C$1("IndexedDbPersistence", "Starting transaction:", t);
+            C("IndexedDbPersistence", "Starting transaction:", t);
             var i, o = "readonly" === e ? "readonly" : "readwrite";
             // Do all transactions as readwrite against all object stores, since we
             // are the only reader/writer.
@@ -12303,7 +13675,7 @@ var app = (function () {
         /** Checks the primary lease and removes it if we are the current primary. */ t.prototype.Xe = function(t) {
             var e = this, n = Ri(t);
             return n.get(nr.key).next((function(t) {
-                return e.tn(t) ? (C$1("IndexedDbPersistence", "Releasing primary lease."), n.delete(nr.key)) : Ir.resolve();
+                return e.tn(t) ? (C("IndexedDbPersistence", "Releasing primary lease."), n.delete(nr.key)) : Ir.resolve();
             }));
         }, 
         /** Verifies that `updateTimeMs` is within `maxAgeMs`. */ t.prototype.sn = function(t, e) {
@@ -12357,7 +13729,7 @@ var app = (function () {
             var e;
             try {
                 var n = null !== (null === (e = this.Qe) || void 0 === e ? void 0 : e.getItem(this.on(t)));
-                return C$1("IndexedDbPersistence", "Client '" + t + "' " + (n ? "is" : "is not") + " zombied in LocalStorage"), 
+                return C("IndexedDbPersistence", "Client '" + t + "' " + (n ? "is" : "is not") + " zombied in LocalStorage"), 
                 n;
             } catch (t) {
                 // Gracefully handle if LocalStorage isn't working.
@@ -12642,7 +14014,7 @@ var app = (function () {
                 return 0 === t.filters.length && null === t.limit && null == t.startAt && null == t.endAt && (0 === t.explicitOrderBy.length || 1 === t.explicitOrderBy.length && t.explicitOrderBy[0].field.isKeyField());
             }(e) || n.isEqual(K.min()) ? this.Dn(t, e) : this.Sn.pn(t, r).next((function(o) {
                 var s = i.Cn(e, o);
-                return ($t(e) || Xt(e)) && i.Nn(e.limitType, s, r, n) ? i.Dn(t, e) : (k() <= LogLevel.DEBUG && C$1("QueryEngine", "Re-using previous result from %s to execute query: %s", n.toString(), se(e)), 
+                return ($t(e) || Xt(e)) && i.Nn(e.limitType, s, r, n) ? i.Dn(t, e) : (k() <= LogLevel.DEBUG && C("QueryEngine", "Re-using previous result from %s to execute query: %s", n.toString(), se(e)), 
                 i.Sn.getDocumentsMatchingQuery(t, e, n).next((function(t) {
                     // We merge `previousResults` into `updateResults`, since
                     // `updateResults` is already a DocumentMap. If a document is
@@ -12689,7 +14061,7 @@ var app = (function () {
                     var i = "F" /* First */ === t ? e.last() : e.first();
             return !!i && (i.hasPendingWrites || i.version.compareTo(r) > 0);
         }, t.prototype.Dn = function(t, e) {
-            return k() <= LogLevel.DEBUG && C$1("QueryEngine", "Using full collection scan to execute query:", se(e)), 
+            return k() <= LogLevel.DEBUG && C("QueryEngine", "Using full collection scan to execute query:", se(e)), 
             this.Sn.getDocumentsMatchingQuery(t, e, K.min());
         }, t;
     }(), qi = /** @class */ function() {
@@ -12841,7 +14213,7 @@ var app = (function () {
                         return r.getEntry(e, t);
                     })).next((function(e) {
                         var o = n.docVersions.get(t);
-                        P(null !== o), e.version.compareTo(o) < 0 && (i.applyToRemoteDocument(e, n), e.isValidDocument() && 
+                        P$1(null !== o), e.version.compareTo(o) < 0 && (i.applyToRemoteDocument(e, n), e.isValidDocument() && 
                         // We use the commitVersion as the readTime rather than the
                         // document's updateTime since the updateTime is not advanced
                         // for updates that do not modify the underlying document.
@@ -12921,7 +14293,7 @@ var app = (function () {
          */
                         function(t, e, n) {
                             // Always persist target data if we don't already have a resume token.
-                            return P(e.resumeToken.approximateByteSize() > 0), 0 === t.resumeToken.approximateByteSize() || (
+                            return P$1(e.resumeToken.approximateByteSize() > 0), 0 === t.resumeToken.approximateByteSize() || (
                             // Don't allow resume token changes to be buffered indefinitely. This
                             // allows us to be reasonably up-to-date after a crash and avoids needing
                             // to loop over all active queries on shutdown. Especially in the browser
@@ -12997,7 +14369,7 @@ var app = (function () {
                 // events. We remove these documents from cache since we lost
                 // access.
                 e.removeEntry(n, a), o = o.insert(n, s)) : !u.isValidDocument() || s.version.compareTo(u.version) > 0 || 0 === s.version.compareTo(u.version) && u.hasPendingWrites ? (e.addEntry(s, a), 
-                o = o.insert(n, s)) : C$1("LocalStore", "Ignoring outdated watch update for ", n, ". Current version:", u.version, " Watch version:", s.version);
+                o = o.insert(n, s)) : C("LocalStore", "Ignoring outdated watch update for ", n, ". Current version:", u.version, " Watch version:", s.version);
             })), o;
         }))
         /**
@@ -13089,7 +14461,7 @@ var app = (function () {
                     // activity. If we lose this write this could cause a very slight
                     // difference in the order of target deletion during GC, but we
                     // don't define exact LRU semantics so this is acceptable.
-                                    return C$1("LocalStore", "Failed to update sequence numbers for target " + e + ": " + u), 
+                                    return C("LocalStore", "Failed to update sequence numbers for target " + e + ": " + u), 
                     [ 3 /*break*/ , 5 ];
 
                   case 5:
@@ -13392,7 +14764,7 @@ var app = (function () {
             })), n;
         }, t.prototype.removeMutationBatch = function(t, e) {
             var n = this;
-            P(0 === this.hs(e.batchId, "removed")), this._n.shift();
+            P$1(0 === this.hs(e.batchId, "removed")), this._n.shift();
             var r = this.rs;
             return Ir.forEach(e.mutations, (function(i) {
                 var o = new ro(i.key, e.batchId);
@@ -13643,7 +15015,7 @@ var app = (function () {
             return this.Ke;
         }, t.prototype.runTransaction = function(t, e, n) {
             var r = this;
-            C$1("MemoryPersistence", "Starting transaction:", t);
+            C("MemoryPersistence", "Starting transaction:", t);
             var i = new co(this.Ne.next());
             return this.referenceDelegate.Es(), n(i).next((function(t) {
                 return r.referenceDelegate.Ts(i).next((function() {
@@ -14020,17 +15392,17 @@ var app = (function () {
             this.started = !1);
         }, t.prototype.getItem = function(t) {
             var e = this.storage.getItem(t);
-            return C$1("SharedClientState", "READ", t, e), e;
+            return C("SharedClientState", "READ", t, e), e;
         }, t.prototype.setItem = function(t, e) {
-            C$1("SharedClientState", "SET", t, e), this.storage.setItem(t, e);
+            C("SharedClientState", "SET", t, e), this.storage.setItem(t, e);
         }, t.prototype.removeItem = function(t) {
-            C$1("SharedClientState", "REMOVE", t), this.storage.removeItem(t);
+            C("SharedClientState", "REMOVE", t), this.storage.removeItem(t);
         }, t.prototype.Fs = function(t) {
             var e = this, i = t;
             // Note: The function is typed to take Event to be interface-compatible with
             // `Window.addEventListener`.
                     if (i.storageArea === this.storage) {
-                if (C$1("SharedClientState", "EVENT", i.key, i.newValue), i.key === this.Os) return void x("Received WebStorage notification for local change. Another client might have garbage-collected our state");
+                if (C("SharedClientState", "EVENT", i.key, i.newValue), i.key === this.Os) return void x("Received WebStorage notification for local change. Another client might have garbage-collected our state");
                 this.Se.enqueueRetryable((function() {
                     return __awaiter(e, void 0, void 0, (function() {
                         var t, e, n, o, s, u;
@@ -14049,7 +15421,7 @@ var app = (function () {
                                     var e = S.o;
                                     if (null != t) try {
                                         var n = JSON.parse(t);
-                                        P("number" == typeof n), e = n;
+                                        P$1("number" == typeof n), e = n;
                                     } catch (t) {
                                         x("SharedClientState", "Failed to read sequence number from WebStorage", t);
                                     }
@@ -14128,7 +15500,7 @@ var app = (function () {
         }, t.prototype.ii = function(t) {
             return __awaiter(this, void 0, void 0, (function() {
                 return __generator(this, (function(e) {
-                    return t.user.uid === this.currentUser.uid ? [ 2 /*return*/ , this.syncEngine.ui(t.batchId, t.state, t.error) ] : (C$1("SharedClientState", "Ignoring mutation for non-active user " + t.user.uid), 
+                    return t.user.uid === this.currentUser.uid ? [ 2 /*return*/ , this.syncEngine.ui(t.batchId, t.state, t.error) ] : (C("SharedClientState", "Ignoring mutation for non-active user " + t.user.uid), 
                     [ 2 /*return*/ ]);
                 }));
             }));
@@ -14211,12 +15583,12 @@ var app = (function () {
         }, t.prototype.pi = function() {
             window.addEventListener("online", this.wi), window.addEventListener("offline", this.mi);
         }, t.prototype._i = function() {
-            C$1("ConnectivityMonitor", "Network connectivity changed: AVAILABLE");
+            C("ConnectivityMonitor", "Network connectivity changed: AVAILABLE");
             for (var t = 0, e = this.gi; t < e.length; t++) {
                 (0, e[t])(0 /* AVAILABLE */);
             }
         }, t.prototype.yi = function() {
-            C$1("ConnectivityMonitor", "Network connectivity changed: UNAVAILABLE");
+            C("ConnectivityMonitor", "Network connectivity changed: UNAVAILABLE");
             for (var t = 0, e = this.gi; t < e.length; t++) {
                 (0, e[t])(1 /* UNAVAILABLE */);
             }
@@ -14270,16 +15642,16 @@ var app = (function () {
                         switch (s.getLastErrorCode()) {
                           case ErrorCode.NO_ERROR:
                             var e = s.getResponseJson();
-                            C$1("Connection", "XHR received:", JSON.stringify(e)), i(e);
+                            C("Connection", "XHR received:", JSON.stringify(e)), i(e);
                             break;
 
                           case ErrorCode.TIMEOUT:
-                            C$1("Connection", 'RPC "' + t + '" timed out'), o(new D(N.DEADLINE_EXCEEDED, "Request time out"));
+                            C("Connection", 'RPC "' + t + '" timed out'), o(new D(N.DEADLINE_EXCEEDED, "Request time out"));
                             break;
 
                           case ErrorCode.HTTP_ERROR:
                             var n = s.getStatus();
-                            if (C$1("Connection", 'RPC "' + t + '" failed with status:', n, "response text:", s.getResponseText()), 
+                            if (C("Connection", 'RPC "' + t + '" failed with status:', n, "response text:", s.getResponseText()), 
                             n > 0) {
                                 var r = s.getResponseJson().error;
                                 if (r && r.status && r.message) {
@@ -14299,7 +15671,7 @@ var app = (function () {
                             O();
                         }
                     } finally {
-                        C$1("Connection", 'RPC "' + t + '" completed.');
+                        C("Connection", 'RPC "' + t + '" completed.');
                     }
                 }));
                 var u = JSON.stringify(r);
@@ -14348,11 +15720,11 @@ var app = (function () {
             // https://github.com/firebase/firebase-js-sdk/issues/1491.
             isMobileCordova() || isReactNative() || isElectron() || isIE() || isUWP() || isBrowserExtension() || (o.httpHeadersOverwriteParam = "$httpHeaders");
             var l = n.join("");
-            C$1("Connection", "Creating WebChannel: " + l, o);
+            C("Connection", "Creating WebChannel: " + l, o);
             var d = r.createWebChannel(l, o), p = !1, y = !1, v = new No({
                 Ei: function(t) {
-                    y ? C$1("Connection", "Not sending because WebChannel is closed:", t) : (p || (C$1("Connection", "Opening WebChannel transport."), 
-                    d.open(), p = !0), C$1("Connection", "WebChannel sending:", t), d.send(t));
+                    y ? C("Connection", "Not sending because WebChannel is closed:", t) : (p || (C("Connection", "Opening WebChannel transport."), 
+                    d.open(), p = !0), C("Connection", "WebChannel sending:", t), d.send(t));
                 },
                 Ti: function() {
                     return d.close();
@@ -14380,16 +15752,16 @@ var app = (function () {
             // Note that eventually this function could go away if we are confident
             // enough the code is exception free.
             return m(d, WebChannel.EventType.OPEN, (function() {
-                y || C$1("Connection", "WebChannel transport opened.");
+                y || C("Connection", "WebChannel transport opened.");
             })), m(d, WebChannel.EventType.CLOSE, (function() {
-                y || (y = !0, C$1("Connection", "WebChannel transport closed"), v.Vi());
+                y || (y = !0, C("Connection", "WebChannel transport closed"), v.Vi());
             })), m(d, WebChannel.EventType.ERROR, (function(t) {
                 y || (y = !0, R("Connection", "WebChannel transport errored:", t), v.Vi(new D(N.UNAVAILABLE, "The operation could not be completed")));
             })), m(d, WebChannel.EventType.MESSAGE, (function(t) {
                 var e;
                 if (!y) {
                     var n = t.data[0];
-                    P(!!n);
+                    P$1(!!n);
                     // TODO(b/35143891): There is a bug in One Platform that caused errors
                     // (and only errors) to be wrapped in an extra array. To be forward
                     // compatible with the bug we need to check either condition. The latter
@@ -14397,7 +15769,7 @@ var app = (function () {
                     // Use any because msgData.error is not typed.
                     var r = n, i = r.error || (null === (e = r[0]) || void 0 === e ? void 0 : e.error);
                     if (i) {
-                        C$1("Connection", "WebChannel received error:", i);
+                        C("Connection", "WebChannel received error:", i);
                         // error.status will be a string like 'OK' or 'NOT_FOUND'.
                         var o = i.status, s = 
                         /**
@@ -14415,10 +15787,10 @@ var app = (function () {
                         void 0 === s && (s = N.INTERNAL, u = "Unknown error status: " + o + " with message " + i.message), 
                         // Mark closed so no further events are propagated
                         y = !0, v.Vi(new D(s, u)), d.close();
-                    } else C$1("Connection", "WebChannel received:", n), v.Si(n);
+                    } else C("Connection", "WebChannel received:", n), v.Si(n);
                 }
             })), m(i, Event.STAT_EVENT, (function(t) {
-                t.stat === Stat.PROXY ? C$1("Connection", "Detected buffering proxy") : t.stat === Stat.NOPROXY && C$1("Connection", "Detected no buffering proxy");
+                t.stat === Stat.PROXY ? C("Connection", "Detected buffering proxy") : t.stat === Stat.NOPROXY && C("Connection", "Detected no buffering proxy");
             })), setTimeout((function() {
                 // Technically we could/should wait for the WebChannel opened event,
                 // but because we want to send the first message with the WebChannel
@@ -14435,10 +15807,10 @@ var app = (function () {
         }
         return t.prototype.Ni = function(t, e, n, r) {
             var i = this.xi(t, e);
-            C$1("RestConnection", "Sending: ", i, n);
+            C("RestConnection", "Sending: ", i, n);
             var o = {};
             return this.Fi(o, r), this.ki(t, i, o, n).then((function(t) {
-                return C$1("RestConnection", "Received: ", t), t;
+                return C("RestConnection", "Received: ", t), t;
             }), (function(e) {
                 throw R("RestConnection", t + " failed with error: ", e, "url: ", i, "request:", n), 
                 e;
@@ -14453,7 +15825,7 @@ var app = (function () {
          * present and any additional headers for the request.
          */
         t.prototype.Fi = function(t, e) {
-            if (t["X-Goog-Api-Client"] = "gl-js/ fire/8.8.1", 
+            if (t["X-Goog-Api-Client"] = "gl-js/ fire/8.8.0", 
             // Content-Type: text/plain will avoid preflight requests which might
             // mess with CORS and redirects by proxies. If we add custom headers
             // we will need to change this code to potentially use the $httpOverwrite
@@ -14607,7 +15979,7 @@ var app = (function () {
             // honored as such).
             var n = Math.floor(this.qi + this.Wi()), r = Math.max(0, Date.now() - this.Ki), i = Math.max(0, n - r);
             // Guard against lastAttemptTime being in the future due to a clock change.
-                    i > 0 && C$1("ExponentialBackoff", "Backing off for " + i + " ms (base delay: " + this.qi + " ms, delay with jitter: " + n + " ms, last attempt: " + r + " ms ago)"), 
+                    i > 0 && C("ExponentialBackoff", "Backing off for " + i + " ms (base delay: " + this.qi + " ms, delay with jitter: " + n + " ms, last attempt: " + r + " ms ago)"), 
             this.Ui = this.Se.enqueueAfterDelay(this.timerId, i, (function() {
                 return e.Ki = Date.now(), t();
             })), 
@@ -14825,7 +16197,7 @@ var app = (function () {
             // we never expect this to happen because if we stop a stream ourselves,
             // this callback will never be called. To prevent cases where we retry
             // without a backoff accidentally, we set the stream to error in all cases.
-            return C$1("PersistentStream", "close with error: " + t), this.stream = null, this.close(3 /* Error */ , t);
+            return C("PersistentStream", "close with error: " + t), this.stream = null, this.close(3 /* Error */ , t);
         }, 
         /**
          * Returns a "dispatcher" function that dispatches operations onto the
@@ -14837,7 +16209,7 @@ var app = (function () {
             var e = this;
             return function(n) {
                 e.Se.enqueueAndForget((function() {
-                    return e.Yi === t ? n() : (C$1("PersistentStream", "stream callback skipped by getCloseGuardedDispatcher."), 
+                    return e.Yi === t ? n() : (C("PersistentStream", "stream callback skipped by getCloseGuardedDispatcher."), 
                     Promise.resolve());
                 }));
             };
@@ -14862,7 +16234,7 @@ var app = (function () {
                     var r = function(t) {
                         return "NO_CHANGE" === t ? 0 /* NoChange */ : "ADD" === t ? 1 /* Added */ : "REMOVE" === t ? 2 /* Removed */ : "CURRENT" === t ? 3 /* Current */ : "RESET" === t ? 4 /* Reset */ : O();
                     }(e.targetChange.targetChangeType || "NO_CHANGE"), i = e.targetChange.targetIds || [], o = function(t, e) {
-                        return t.I ? (P(void 0 === e || "string" == typeof e), J.fromBase64String(e || "")) : (P(void 0 === e || e instanceof Uint8Array), 
+                        return t.I ? (P$1(void 0 === e || "string" == typeof e), J.fromBase64String(e || "")) : (P$1(void 0 === e || e instanceof Uint8Array), 
                         J.fromUint8Array(e || new Uint8Array));
                     }(t, e.targetChange.resumeToken), s = (u = e.targetChange.cause) && function(t) {
                         var e = void 0 === t.code ? N.UNKNOWN : ze(t.code);
@@ -14976,13 +16348,13 @@ var app = (function () {
         }, n.prototype.onMessage = function(t) {
             if (
             // Always capture the last stream token.
-            P(!!t.streamToken), this.lastStreamToken = t.streamToken, this.gr) {
+            P$1(!!t.streamToken), this.lastStreamToken = t.streamToken, this.gr) {
                 // A successful first write response means the stream is healthy,
                 // Note, that we could consider a successful handshake healthy, however,
                 // the write itself might be causing an error we want to back off from.
                 this.Zi.reset();
                 var e = function(t, e) {
-                    return t && t.length > 0 ? (P(void 0 !== e), t.map((function(t) {
+                    return t && t.length > 0 ? (P$1(void 0 !== e), t.map((function(t) {
                         return function(t, e) {
                             // NOTE: Deletes don't have an updateTime.
                             var n = t.updateTime ? _n(t.updateTime) : _n(e);
@@ -14999,7 +16371,7 @@ var app = (function () {
                 return this.listener.Tr(n, e);
             }
             // The first response is always the handshake response
-                    return P(!t.writeResults || 0 === t.writeResults.length), this.gr = !0, 
+                    return P$1(!t.writeResults || 0 === t.writeResults.length), this.gr = !0, 
             this.listener.Ir();
         }, 
         /**
@@ -15116,7 +16488,7 @@ var app = (function () {
             t !== this.state && (this.state = t, this.onlineStateHandler(t));
         }, t.prototype.Cr = function(t) {
             var e = "Could not reach Cloud Firestore backend. " + t + "\nThis typically indicates that your device does not have a healthy Internet connection at the moment. The client will operate in offline mode until it is able to successfully connect to the backend.";
-            this.Vr ? (x(e), this.Vr = !1) : C$1("OnlineStateTracker", e);
+            this.Vr ? (x(e), this.Vr = !1) : C("OnlineStateTracker", e);
         }, t.prototype.Fr = function() {
             null !== this.Pr && (this.Pr.cancel(), this.Pr = null);
         }, t;
@@ -15175,7 +16547,7 @@ var app = (function () {
                     return __generator(this, (function(t) {
                         switch (t.label) {
                           case 0:
-                            return zo(this) ? (C$1("RemoteStore", "Restarting streams for network reachability change."), 
+                            return zo(this) ? (C("RemoteStore", "Restarting streams for network reachability change."), 
                             [ 4 /*yield*/ , function(t) {
                                 return __awaiter(this, void 0, void 0, (function() {
                                     var e;
@@ -15442,7 +16814,7 @@ var app = (function () {
                     return a.sent(), [ 3 /*break*/ , 5 ];
 
                   case 3:
-                    return o = a.sent(), C$1("RemoteStore", "Failed to remove targets %s: %s ", e.targetIds.join(","), o), 
+                    return o = a.sent(), C("RemoteStore", "Failed to remove targets %s: %s ", e.targetIds.join(","), o), 
                     [ 4 /*yield*/ , Xo(t, o) ];
 
                   case 4:
@@ -15508,7 +16880,7 @@ var app = (function () {
                     return [ 3 /*break*/ , 13 ];
 
                   case 11:
-                    return C$1("RemoteStore", "Failed to raise snapshot:", u = a.sent()), [ 4 /*yield*/ , Xo(t, u) ];
+                    return C("RemoteStore", "Failed to raise snapshot:", u = a.sent()), [ 4 /*yield*/ , Xo(t, u) ];
 
                   case 12:
                     return a.sent(), [ 3 /*break*/ , 13 ];
@@ -15553,7 +16925,7 @@ var app = (function () {
                             return __generator(this, (function(e) {
                                 switch (e.label) {
                                   case 0:
-                                    return C$1("RemoteStore", "Retrying IndexedDB access"), [ 4 /*yield*/ , i() ];
+                                    return C("RemoteStore", "Retrying IndexedDB access"), [ 4 /*yield*/ , i() ];
 
                                   case 1:
                                     return e.sent(), t.Or.delete(1 /* IndexedDbFailed */), [ 4 /*yield*/ , Vo(t) ];
@@ -15837,7 +17209,7 @@ var app = (function () {
                         return [ 4 /*yield*/ , t.Kr.stop() ];
 
                       case 3:
-                        e.sent(), t.kr.length > 0 && (C$1("RemoteStore", "Stopping write stream with " + t.kr.length + " pending writes"), 
+                        e.sent(), t.kr.length > 0 && (C("RemoteStore", "Stopping write stream with " + t.kr.length + " pending writes"), 
                         t.kr = []), e.label = 4;
 
                       case 4:
@@ -16825,8 +18197,8 @@ var app = (function () {
                         r && (
                         // Since this is a limbo resolution lookup, it's for a single document
                         // and it could be added, modified, or removed, but not a combination.
-                        P(t.addedDocuments.size + t.modifiedDocuments.size + t.removedDocuments.size <= 1), 
-                        t.addedDocuments.size > 0 ? r.bo = !0 : t.modifiedDocuments.size > 0 ? P(r.bo) : t.removedDocuments.size > 0 && (P(r.bo), 
+                        P$1(t.addedDocuments.size + t.modifiedDocuments.size + t.removedDocuments.size <= 1), 
+                        t.addedDocuments.size > 0 ? r.bo = !0 : t.modifiedDocuments.size > 0 ? P$1(r.bo) : t.removedDocuments.size > 0 && (P$1(r.bo), 
                         r.bo = !1));
                     })), [ 4 /*yield*/ , Ys(n, i, e) ];
 
@@ -16977,7 +18349,7 @@ var app = (function () {
                         return n.persistence.runTransaction("Reject batch", "readwrite-primary", (function(t) {
                             var r;
                             return n._n.lookupMutationBatch(t, e).next((function(e) {
-                                return P(null !== e), r = e.keys(), n._n.removeMutationBatch(t, e);
+                                return P$1(null !== e), r = e.keys(), n._n.removeMutationBatch(t, e);
                             })).next((function() {
                                 return n._n.performConsistencyCheck(t);
                             })).next((function() {
@@ -17024,7 +18396,7 @@ var app = (function () {
             return __generator(this, (function(r) {
                 switch (r.label) {
                   case 0:
-                    zo((n = F(t)).remoteStore) || C$1("SyncEngine", "The network is disabled. The task returned by 'awaitPendingWrites()' will not complete until the network is enabled."), 
+                    zo((n = F(t)).remoteStore) || C("SyncEngine", "The network is disabled. The task returned by 'awaitPendingWrites()' will not complete until the network is enabled."), 
                     r.label = 1;
 
                   case 1:
@@ -17094,7 +18466,7 @@ var app = (function () {
     function zs(t, e, n) {
         for (var r = 0, i = n; r < i.length; r++) {
             var o = i[r];
-            o instanceof Ns ? (t.No.addReference(o.key, e), Ws(t, o)) : o instanceof Ds ? (C$1("SyncEngine", "Document no longer in limbo: " + o.key), 
+            o instanceof Ns ? (t.No.addReference(o.key, e), Ws(t, o)) : o instanceof Ds ? (C("SyncEngine", "Document no longer in limbo: " + o.key), 
             t.No.removeReference(o.key, e), t.No.containsKey(o.key) || 
             // We removed the last reference for this key
             Gs(t, o.key)) : O();
@@ -17103,7 +18475,7 @@ var app = (function () {
 
     function Ws(t, e) {
         var n = e.key, r = n.path.canonicalString();
-        t.Do.get(n) || t.So.has(r) || (C$1("SyncEngine", "New document in limbo: " + n), t.So.add(r), 
+        t.Do.get(n) || t.So.has(r) || (C("SyncEngine", "New document in limbo: " + n), t.So.add(r), 
         Hs(t));
     }
 
@@ -17171,7 +18543,7 @@ var app = (function () {
                                     // number for the documents that were included in this transaction.
                                     // This might trigger them to be deleted earlier than they otherwise
                                     // would have, but it should not invalidate the integrity of the data.
-                                                                    return C$1("LocalStore", "Failed to update sequence numbers: " + i), 
+                                                                    return C("LocalStore", "Failed to update sequence numbers: " + i), 
                                     [ 3 /*break*/ , 4 ];
 
                                   case 4:
@@ -17201,7 +18573,7 @@ var app = (function () {
             return __generator(this, (function(r) {
                 switch (r.label) {
                   case 0:
-                    return (n = F(t)).currentUser.isEqual(e) ? [ 3 /*break*/ , 3 ] : (C$1("SyncEngine", "User change. New user:", e.toKey()), 
+                    return (n = F(t)).currentUser.isEqual(e) ? [ 3 /*break*/ , 3 ] : (C("SyncEngine", "User change. New user:", e.toKey()), 
                     [ 4 /*yield*/ , Bi(n.localStore, e) ]);
 
                   case 1:
@@ -17323,7 +18695,7 @@ var app = (function () {
                     // had, we would have cached the affected documents), and so we will just
                     // see any resulting document changes via normal remote document updates
                     // as applicable.
-                    C$1("SyncEngine", "Cannot apply mutation batch with id: " + e), r.label = 7;
+                    C("SyncEngine", "Cannot apply mutation batch with id: " + e), r.label = 7;
 
                   case 7:
                     return [ 2 /*return*/ ];
@@ -17471,7 +18843,7 @@ var app = (function () {
                     return (n = F(t)).$o ? (
                     // If we receive a target state notification via WebStorage, we are
                     // either already secondary or another tab has taken the primary lease.
-                    C$1("SyncEngine", "Ignoring unexpected query state notification."), [ 3 /*break*/ , 8 ]) : [ 3 /*break*/ , 1 ];
+                    C("SyncEngine", "Ignoring unexpected query state notification."), [ 3 /*break*/ , 8 ]) : [ 3 /*break*/ , 1 ];
 
                   case 1:
                     if (!n.Vo.has(e)) return [ 3 /*break*/ , 8 ];
@@ -17524,7 +18896,7 @@ var app = (function () {
                   case 1:
                     return o < s.length ? (u = s[o], n.Vo.has(u) ? (
                     // A target might have been added in a previous attempt
-                    C$1("SyncEngine", "Adding an already active target " + u), [ 3 /*break*/ , 5 ]) : [ 4 /*yield*/ , $i(n.localStore, u) ]) : [ 3 /*break*/ , 6 ];
+                    C("SyncEngine", "Adding an already active target " + u), [ 3 /*break*/ , 5 ]) : [ 4 /*yield*/ , $i(n.localStore, u) ]) : [ 3 /*break*/ , 6 ];
 
                   case 2:
                     return a = p.sent(), [ 4 /*yield*/ , Wi(n.localStore, a) ];
@@ -17789,7 +19161,7 @@ var app = (function () {
                     return __generator(this, (function(n) {
                         switch (n.label) {
                           case 0:
-                            return e = F(t), C$1("RemoteStore", "RemoteStore shutting down."), e.Or.add(5 /* Shutdown */), 
+                            return e = F(t), C("RemoteStore", "RemoteStore shutting down."), e.Or.add(5 /* Shutdown */), 
                             [ 4 /*yield*/ , qo(e) ];
 
                           case 1:
@@ -17905,7 +19277,7 @@ var app = (function () {
                                         return s = r.sent(), u = new Map, s.forEach((function(t) {
                                             var e = function(t, e) {
                                                 return "found" in e ? function(t, e) {
-                                                    P(!!e.found), e.found.name, e.found.updateTime;
+                                                    P$1(!!e.found), e.found.name, e.found.updateTime;
                                                     var n = An(t, e.found.name), r = _n(e.found.updateTime), i = new _t({
                                                         mapValue: {
                                                             fields: e.found.fields
@@ -17913,7 +19285,7 @@ var app = (function () {
                                                     });
                                                     return Nt.newFoundDocument(n, r, i);
                                                 }(t, e) : "missing" in e ? function(t, e) {
-                                                    P(!!e.missing), P(!!e.readTime);
+                                                    P$1(!!e.missing), P$1(!!e.readTime);
                                                     var n = An(t, e.missing), r = _n(e.readTime);
                                                     return Nt.newNoDocument(n, r);
                                                 }(t, e) : O();
@@ -17921,7 +19293,7 @@ var app = (function () {
                                             u.set(e.key.toString(), e);
                                         })), a = [], [ 2 /*return*/ , (e.forEach((function(t) {
                                             var e = u.get(t.toString());
-                                            P(!!e), a.push(e);
+                                            P$1(!!e), a.push(e);
                                         })), a) ];
                                     }
                                 }));
@@ -18109,7 +19481,7 @@ var app = (function () {
                     return __generator(this, (function(e) {
                         switch (e.label) {
                           case 0:
-                            return C$1("FirestoreClient", "Received user=", t.uid), [ 4 /*yield*/ , this.credentialListener(t) ];
+                            return C("FirestoreClient", "Received user=", t.uid), [ 4 /*yield*/ , this.credentialListener(t) ];
 
                           case 1:
                             return e.sent(), this.user = t, [ 2 /*return*/ ];
@@ -18206,7 +19578,7 @@ var app = (function () {
             return __generator(this, (function(u) {
                 switch (u.label) {
                   case 0:
-                    return t.asyncQueue.verifyOperationInProgress(), C$1("FirestoreClient", "Initializing OfflineComponentProvider"), 
+                    return t.asyncQueue.verifyOperationInProgress(), C("FirestoreClient", "Initializing OfflineComponentProvider"), 
                     [ 4 /*yield*/ , t.getConfiguration() ];
 
                   case 1:
@@ -18248,7 +19620,7 @@ var app = (function () {
                     return t.asyncQueue.verifyOperationInProgress(), [ 4 /*yield*/ , Tu(t) ];
 
                   case 1:
-                    return i = s.sent(), C$1("FirestoreClient", "Initializing OnlineComponentProvider"), 
+                    return i = s.sent(), C("FirestoreClient", "Initializing OnlineComponentProvider"), 
                     [ 4 /*yield*/ , t.getConfiguration() ];
 
                   case 2:
@@ -18265,7 +19637,7 @@ var app = (function () {
                                 return __generator(this, (function(r) {
                                     switch (r.label) {
                                       case 0:
-                                        return (n = F(t)).asyncQueue.verifyOperationInProgress(), C$1("RemoteStore", "RemoteStore received new credentials"), 
+                                        return (n = F(t)).asyncQueue.verifyOperationInProgress(), C("RemoteStore", "RemoteStore received new credentials"), 
                                         i = zo(n), 
                                         // Tear down and re-create our network streams. This will ensure we get a
                                         // fresh auth token for the new user and re-fill the write pipeline with
@@ -18300,7 +19672,7 @@ var app = (function () {
             return __generator(this, (function(e) {
                 switch (e.label) {
                   case 0:
-                    return t.offlineComponents ? [ 3 /*break*/ , 2 ] : (C$1("FirestoreClient", "Using default OfflineComponentProvider"), 
+                    return t.offlineComponents ? [ 3 /*break*/ , 2 ] : (C("FirestoreClient", "Using default OfflineComponentProvider"), 
                     [ 4 /*yield*/ , bu(t, new hu) ]);
 
                   case 1:
@@ -18318,7 +19690,7 @@ var app = (function () {
             return __generator(this, (function(e) {
                 switch (e.label) {
                   case 0:
-                    return t.onlineComponents ? [ 3 /*break*/ , 2 ] : (C$1("FirestoreClient", "Using default OnlineComponentProvider"), 
+                    return t.onlineComponents ? [ 3 /*break*/ , 2 ] : (C("FirestoreClient", "Using default OnlineComponentProvider"), 
                     [ 4 /*yield*/ , Iu(t, new du) ]);
 
                   case 1:
@@ -18551,7 +19923,7 @@ var app = (function () {
                 }));
             };
             var n = function(t) {
-                C$1("FirebaseCredentialsProvider", "Auth detected"), e.auth = t, e.auth.addAuthTokenListener(e.uc);
+                C("FirebaseCredentialsProvider", "Auth detected"), e.auth = t, e.auth.addAuthTokenListener(e.uc);
             };
             t.onInit((function(t) {
                 return n(t);
@@ -18566,7 +19938,7 @@ var app = (function () {
                     });
                     r ? n(r) : (
                     // If auth is still not available, proceed with `null` user
-                    C$1("FirebaseCredentialsProvider", "Auth not yet detected"), e.oc.resolve());
+                    C("FirebaseCredentialsProvider", "Auth not yet detected"), e.oc.resolve());
                 }
             }), 0);
         }
@@ -18579,8 +19951,8 @@ var app = (function () {
                 // Cancel the request since the token changed while the request was
                 // outstanding so the response is potentially for a previous user (which
                 // user, we can't be sure).
-                return t.cc !== e ? (C$1("FirebaseCredentialsProvider", "getToken aborted due to token change."), 
-                t.getToken()) : n ? (P("string" == typeof n.accessToken), new Ou(n.accessToken, t.currentUser)) : null;
+                return t.cc !== e ? (C("FirebaseCredentialsProvider", "getToken aborted due to token change."), 
+                t.getToken()) : n ? (P$1("string" == typeof n.accessToken), new Ou(n.accessToken, t.currentUser)) : null;
             })) : Promise.resolve(null);
         }, t.prototype.invalidateToken = function() {
             this.forceRefresh = !0;
@@ -18615,7 +19987,7 @@ var app = (function () {
         // to guarantee to get the actual user.
         t.prototype.ac = function() {
             var t = this.auth && this.auth.getUid();
-            return P(null === t || "string" == typeof t), new fo(t);
+            return P$1(null === t || "string" == typeof t), new fo(t);
         }, t;
     }(), Vu = /** @class */ function() {
         function t(t, e, n) {
@@ -18788,9 +20160,6 @@ var app = (function () {
     }(), Yu = /** @class */ function() {
         /** @hideconstructor */
         function t(t, e) {
-            /**
-             * Whether it's a Firestore or Firestore Lite instance.
-             */
             this.type = "firestore-lite", this._persistenceKey = "(lite)", this._settings = new Hu({}), 
             this._settingsFrozen = !1, t instanceof Ru ? (this._databaseId = t, this._credentials = new Pu) : (this._app = t, 
             this._databaseId = function(t) {
@@ -18829,7 +20198,7 @@ var app = (function () {
                   case "gapi":
                     var e = t.client;
                     // Make sure this really is a Gapi client.
-                                    return P(!("object" != typeof e || null === e || !e.auth || !e.auth.getAuthHeaderValueForFirstParty)), 
+                                    return P$1(!("object" != typeof e || null === e || !e.auth || !e.auth.getAuthHeaderValueForFirstParty)), 
                     new qu(e, t.sessionIndex || "0", t.iamToken || null);
 
                   case "provider":
@@ -18865,7 +20234,7 @@ var app = (function () {
      * Removes all components associated with the provided instance. Must be called
      * when the `Firestore` instance is terminated.
      */
-            return t = this, (e = Lu.get(t)) && (C$1("ComponentProvider", "Removing Datastore"), 
+            return t = this, (e = Lu.get(t)) && (C("ComponentProvider", "Removing Datastore"), 
             Lu.delete(t), e.terminate()), Promise.resolve();
             var t, e;
         }, t;
@@ -19096,7 +20465,7 @@ var app = (function () {
             // after page comes into foreground.
             this.Ic = function() {
                 var e = ko();
-                e && C$1("AsyncQueue", "Visibility state changed to " + e.visibilityState), t.Zi.Gi();
+                e && C("AsyncQueue", "Visibility state changed to " + e.visibilityState), t.Zi.Gi();
             };
             var e = ko();
             e && "function" == typeof e.addEventListener && e.addEventListener("visibilitychange", this.Ic);
@@ -19167,7 +20536,7 @@ var app = (function () {
                       case 3:
                         if (!Nr(t = n.sent())) throw t;
                         // Failure will be handled by AsyncQueue
-                                            return C$1("AsyncQueue", "Operation failed with retryable error: " + t), 
+                                            return C("AsyncQueue", "Operation failed with retryable error: " + t), 
                         [ 3 /*break*/ , 4 ];
 
                       case 4:
@@ -19314,9 +20683,6 @@ var app = (function () {
         /** @hideconstructor */
         function n(t, n) {
             var r = this;
-            /**
-                 * Whether it's a Firestore or Firestore Lite instance.
-                 */
             return (r = e.call(this, t, n) || this).type = "firestore", r._queue = new ra, r._persistenceKey = "name" in t ? t.name : "[DEFAULT]", 
             r;
         }
@@ -20830,7 +22196,7 @@ var app = (function () {
             return new j(e.seconds, e.nanos);
         }, t.prototype.convertDocumentKey = function(t, e) {
             var n = H.fromString(t);
-            P($n(n));
+            P$1($n(n));
             var r = new Ru(n.get(1), n.get(3)), i = new ct(n.popFirst(5));
             return r.isEqual(e) || 
             // TODO(b/64130202): Somehow support foreign references.
@@ -22311,48 +23677,7 @@ var app = (function () {
         }, t;
     }();
 
-    /**
-     * Component for service name T, e.g. `auth`, `auth-internal`
-     */
-    var Component$1 = /** @class */ (function () {
-        /**
-         *
-         * @param name The public service name, e.g. app, auth, firestore, database
-         * @param instanceFactory Service factory responsible for creating the public interface
-         * @param type whether the service provided by the component is public or private
-         */
-        function Component(name, instanceFactory, type) {
-            this.name = name;
-            this.instanceFactory = instanceFactory;
-            this.type = type;
-            this.multipleInstances = false;
-            /**
-             * Properties to be added to the service namespace
-             */
-            this.serviceProps = {};
-            this.instantiationMode = "LAZY" /* LAZY */;
-            this.onInstanceCreated = null;
-        }
-        Component.prototype.setInstantiationMode = function (mode) {
-            this.instantiationMode = mode;
-            return this;
-        };
-        Component.prototype.setMultipleInstances = function (multipleInstances) {
-            this.multipleInstances = multipleInstances;
-            return this;
-        };
-        Component.prototype.setServiceProps = function (props) {
-            this.serviceProps = props;
-            return this;
-        };
-        Component.prototype.setInstanceCreatedCallback = function (callback) {
-            this.onInstanceCreated = callback;
-            return this;
-        };
-        return Component;
-    }());
-
-    var C = {
+    var I = {
         Firestore: _c,
         GeoPoint: ya,
         Timestamp: j,
@@ -22391,7 +23716,7 @@ var app = (function () {
      * Registers the main Firestore build with the components framework.
      * Persistence can be enabled via `firebase.firestore().enablePersistence()`.
      */
-    function I(e) {
+    function P(e) {
         !
         /**
      * Configures Firestore as part of the Firebase SDK by calling registerService.
@@ -22401,125 +23726,16 @@ var app = (function () {
      *    instance.
      */
         function(e, r) {
-            e.INTERNAL.registerComponent(new Component$1("firestore", (function(e) {
+            e.INTERNAL.registerComponent(new Component("firestore", (function(e) {
                 var t = e.getProvider("app").getImmediate();
                 return r(t, e.getProvider("auth-internal"));
-            }), "PUBLIC" /* PUBLIC */).setServiceProps(Object.assign({}, C)));
+            }), "PUBLIC" /* PUBLIC */).setServiceProps(Object.assign({}, I)));
         }(e, (function(e, s) {
             return new _c(e, new ua(e, s), new Ec);
-        })), e.registerVersion("@firebase/firestore", "2.3.10");
+        })), e.registerVersion("@firebase/firestore", "2.3.9");
     }
 
-    I(firebase);
-
-    /**
-     * @license
-     * Copyright 2017 Google LLC
-     *
-     * Licensed under the Apache License, Version 2.0 (the "License");
-     * you may not use this file except in compliance with the License.
-     * You may obtain a copy of the License at
-     *
-     *   http://www.apache.org/licenses/LICENSE-2.0
-     *
-     * Unless required by applicable law or agreed to in writing, software
-     * distributed under the License is distributed on an "AS IS" BASIS,
-     * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     * See the License for the specific language governing permissions and
-     * limitations under the License.
-     */
-    var ERROR_NAME = 'FirebaseError';
-    // Based on code from:
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#Custom_Error_Types
-    var FirebaseError = /** @class */ (function (_super) {
-        __extends$1(FirebaseError, _super);
-        function FirebaseError(code, message, customData) {
-            var _this = _super.call(this, message) || this;
-            _this.code = code;
-            _this.customData = customData;
-            _this.name = ERROR_NAME;
-            // Fix For ES5
-            // https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
-            Object.setPrototypeOf(_this, FirebaseError.prototype);
-            // Maintains proper stack trace for where our error was thrown.
-            // Only available on V8.
-            if (Error.captureStackTrace) {
-                Error.captureStackTrace(_this, ErrorFactory.prototype.create);
-            }
-            return _this;
-        }
-        return FirebaseError;
-    }(Error));
-    var ErrorFactory = /** @class */ (function () {
-        function ErrorFactory(service, serviceName, errors) {
-            this.service = service;
-            this.serviceName = serviceName;
-            this.errors = errors;
-        }
-        ErrorFactory.prototype.create = function (code) {
-            var data = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                data[_i - 1] = arguments[_i];
-            }
-            var customData = data[0] || {};
-            var fullCode = this.service + "/" + code;
-            var template = this.errors[code];
-            var message = template ? replaceTemplate(template, customData) : 'Error';
-            // Service Name: Error message (service/code).
-            var fullMessage = this.serviceName + ": " + message + " (" + fullCode + ").";
-            var error = new FirebaseError(fullCode, fullMessage, customData);
-            return error;
-        };
-        return ErrorFactory;
-    }());
-    function replaceTemplate(template, data) {
-        return template.replace(PATTERN, function (_, key) {
-            var value = data[key];
-            return value != null ? String(value) : "<" + key + "?>";
-        });
-    }
-    var PATTERN = /\{\$([^}]+)}/g;
-
-    /**
-     * Component for service name T, e.g. `auth`, `auth-internal`
-     */
-    var Component = /** @class */ (function () {
-        /**
-         *
-         * @param name The public service name, e.g. app, auth, firestore, database
-         * @param instanceFactory Service factory responsible for creating the public interface
-         * @param type whether the service provided by the component is public or private
-         */
-        function Component(name, instanceFactory, type) {
-            this.name = name;
-            this.instanceFactory = instanceFactory;
-            this.type = type;
-            this.multipleInstances = false;
-            /**
-             * Properties to be added to the service namespace
-             */
-            this.serviceProps = {};
-            this.instantiationMode = "LAZY" /* LAZY */;
-            this.onInstanceCreated = null;
-        }
-        Component.prototype.setInstantiationMode = function (mode) {
-            this.instantiationMode = mode;
-            return this;
-        };
-        Component.prototype.setMultipleInstances = function (multipleInstances) {
-            this.multipleInstances = multipleInstances;
-            return this;
-        };
-        Component.prototype.setServiceProps = function (props) {
-            this.serviceProps = props;
-            return this;
-        };
-        Component.prototype.setInstanceCreatedCallback = function (callback) {
-            this.onInstanceCreated = callback;
-            return this;
-        };
-        return Component;
-    }());
+    P(firebase);
 
     /**
      * @license
@@ -23200,7 +24416,7 @@ var app = (function () {
     }
 
     var name = "@firebase/functions";
-    var version = "0.6.14";
+    var version = "0.6.13";
 
     /**
      * @license
@@ -23238,1466 +24454,9 @@ var app = (function () {
     const db = firebase.firestore();
     const cf = firebase.functions();
 
-    var bind = function bind(fn, thisArg) {
-      return function wrap() {
-        var args = new Array(arguments.length);
-        for (var i = 0; i < args.length; i++) {
-          args[i] = arguments[i];
-        }
-        return fn.apply(thisArg, args);
-      };
-    };
+    /* src/components/ItemRank.svelte generated by Svelte v3.41.0 */
 
-    /*global toString:true*/
-
-    // utils is a library of generic helper functions non-specific to axios
-
-    var toString = Object.prototype.toString;
-
-    /**
-     * Determine if a value is an Array
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is an Array, otherwise false
-     */
-    function isArray(val) {
-      return toString.call(val) === '[object Array]';
-    }
-
-    /**
-     * Determine if a value is undefined
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if the value is undefined, otherwise false
-     */
-    function isUndefined(val) {
-      return typeof val === 'undefined';
-    }
-
-    /**
-     * Determine if a value is a Buffer
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is a Buffer, otherwise false
-     */
-    function isBuffer(val) {
-      return val !== null && !isUndefined(val) && val.constructor !== null && !isUndefined(val.constructor)
-        && typeof val.constructor.isBuffer === 'function' && val.constructor.isBuffer(val);
-    }
-
-    /**
-     * Determine if a value is an ArrayBuffer
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is an ArrayBuffer, otherwise false
-     */
-    function isArrayBuffer(val) {
-      return toString.call(val) === '[object ArrayBuffer]';
-    }
-
-    /**
-     * Determine if a value is a FormData
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is an FormData, otherwise false
-     */
-    function isFormData(val) {
-      return (typeof FormData !== 'undefined') && (val instanceof FormData);
-    }
-
-    /**
-     * Determine if a value is a view on an ArrayBuffer
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is a view on an ArrayBuffer, otherwise false
-     */
-    function isArrayBufferView(val) {
-      var result;
-      if ((typeof ArrayBuffer !== 'undefined') && (ArrayBuffer.isView)) {
-        result = ArrayBuffer.isView(val);
-      } else {
-        result = (val) && (val.buffer) && (val.buffer instanceof ArrayBuffer);
-      }
-      return result;
-    }
-
-    /**
-     * Determine if a value is a String
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is a String, otherwise false
-     */
-    function isString(val) {
-      return typeof val === 'string';
-    }
-
-    /**
-     * Determine if a value is a Number
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is a Number, otherwise false
-     */
-    function isNumber(val) {
-      return typeof val === 'number';
-    }
-
-    /**
-     * Determine if a value is an Object
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is an Object, otherwise false
-     */
-    function isObject(val) {
-      return val !== null && typeof val === 'object';
-    }
-
-    /**
-     * Determine if a value is a plain Object
-     *
-     * @param {Object} val The value to test
-     * @return {boolean} True if value is a plain Object, otherwise false
-     */
-    function isPlainObject(val) {
-      if (toString.call(val) !== '[object Object]') {
-        return false;
-      }
-
-      var prototype = Object.getPrototypeOf(val);
-      return prototype === null || prototype === Object.prototype;
-    }
-
-    /**
-     * Determine if a value is a Date
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is a Date, otherwise false
-     */
-    function isDate(val) {
-      return toString.call(val) === '[object Date]';
-    }
-
-    /**
-     * Determine if a value is a File
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is a File, otherwise false
-     */
-    function isFile(val) {
-      return toString.call(val) === '[object File]';
-    }
-
-    /**
-     * Determine if a value is a Blob
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is a Blob, otherwise false
-     */
-    function isBlob(val) {
-      return toString.call(val) === '[object Blob]';
-    }
-
-    /**
-     * Determine if a value is a Function
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is a Function, otherwise false
-     */
-    function isFunction(val) {
-      return toString.call(val) === '[object Function]';
-    }
-
-    /**
-     * Determine if a value is a Stream
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is a Stream, otherwise false
-     */
-    function isStream(val) {
-      return isObject(val) && isFunction(val.pipe);
-    }
-
-    /**
-     * Determine if a value is a URLSearchParams object
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is a URLSearchParams object, otherwise false
-     */
-    function isURLSearchParams(val) {
-      return typeof URLSearchParams !== 'undefined' && val instanceof URLSearchParams;
-    }
-
-    /**
-     * Trim excess whitespace off the beginning and end of a string
-     *
-     * @param {String} str The String to trim
-     * @returns {String} The String freed of excess whitespace
-     */
-    function trim(str) {
-      return str.replace(/^\s*/, '').replace(/\s*$/, '');
-    }
-
-    /**
-     * Determine if we're running in a standard browser environment
-     *
-     * This allows axios to run in a web worker, and react-native.
-     * Both environments support XMLHttpRequest, but not fully standard globals.
-     *
-     * web workers:
-     *  typeof window -> undefined
-     *  typeof document -> undefined
-     *
-     * react-native:
-     *  navigator.product -> 'ReactNative'
-     * nativescript
-     *  navigator.product -> 'NativeScript' or 'NS'
-     */
-    function isStandardBrowserEnv() {
-      if (typeof navigator !== 'undefined' && (navigator.product === 'ReactNative' ||
-                                               navigator.product === 'NativeScript' ||
-                                               navigator.product === 'NS')) {
-        return false;
-      }
-      return (
-        typeof window !== 'undefined' &&
-        typeof document !== 'undefined'
-      );
-    }
-
-    /**
-     * Iterate over an Array or an Object invoking a function for each item.
-     *
-     * If `obj` is an Array callback will be called passing
-     * the value, index, and complete array for each item.
-     *
-     * If 'obj' is an Object callback will be called passing
-     * the value, key, and complete object for each property.
-     *
-     * @param {Object|Array} obj The object to iterate
-     * @param {Function} fn The callback to invoke for each item
-     */
-    function forEach(obj, fn) {
-      // Don't bother if no value provided
-      if (obj === null || typeof obj === 'undefined') {
-        return;
-      }
-
-      // Force an array if not already something iterable
-      if (typeof obj !== 'object') {
-        /*eslint no-param-reassign:0*/
-        obj = [obj];
-      }
-
-      if (isArray(obj)) {
-        // Iterate over array values
-        for (var i = 0, l = obj.length; i < l; i++) {
-          fn.call(null, obj[i], i, obj);
-        }
-      } else {
-        // Iterate over object keys
-        for (var key in obj) {
-          if (Object.prototype.hasOwnProperty.call(obj, key)) {
-            fn.call(null, obj[key], key, obj);
-          }
-        }
-      }
-    }
-
-    /**
-     * Accepts varargs expecting each argument to be an object, then
-     * immutably merges the properties of each object and returns result.
-     *
-     * When multiple objects contain the same key the later object in
-     * the arguments list will take precedence.
-     *
-     * Example:
-     *
-     * ```js
-     * var result = merge({foo: 123}, {foo: 456});
-     * console.log(result.foo); // outputs 456
-     * ```
-     *
-     * @param {Object} obj1 Object to merge
-     * @returns {Object} Result of all merge properties
-     */
-    function merge(/* obj1, obj2, obj3, ... */) {
-      var result = {};
-      function assignValue(val, key) {
-        if (isPlainObject(result[key]) && isPlainObject(val)) {
-          result[key] = merge(result[key], val);
-        } else if (isPlainObject(val)) {
-          result[key] = merge({}, val);
-        } else if (isArray(val)) {
-          result[key] = val.slice();
-        } else {
-          result[key] = val;
-        }
-      }
-
-      for (var i = 0, l = arguments.length; i < l; i++) {
-        forEach(arguments[i], assignValue);
-      }
-      return result;
-    }
-
-    /**
-     * Extends object a by mutably adding to it the properties of object b.
-     *
-     * @param {Object} a The object to be extended
-     * @param {Object} b The object to copy properties from
-     * @param {Object} thisArg The object to bind function to
-     * @return {Object} The resulting value of object a
-     */
-    function extend(a, b, thisArg) {
-      forEach(b, function assignValue(val, key) {
-        if (thisArg && typeof val === 'function') {
-          a[key] = bind(val, thisArg);
-        } else {
-          a[key] = val;
-        }
-      });
-      return a;
-    }
-
-    /**
-     * Remove byte order marker. This catches EF BB BF (the UTF-8 BOM)
-     *
-     * @param {string} content with BOM
-     * @return {string} content value without BOM
-     */
-    function stripBOM(content) {
-      if (content.charCodeAt(0) === 0xFEFF) {
-        content = content.slice(1);
-      }
-      return content;
-    }
-
-    var utils = {
-      isArray: isArray,
-      isArrayBuffer: isArrayBuffer,
-      isBuffer: isBuffer,
-      isFormData: isFormData,
-      isArrayBufferView: isArrayBufferView,
-      isString: isString,
-      isNumber: isNumber,
-      isObject: isObject,
-      isPlainObject: isPlainObject,
-      isUndefined: isUndefined,
-      isDate: isDate,
-      isFile: isFile,
-      isBlob: isBlob,
-      isFunction: isFunction,
-      isStream: isStream,
-      isURLSearchParams: isURLSearchParams,
-      isStandardBrowserEnv: isStandardBrowserEnv,
-      forEach: forEach,
-      merge: merge,
-      extend: extend,
-      trim: trim,
-      stripBOM: stripBOM
-    };
-
-    function encode(val) {
-      return encodeURIComponent(val).
-        replace(/%3A/gi, ':').
-        replace(/%24/g, '$').
-        replace(/%2C/gi, ',').
-        replace(/%20/g, '+').
-        replace(/%5B/gi, '[').
-        replace(/%5D/gi, ']');
-    }
-
-    /**
-     * Build a URL by appending params to the end
-     *
-     * @param {string} url The base of the url (e.g., http://www.google.com)
-     * @param {object} [params] The params to be appended
-     * @returns {string} The formatted url
-     */
-    var buildURL = function buildURL(url, params, paramsSerializer) {
-      /*eslint no-param-reassign:0*/
-      if (!params) {
-        return url;
-      }
-
-      var serializedParams;
-      if (paramsSerializer) {
-        serializedParams = paramsSerializer(params);
-      } else if (utils.isURLSearchParams(params)) {
-        serializedParams = params.toString();
-      } else {
-        var parts = [];
-
-        utils.forEach(params, function serialize(val, key) {
-          if (val === null || typeof val === 'undefined') {
-            return;
-          }
-
-          if (utils.isArray(val)) {
-            key = key + '[]';
-          } else {
-            val = [val];
-          }
-
-          utils.forEach(val, function parseValue(v) {
-            if (utils.isDate(v)) {
-              v = v.toISOString();
-            } else if (utils.isObject(v)) {
-              v = JSON.stringify(v);
-            }
-            parts.push(encode(key) + '=' + encode(v));
-          });
-        });
-
-        serializedParams = parts.join('&');
-      }
-
-      if (serializedParams) {
-        var hashmarkIndex = url.indexOf('#');
-        if (hashmarkIndex !== -1) {
-          url = url.slice(0, hashmarkIndex);
-        }
-
-        url += (url.indexOf('?') === -1 ? '?' : '&') + serializedParams;
-      }
-
-      return url;
-    };
-
-    function InterceptorManager() {
-      this.handlers = [];
-    }
-
-    /**
-     * Add a new interceptor to the stack
-     *
-     * @param {Function} fulfilled The function to handle `then` for a `Promise`
-     * @param {Function} rejected The function to handle `reject` for a `Promise`
-     *
-     * @return {Number} An ID used to remove interceptor later
-     */
-    InterceptorManager.prototype.use = function use(fulfilled, rejected) {
-      this.handlers.push({
-        fulfilled: fulfilled,
-        rejected: rejected
-      });
-      return this.handlers.length - 1;
-    };
-
-    /**
-     * Remove an interceptor from the stack
-     *
-     * @param {Number} id The ID that was returned by `use`
-     */
-    InterceptorManager.prototype.eject = function eject(id) {
-      if (this.handlers[id]) {
-        this.handlers[id] = null;
-      }
-    };
-
-    /**
-     * Iterate over all the registered interceptors
-     *
-     * This method is particularly useful for skipping over any
-     * interceptors that may have become `null` calling `eject`.
-     *
-     * @param {Function} fn The function to call for each interceptor
-     */
-    InterceptorManager.prototype.forEach = function forEach(fn) {
-      utils.forEach(this.handlers, function forEachHandler(h) {
-        if (h !== null) {
-          fn(h);
-        }
-      });
-    };
-
-    var InterceptorManager_1 = InterceptorManager;
-
-    /**
-     * Transform the data for a request or a response
-     *
-     * @param {Object|String} data The data to be transformed
-     * @param {Array} headers The headers for the request or response
-     * @param {Array|Function} fns A single function or Array of functions
-     * @returns {*} The resulting transformed data
-     */
-    var transformData = function transformData(data, headers, fns) {
-      /*eslint no-param-reassign:0*/
-      utils.forEach(fns, function transform(fn) {
-        data = fn(data, headers);
-      });
-
-      return data;
-    };
-
-    var isCancel = function isCancel(value) {
-      return !!(value && value.__CANCEL__);
-    };
-
-    var normalizeHeaderName = function normalizeHeaderName(headers, normalizedName) {
-      utils.forEach(headers, function processHeader(value, name) {
-        if (name !== normalizedName && name.toUpperCase() === normalizedName.toUpperCase()) {
-          headers[normalizedName] = value;
-          delete headers[name];
-        }
-      });
-    };
-
-    /**
-     * Update an Error with the specified config, error code, and response.
-     *
-     * @param {Error} error The error to update.
-     * @param {Object} config The config.
-     * @param {string} [code] The error code (for example, 'ECONNABORTED').
-     * @param {Object} [request] The request.
-     * @param {Object} [response] The response.
-     * @returns {Error} The error.
-     */
-    var enhanceError = function enhanceError(error, config, code, request, response) {
-      error.config = config;
-      if (code) {
-        error.code = code;
-      }
-
-      error.request = request;
-      error.response = response;
-      error.isAxiosError = true;
-
-      error.toJSON = function toJSON() {
-        return {
-          // Standard
-          message: this.message,
-          name: this.name,
-          // Microsoft
-          description: this.description,
-          number: this.number,
-          // Mozilla
-          fileName: this.fileName,
-          lineNumber: this.lineNumber,
-          columnNumber: this.columnNumber,
-          stack: this.stack,
-          // Axios
-          config: this.config,
-          code: this.code
-        };
-      };
-      return error;
-    };
-
-    /**
-     * Create an Error with the specified message, config, error code, request and response.
-     *
-     * @param {string} message The error message.
-     * @param {Object} config The config.
-     * @param {string} [code] The error code (for example, 'ECONNABORTED').
-     * @param {Object} [request] The request.
-     * @param {Object} [response] The response.
-     * @returns {Error} The created error.
-     */
-    var createError = function createError(message, config, code, request, response) {
-      var error = new Error(message);
-      return enhanceError(error, config, code, request, response);
-    };
-
-    /**
-     * Resolve or reject a Promise based on response status.
-     *
-     * @param {Function} resolve A function that resolves the promise.
-     * @param {Function} reject A function that rejects the promise.
-     * @param {object} response The response.
-     */
-    var settle = function settle(resolve, reject, response) {
-      var validateStatus = response.config.validateStatus;
-      if (!response.status || !validateStatus || validateStatus(response.status)) {
-        resolve(response);
-      } else {
-        reject(createError(
-          'Request failed with status code ' + response.status,
-          response.config,
-          null,
-          response.request,
-          response
-        ));
-      }
-    };
-
-    var cookies = (
-      utils.isStandardBrowserEnv() ?
-
-      // Standard browser envs support document.cookie
-        (function standardBrowserEnv() {
-          return {
-            write: function write(name, value, expires, path, domain, secure) {
-              var cookie = [];
-              cookie.push(name + '=' + encodeURIComponent(value));
-
-              if (utils.isNumber(expires)) {
-                cookie.push('expires=' + new Date(expires).toGMTString());
-              }
-
-              if (utils.isString(path)) {
-                cookie.push('path=' + path);
-              }
-
-              if (utils.isString(domain)) {
-                cookie.push('domain=' + domain);
-              }
-
-              if (secure === true) {
-                cookie.push('secure');
-              }
-
-              document.cookie = cookie.join('; ');
-            },
-
-            read: function read(name) {
-              var match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
-              return (match ? decodeURIComponent(match[3]) : null);
-            },
-
-            remove: function remove(name) {
-              this.write(name, '', Date.now() - 86400000);
-            }
-          };
-        })() :
-
-      // Non standard browser env (web workers, react-native) lack needed support.
-        (function nonStandardBrowserEnv() {
-          return {
-            write: function write() {},
-            read: function read() { return null; },
-            remove: function remove() {}
-          };
-        })()
-    );
-
-    /**
-     * Determines whether the specified URL is absolute
-     *
-     * @param {string} url The URL to test
-     * @returns {boolean} True if the specified URL is absolute, otherwise false
-     */
-    var isAbsoluteURL = function isAbsoluteURL(url) {
-      // A URL is considered absolute if it begins with "<scheme>://" or "//" (protocol-relative URL).
-      // RFC 3986 defines scheme name as a sequence of characters beginning with a letter and followed
-      // by any combination of letters, digits, plus, period, or hyphen.
-      return /^([a-z][a-z\d\+\-\.]*:)?\/\//i.test(url);
-    };
-
-    /**
-     * Creates a new URL by combining the specified URLs
-     *
-     * @param {string} baseURL The base URL
-     * @param {string} relativeURL The relative URL
-     * @returns {string} The combined URL
-     */
-    var combineURLs = function combineURLs(baseURL, relativeURL) {
-      return relativeURL
-        ? baseURL.replace(/\/+$/, '') + '/' + relativeURL.replace(/^\/+/, '')
-        : baseURL;
-    };
-
-    /**
-     * Creates a new URL by combining the baseURL with the requestedURL,
-     * only when the requestedURL is not already an absolute URL.
-     * If the requestURL is absolute, this function returns the requestedURL untouched.
-     *
-     * @param {string} baseURL The base URL
-     * @param {string} requestedURL Absolute or relative URL to combine
-     * @returns {string} The combined full path
-     */
-    var buildFullPath = function buildFullPath(baseURL, requestedURL) {
-      if (baseURL && !isAbsoluteURL(requestedURL)) {
-        return combineURLs(baseURL, requestedURL);
-      }
-      return requestedURL;
-    };
-
-    // Headers whose duplicates are ignored by node
-    // c.f. https://nodejs.org/api/http.html#http_message_headers
-    var ignoreDuplicateOf = [
-      'age', 'authorization', 'content-length', 'content-type', 'etag',
-      'expires', 'from', 'host', 'if-modified-since', 'if-unmodified-since',
-      'last-modified', 'location', 'max-forwards', 'proxy-authorization',
-      'referer', 'retry-after', 'user-agent'
-    ];
-
-    /**
-     * Parse headers into an object
-     *
-     * ```
-     * Date: Wed, 27 Aug 2014 08:58:49 GMT
-     * Content-Type: application/json
-     * Connection: keep-alive
-     * Transfer-Encoding: chunked
-     * ```
-     *
-     * @param {String} headers Headers needing to be parsed
-     * @returns {Object} Headers parsed into an object
-     */
-    var parseHeaders = function parseHeaders(headers) {
-      var parsed = {};
-      var key;
-      var val;
-      var i;
-
-      if (!headers) { return parsed; }
-
-      utils.forEach(headers.split('\n'), function parser(line) {
-        i = line.indexOf(':');
-        key = utils.trim(line.substr(0, i)).toLowerCase();
-        val = utils.trim(line.substr(i + 1));
-
-        if (key) {
-          if (parsed[key] && ignoreDuplicateOf.indexOf(key) >= 0) {
-            return;
-          }
-          if (key === 'set-cookie') {
-            parsed[key] = (parsed[key] ? parsed[key] : []).concat([val]);
-          } else {
-            parsed[key] = parsed[key] ? parsed[key] + ', ' + val : val;
-          }
-        }
-      });
-
-      return parsed;
-    };
-
-    var isURLSameOrigin = (
-      utils.isStandardBrowserEnv() ?
-
-      // Standard browser envs have full support of the APIs needed to test
-      // whether the request URL is of the same origin as current location.
-        (function standardBrowserEnv() {
-          var msie = /(msie|trident)/i.test(navigator.userAgent);
-          var urlParsingNode = document.createElement('a');
-          var originURL;
-
-          /**
-        * Parse a URL to discover it's components
-        *
-        * @param {String} url The URL to be parsed
-        * @returns {Object}
-        */
-          function resolveURL(url) {
-            var href = url;
-
-            if (msie) {
-            // IE needs attribute set twice to normalize properties
-              urlParsingNode.setAttribute('href', href);
-              href = urlParsingNode.href;
-            }
-
-            urlParsingNode.setAttribute('href', href);
-
-            // urlParsingNode provides the UrlUtils interface - http://url.spec.whatwg.org/#urlutils
-            return {
-              href: urlParsingNode.href,
-              protocol: urlParsingNode.protocol ? urlParsingNode.protocol.replace(/:$/, '') : '',
-              host: urlParsingNode.host,
-              search: urlParsingNode.search ? urlParsingNode.search.replace(/^\?/, '') : '',
-              hash: urlParsingNode.hash ? urlParsingNode.hash.replace(/^#/, '') : '',
-              hostname: urlParsingNode.hostname,
-              port: urlParsingNode.port,
-              pathname: (urlParsingNode.pathname.charAt(0) === '/') ?
-                urlParsingNode.pathname :
-                '/' + urlParsingNode.pathname
-            };
-          }
-
-          originURL = resolveURL(window.location.href);
-
-          /**
-        * Determine if a URL shares the same origin as the current location
-        *
-        * @param {String} requestURL The URL to test
-        * @returns {boolean} True if URL shares the same origin, otherwise false
-        */
-          return function isURLSameOrigin(requestURL) {
-            var parsed = (utils.isString(requestURL)) ? resolveURL(requestURL) : requestURL;
-            return (parsed.protocol === originURL.protocol &&
-                parsed.host === originURL.host);
-          };
-        })() :
-
-      // Non standard browser envs (web workers, react-native) lack needed support.
-        (function nonStandardBrowserEnv() {
-          return function isURLSameOrigin() {
-            return true;
-          };
-        })()
-    );
-
-    var xhr = function xhrAdapter(config) {
-      return new Promise(function dispatchXhrRequest(resolve, reject) {
-        var requestData = config.data;
-        var requestHeaders = config.headers;
-
-        if (utils.isFormData(requestData)) {
-          delete requestHeaders['Content-Type']; // Let the browser set it
-        }
-
-        var request = new XMLHttpRequest();
-
-        // HTTP basic authentication
-        if (config.auth) {
-          var username = config.auth.username || '';
-          var password = config.auth.password ? unescape(encodeURIComponent(config.auth.password)) : '';
-          requestHeaders.Authorization = 'Basic ' + btoa(username + ':' + password);
-        }
-
-        var fullPath = buildFullPath(config.baseURL, config.url);
-        request.open(config.method.toUpperCase(), buildURL(fullPath, config.params, config.paramsSerializer), true);
-
-        // Set the request timeout in MS
-        request.timeout = config.timeout;
-
-        // Listen for ready state
-        request.onreadystatechange = function handleLoad() {
-          if (!request || request.readyState !== 4) {
-            return;
-          }
-
-          // The request errored out and we didn't get a response, this will be
-          // handled by onerror instead
-          // With one exception: request that using file: protocol, most browsers
-          // will return status as 0 even though it's a successful request
-          if (request.status === 0 && !(request.responseURL && request.responseURL.indexOf('file:') === 0)) {
-            return;
-          }
-
-          // Prepare the response
-          var responseHeaders = 'getAllResponseHeaders' in request ? parseHeaders(request.getAllResponseHeaders()) : null;
-          var responseData = !config.responseType || config.responseType === 'text' ? request.responseText : request.response;
-          var response = {
-            data: responseData,
-            status: request.status,
-            statusText: request.statusText,
-            headers: responseHeaders,
-            config: config,
-            request: request
-          };
-
-          settle(resolve, reject, response);
-
-          // Clean up request
-          request = null;
-        };
-
-        // Handle browser request cancellation (as opposed to a manual cancellation)
-        request.onabort = function handleAbort() {
-          if (!request) {
-            return;
-          }
-
-          reject(createError('Request aborted', config, 'ECONNABORTED', request));
-
-          // Clean up request
-          request = null;
-        };
-
-        // Handle low level network errors
-        request.onerror = function handleError() {
-          // Real errors are hidden from us by the browser
-          // onerror should only fire if it's a network error
-          reject(createError('Network Error', config, null, request));
-
-          // Clean up request
-          request = null;
-        };
-
-        // Handle timeout
-        request.ontimeout = function handleTimeout() {
-          var timeoutErrorMessage = 'timeout of ' + config.timeout + 'ms exceeded';
-          if (config.timeoutErrorMessage) {
-            timeoutErrorMessage = config.timeoutErrorMessage;
-          }
-          reject(createError(timeoutErrorMessage, config, 'ECONNABORTED',
-            request));
-
-          // Clean up request
-          request = null;
-        };
-
-        // Add xsrf header
-        // This is only done if running in a standard browser environment.
-        // Specifically not if we're in a web worker, or react-native.
-        if (utils.isStandardBrowserEnv()) {
-          // Add xsrf header
-          var xsrfValue = (config.withCredentials || isURLSameOrigin(fullPath)) && config.xsrfCookieName ?
-            cookies.read(config.xsrfCookieName) :
-            undefined;
-
-          if (xsrfValue) {
-            requestHeaders[config.xsrfHeaderName] = xsrfValue;
-          }
-        }
-
-        // Add headers to the request
-        if ('setRequestHeader' in request) {
-          utils.forEach(requestHeaders, function setRequestHeader(val, key) {
-            if (typeof requestData === 'undefined' && key.toLowerCase() === 'content-type') {
-              // Remove Content-Type if data is undefined
-              delete requestHeaders[key];
-            } else {
-              // Otherwise add header to the request
-              request.setRequestHeader(key, val);
-            }
-          });
-        }
-
-        // Add withCredentials to request if needed
-        if (!utils.isUndefined(config.withCredentials)) {
-          request.withCredentials = !!config.withCredentials;
-        }
-
-        // Add responseType to request if needed
-        if (config.responseType) {
-          try {
-            request.responseType = config.responseType;
-          } catch (e) {
-            // Expected DOMException thrown by browsers not compatible XMLHttpRequest Level 2.
-            // But, this can be suppressed for 'json' type as it can be parsed by default 'transformResponse' function.
-            if (config.responseType !== 'json') {
-              throw e;
-            }
-          }
-        }
-
-        // Handle progress if needed
-        if (typeof config.onDownloadProgress === 'function') {
-          request.addEventListener('progress', config.onDownloadProgress);
-        }
-
-        // Not all browsers support upload events
-        if (typeof config.onUploadProgress === 'function' && request.upload) {
-          request.upload.addEventListener('progress', config.onUploadProgress);
-        }
-
-        if (config.cancelToken) {
-          // Handle cancellation
-          config.cancelToken.promise.then(function onCanceled(cancel) {
-            if (!request) {
-              return;
-            }
-
-            request.abort();
-            reject(cancel);
-            // Clean up request
-            request = null;
-          });
-        }
-
-        if (!requestData) {
-          requestData = null;
-        }
-
-        // Send the request
-        request.send(requestData);
-      });
-    };
-
-    var DEFAULT_CONTENT_TYPE = {
-      'Content-Type': 'application/x-www-form-urlencoded'
-    };
-
-    function setContentTypeIfUnset(headers, value) {
-      if (!utils.isUndefined(headers) && utils.isUndefined(headers['Content-Type'])) {
-        headers['Content-Type'] = value;
-      }
-    }
-
-    function getDefaultAdapter() {
-      var adapter;
-      if (typeof XMLHttpRequest !== 'undefined') {
-        // For browsers use XHR adapter
-        adapter = xhr;
-      } else if (typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]') {
-        // For node use HTTP adapter
-        adapter = xhr;
-      }
-      return adapter;
-    }
-
-    var defaults = {
-      adapter: getDefaultAdapter(),
-
-      transformRequest: [function transformRequest(data, headers) {
-        normalizeHeaderName(headers, 'Accept');
-        normalizeHeaderName(headers, 'Content-Type');
-        if (utils.isFormData(data) ||
-          utils.isArrayBuffer(data) ||
-          utils.isBuffer(data) ||
-          utils.isStream(data) ||
-          utils.isFile(data) ||
-          utils.isBlob(data)
-        ) {
-          return data;
-        }
-        if (utils.isArrayBufferView(data)) {
-          return data.buffer;
-        }
-        if (utils.isURLSearchParams(data)) {
-          setContentTypeIfUnset(headers, 'application/x-www-form-urlencoded;charset=utf-8');
-          return data.toString();
-        }
-        if (utils.isObject(data)) {
-          setContentTypeIfUnset(headers, 'application/json;charset=utf-8');
-          return JSON.stringify(data);
-        }
-        return data;
-      }],
-
-      transformResponse: [function transformResponse(data) {
-        /*eslint no-param-reassign:0*/
-        if (typeof data === 'string') {
-          try {
-            data = JSON.parse(data);
-          } catch (e) { /* Ignore */ }
-        }
-        return data;
-      }],
-
-      /**
-       * A timeout in milliseconds to abort a request. If set to 0 (default) a
-       * timeout is not created.
-       */
-      timeout: 0,
-
-      xsrfCookieName: 'XSRF-TOKEN',
-      xsrfHeaderName: 'X-XSRF-TOKEN',
-
-      maxContentLength: -1,
-      maxBodyLength: -1,
-
-      validateStatus: function validateStatus(status) {
-        return status >= 200 && status < 300;
-      }
-    };
-
-    defaults.headers = {
-      common: {
-        'Accept': 'application/json, text/plain, */*'
-      }
-    };
-
-    utils.forEach(['delete', 'get', 'head'], function forEachMethodNoData(method) {
-      defaults.headers[method] = {};
-    });
-
-    utils.forEach(['post', 'put', 'patch'], function forEachMethodWithData(method) {
-      defaults.headers[method] = utils.merge(DEFAULT_CONTENT_TYPE);
-    });
-
-    var defaults_1 = defaults;
-
-    /**
-     * Throws a `Cancel` if cancellation has been requested.
-     */
-    function throwIfCancellationRequested(config) {
-      if (config.cancelToken) {
-        config.cancelToken.throwIfRequested();
-      }
-    }
-
-    /**
-     * Dispatch a request to the server using the configured adapter.
-     *
-     * @param {object} config The config that is to be used for the request
-     * @returns {Promise} The Promise to be fulfilled
-     */
-    var dispatchRequest = function dispatchRequest(config) {
-      throwIfCancellationRequested(config);
-
-      // Ensure headers exist
-      config.headers = config.headers || {};
-
-      // Transform request data
-      config.data = transformData(
-        config.data,
-        config.headers,
-        config.transformRequest
-      );
-
-      // Flatten headers
-      config.headers = utils.merge(
-        config.headers.common || {},
-        config.headers[config.method] || {},
-        config.headers
-      );
-
-      utils.forEach(
-        ['delete', 'get', 'head', 'post', 'put', 'patch', 'common'],
-        function cleanHeaderConfig(method) {
-          delete config.headers[method];
-        }
-      );
-
-      var adapter = config.adapter || defaults_1.adapter;
-
-      return adapter(config).then(function onAdapterResolution(response) {
-        throwIfCancellationRequested(config);
-
-        // Transform response data
-        response.data = transformData(
-          response.data,
-          response.headers,
-          config.transformResponse
-        );
-
-        return response;
-      }, function onAdapterRejection(reason) {
-        if (!isCancel(reason)) {
-          throwIfCancellationRequested(config);
-
-          // Transform response data
-          if (reason && reason.response) {
-            reason.response.data = transformData(
-              reason.response.data,
-              reason.response.headers,
-              config.transformResponse
-            );
-          }
-        }
-
-        return Promise.reject(reason);
-      });
-    };
-
-    /**
-     * Config-specific merge-function which creates a new config-object
-     * by merging two configuration objects together.
-     *
-     * @param {Object} config1
-     * @param {Object} config2
-     * @returns {Object} New object resulting from merging config2 to config1
-     */
-    var mergeConfig = function mergeConfig(config1, config2) {
-      // eslint-disable-next-line no-param-reassign
-      config2 = config2 || {};
-      var config = {};
-
-      var valueFromConfig2Keys = ['url', 'method', 'data'];
-      var mergeDeepPropertiesKeys = ['headers', 'auth', 'proxy', 'params'];
-      var defaultToConfig2Keys = [
-        'baseURL', 'transformRequest', 'transformResponse', 'paramsSerializer',
-        'timeout', 'timeoutMessage', 'withCredentials', 'adapter', 'responseType', 'xsrfCookieName',
-        'xsrfHeaderName', 'onUploadProgress', 'onDownloadProgress', 'decompress',
-        'maxContentLength', 'maxBodyLength', 'maxRedirects', 'transport', 'httpAgent',
-        'httpsAgent', 'cancelToken', 'socketPath', 'responseEncoding'
-      ];
-      var directMergeKeys = ['validateStatus'];
-
-      function getMergedValue(target, source) {
-        if (utils.isPlainObject(target) && utils.isPlainObject(source)) {
-          return utils.merge(target, source);
-        } else if (utils.isPlainObject(source)) {
-          return utils.merge({}, source);
-        } else if (utils.isArray(source)) {
-          return source.slice();
-        }
-        return source;
-      }
-
-      function mergeDeepProperties(prop) {
-        if (!utils.isUndefined(config2[prop])) {
-          config[prop] = getMergedValue(config1[prop], config2[prop]);
-        } else if (!utils.isUndefined(config1[prop])) {
-          config[prop] = getMergedValue(undefined, config1[prop]);
-        }
-      }
-
-      utils.forEach(valueFromConfig2Keys, function valueFromConfig2(prop) {
-        if (!utils.isUndefined(config2[prop])) {
-          config[prop] = getMergedValue(undefined, config2[prop]);
-        }
-      });
-
-      utils.forEach(mergeDeepPropertiesKeys, mergeDeepProperties);
-
-      utils.forEach(defaultToConfig2Keys, function defaultToConfig2(prop) {
-        if (!utils.isUndefined(config2[prop])) {
-          config[prop] = getMergedValue(undefined, config2[prop]);
-        } else if (!utils.isUndefined(config1[prop])) {
-          config[prop] = getMergedValue(undefined, config1[prop]);
-        }
-      });
-
-      utils.forEach(directMergeKeys, function merge(prop) {
-        if (prop in config2) {
-          config[prop] = getMergedValue(config1[prop], config2[prop]);
-        } else if (prop in config1) {
-          config[prop] = getMergedValue(undefined, config1[prop]);
-        }
-      });
-
-      var axiosKeys = valueFromConfig2Keys
-        .concat(mergeDeepPropertiesKeys)
-        .concat(defaultToConfig2Keys)
-        .concat(directMergeKeys);
-
-      var otherKeys = Object
-        .keys(config1)
-        .concat(Object.keys(config2))
-        .filter(function filterAxiosKeys(key) {
-          return axiosKeys.indexOf(key) === -1;
-        });
-
-      utils.forEach(otherKeys, mergeDeepProperties);
-
-      return config;
-    };
-
-    /**
-     * Create a new instance of Axios
-     *
-     * @param {Object} instanceConfig The default config for the instance
-     */
-    function Axios(instanceConfig) {
-      this.defaults = instanceConfig;
-      this.interceptors = {
-        request: new InterceptorManager_1(),
-        response: new InterceptorManager_1()
-      };
-    }
-
-    /**
-     * Dispatch a request
-     *
-     * @param {Object} config The config specific for this request (merged with this.defaults)
-     */
-    Axios.prototype.request = function request(config) {
-      /*eslint no-param-reassign:0*/
-      // Allow for axios('example/url'[, config]) a la fetch API
-      if (typeof config === 'string') {
-        config = arguments[1] || {};
-        config.url = arguments[0];
-      } else {
-        config = config || {};
-      }
-
-      config = mergeConfig(this.defaults, config);
-
-      // Set config.method
-      if (config.method) {
-        config.method = config.method.toLowerCase();
-      } else if (this.defaults.method) {
-        config.method = this.defaults.method.toLowerCase();
-      } else {
-        config.method = 'get';
-      }
-
-      // Hook up interceptors middleware
-      var chain = [dispatchRequest, undefined];
-      var promise = Promise.resolve(config);
-
-      this.interceptors.request.forEach(function unshiftRequestInterceptors(interceptor) {
-        chain.unshift(interceptor.fulfilled, interceptor.rejected);
-      });
-
-      this.interceptors.response.forEach(function pushResponseInterceptors(interceptor) {
-        chain.push(interceptor.fulfilled, interceptor.rejected);
-      });
-
-      while (chain.length) {
-        promise = promise.then(chain.shift(), chain.shift());
-      }
-
-      return promise;
-    };
-
-    Axios.prototype.getUri = function getUri(config) {
-      config = mergeConfig(this.defaults, config);
-      return buildURL(config.url, config.params, config.paramsSerializer).replace(/^\?/, '');
-    };
-
-    // Provide aliases for supported request methods
-    utils.forEach(['delete', 'get', 'head', 'options'], function forEachMethodNoData(method) {
-      /*eslint func-names:0*/
-      Axios.prototype[method] = function(url, config) {
-        return this.request(mergeConfig(config || {}, {
-          method: method,
-          url: url,
-          data: (config || {}).data
-        }));
-      };
-    });
-
-    utils.forEach(['post', 'put', 'patch'], function forEachMethodWithData(method) {
-      /*eslint func-names:0*/
-      Axios.prototype[method] = function(url, data, config) {
-        return this.request(mergeConfig(config || {}, {
-          method: method,
-          url: url,
-          data: data
-        }));
-      };
-    });
-
-    var Axios_1 = Axios;
-
-    /**
-     * A `Cancel` is an object that is thrown when an operation is canceled.
-     *
-     * @class
-     * @param {string=} message The message.
-     */
-    function Cancel(message) {
-      this.message = message;
-    }
-
-    Cancel.prototype.toString = function toString() {
-      return 'Cancel' + (this.message ? ': ' + this.message : '');
-    };
-
-    Cancel.prototype.__CANCEL__ = true;
-
-    var Cancel_1 = Cancel;
-
-    /**
-     * A `CancelToken` is an object that can be used to request cancellation of an operation.
-     *
-     * @class
-     * @param {Function} executor The executor function.
-     */
-    function CancelToken(executor) {
-      if (typeof executor !== 'function') {
-        throw new TypeError('executor must be a function.');
-      }
-
-      var resolvePromise;
-      this.promise = new Promise(function promiseExecutor(resolve) {
-        resolvePromise = resolve;
-      });
-
-      var token = this;
-      executor(function cancel(message) {
-        if (token.reason) {
-          // Cancellation has already been requested
-          return;
-        }
-
-        token.reason = new Cancel_1(message);
-        resolvePromise(token.reason);
-      });
-    }
-
-    /**
-     * Throws a `Cancel` if cancellation has been requested.
-     */
-    CancelToken.prototype.throwIfRequested = function throwIfRequested() {
-      if (this.reason) {
-        throw this.reason;
-      }
-    };
-
-    /**
-     * Returns an object that contains a new `CancelToken` and a function that, when called,
-     * cancels the `CancelToken`.
-     */
-    CancelToken.source = function source() {
-      var cancel;
-      var token = new CancelToken(function executor(c) {
-        cancel = c;
-      });
-      return {
-        token: token,
-        cancel: cancel
-      };
-    };
-
-    var CancelToken_1 = CancelToken;
-
-    /**
-     * Syntactic sugar for invoking a function and expanding an array for arguments.
-     *
-     * Common use case would be to use `Function.prototype.apply`.
-     *
-     *  ```js
-     *  function f(x, y, z) {}
-     *  var args = [1, 2, 3];
-     *  f.apply(null, args);
-     *  ```
-     *
-     * With `spread` this example can be re-written.
-     *
-     *  ```js
-     *  spread(function(x, y, z) {})([1, 2, 3]);
-     *  ```
-     *
-     * @param {Function} callback
-     * @returns {Function}
-     */
-    var spread = function spread(callback) {
-      return function wrap(arr) {
-        return callback.apply(null, arr);
-      };
-    };
-
-    /**
-     * Determines whether the payload is an error thrown by Axios
-     *
-     * @param {*} payload The value to test
-     * @returns {boolean} True if the payload is an error thrown by Axios, otherwise false
-     */
-    var isAxiosError = function isAxiosError(payload) {
-      return (typeof payload === 'object') && (payload.isAxiosError === true);
-    };
-
-    /**
-     * Create an instance of Axios
-     *
-     * @param {Object} defaultConfig The default config for the instance
-     * @return {Axios} A new instance of Axios
-     */
-    function createInstance(defaultConfig) {
-      var context = new Axios_1(defaultConfig);
-      var instance = bind(Axios_1.prototype.request, context);
-
-      // Copy axios.prototype to instance
-      utils.extend(instance, Axios_1.prototype, context);
-
-      // Copy context to instance
-      utils.extend(instance, context);
-
-      return instance;
-    }
-
-    // Create the default instance to be exported
-    var axios$1 = createInstance(defaults_1);
-
-    // Expose Axios class to allow class inheritance
-    axios$1.Axios = Axios_1;
-
-    // Factory for creating new instances
-    axios$1.create = function create(instanceConfig) {
-      return createInstance(mergeConfig(axios$1.defaults, instanceConfig));
-    };
-
-    // Expose Cancel & CancelToken
-    axios$1.Cancel = Cancel_1;
-    axios$1.CancelToken = CancelToken_1;
-    axios$1.isCancel = isCancel;
-
-    // Expose all/spread
-    axios$1.all = function all(promises) {
-      return Promise.all(promises);
-    };
-    axios$1.spread = spread;
-
-    // Expose isAxiosError
-    axios$1.isAxiosError = isAxiosError;
-
-    var axios_1 = axios$1;
-
-    // Allow use of default import syntax in TypeScript
-    var _default = axios$1;
-    axios_1.default = _default;
-
-    var axios = axios_1;
-
-    /* src\components\ItemRank.svelte generated by Svelte v3.42.1 */
-
-    const file$5 = "src\\components\\ItemRank.svelte";
+    const file$5 = "src/components/ItemRank.svelte";
 
     function create_fragment$5(ctx) {
     	let div;
@@ -24708,7 +24467,7 @@ var app = (function () {
     			div = element("div");
     			t = text(/*rank*/ ctx[0]);
     			attr_dev(div, "class", "svelte-ky4w0a");
-    			add_location(div, file$5, 4, 0, 43);
+    			add_location(div, file$5, 4, 0, 39);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -24794,41 +24553,9 @@ var app = (function () {
     	}
     }
 
-    /**
-     * Checks if cachedData exists and if true returns cached data and expiry status.
-     * @param {string} key localStorage Key that you want to retrieve the value of.
-     */
-    function checkCache(key) {
-      const cacheLife = 86400; // Set cache lifetime to 24 hours in seconds
-      let expired;
-      let cachedData = localStorage.getItem(`${key}`); // Get cached data from local storage
+    /* src/components/ItemBanner.svelte generated by Svelte v3.41.0 */
 
-      // If cached data exists then parse the data and check if data is expired
-      if (cachedData) {
-        cachedData = JSON.parse(cachedData);
-        expired = parseInt(Date.now() / 1000) - cachedData.cachetime > cacheLife;
-        console.log(`${key} expired:`, expired);
-      }
-      return {
-        cachedData,
-        expired,
-      };
-    }
-
-    /**
-     *  Takes a key and an object array that will be converted to a JSON string and saves that key: value pair in localStorage.
-     * @param {string} key localStorage key that you want to create.
-     * @param {array} data Array that will be converted to JSON and used as the value for the key you are creating.
-     */
-    function cacheData(key, data) {
-      const cacheData = { data: data, cachetime: parseInt(Date.now() / 1000) };
-      localStorage.setItem(`${key}`, JSON.stringify(cacheData));
-    }
-
-    /* src\components\ItemBanner.svelte generated by Svelte v3.42.1 */
-
-    const { console: console_1$2 } = globals;
-    const file$4 = "src\\components\\ItemBanner.svelte";
+    const file$4 = "src/components/ItemBanner.svelte";
 
     function create_fragment$4(ctx) {
     	let div1;
@@ -24839,12 +24566,12 @@ var app = (function () {
     		c: function create() {
     			div1 = element("div");
     			div0 = element("div");
-    			t = text(/*title*/ ctx[0]);
+    			t = text(/*title*/ ctx[1]);
     			attr_dev(div0, "class", "title svelte-119me8c");
-    			add_location(div0, file$4, 71, 2, 1689);
+    			add_location(div0, file$4, 9, 2, 181);
     			attr_dev(div1, "class", "banner svelte-119me8c");
-    			set_style(div1, "background-image", "linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(" + /*src*/ ctx[1] + ")");
-    			add_location(div1, file$4, 67, 0, 1568);
+    			set_style(div1, "background-image", "linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(" + /*banner*/ ctx[0] + ")");
+    			add_location(div1, file$4, 5, 0, 61);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -24855,10 +24582,10 @@ var app = (function () {
     			append_dev(div0, t);
     		},
     		p: function update(ctx, [dirty]) {
-    			if (dirty & /*title*/ 1) set_data_dev(t, /*title*/ ctx[0]);
+    			if (dirty & /*title*/ 2) set_data_dev(t, /*title*/ ctx[1]);
 
-    			if (dirty & /*src*/ 2) {
-    				set_style(div1, "background-image", "linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(" + /*src*/ ctx[1] + ")");
+    			if (dirty & /*banner*/ 1) {
+    				set_style(div1, "background-image", "linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(" + /*banner*/ ctx[0] + ")");
     			}
     		},
     		i: noop$1,
@@ -24882,94 +24609,37 @@ var app = (function () {
     function instance$4($$self, $$props, $$invalidate) {
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('ItemBanner', slots, []);
+    	let { banner } = $$props;
     	let { title } = $$props;
-    	let src;
-
-    	afterUpdate(async () => {
-    		$$invalidate(1, src = await fetchBannerImg());
-    	});
-
-    	const fetchBannerImg = async () => {
-    		let data;
-    		const key = `${title} Banner`;
-    		let cache = checkCache(key);
-
-    		if (cache.cachedData && !cache.expired) {
-    			return cache.cachedData.data;
-    		} else {
-    			const query = `
-  query ($title: String){
-    Media (search: $title, type: ANIME) {
-      bannerImage
-    }
-  }
-  `;
-
-    			const variables = { title };
-
-    			const headers = {
-    				"Content-Type": "application/json",
-    				Accept: "application/json"
-    			};
-
-    			await axios({
-    				method: "post",
-    				url: "https://graphql.anilist.co/",
-    				headers,
-    				data: JSON.stringify({ query, variables })
-    			}).then(result => {
-    				data = result.data.data.Media.bannerImage;
-
-    				if (data === null) {
-    					data = "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
-    				}
-    			}).catch(err => {
-    				data = "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
-    				console.log(err.message);
-    			});
-
-    			cacheData(key, data);
-    		}
-
-    		return data;
-    	};
-
-    	const writable_props = ['title'];
+    	const writable_props = ['banner', 'title'];
 
     	Object.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console_1$2.warn(`<ItemBanner> was created with unknown prop '${key}'`);
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<ItemBanner> was created with unknown prop '${key}'`);
     	});
 
     	$$self.$$set = $$props => {
-    		if ('title' in $$props) $$invalidate(0, title = $$props.title);
+    		if ('banner' in $$props) $$invalidate(0, banner = $$props.banner);
+    		if ('title' in $$props) $$invalidate(1, title = $$props.title);
     	};
 
-    	$$self.$capture_state = () => ({
-    		axios,
-    		afterUpdate,
-    		checkCache,
-    		cacheData,
-    		title,
-    		src,
-    		fetchBannerImg
-    	});
+    	$$self.$capture_state = () => ({ banner, title });
 
     	$$self.$inject_state = $$props => {
-    		if ('title' in $$props) $$invalidate(0, title = $$props.title);
-    		if ('src' in $$props) $$invalidate(1, src = $$props.src);
+    		if ('banner' in $$props) $$invalidate(0, banner = $$props.banner);
+    		if ('title' in $$props) $$invalidate(1, title = $$props.title);
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [title, src];
+    	return [banner, title];
     }
 
     class ItemBanner extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$4, create_fragment$4, safe_not_equal, { title: 0 });
+    		init(this, options, instance$4, create_fragment$4, safe_not_equal, { banner: 0, title: 1 });
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
@@ -24981,9 +24651,21 @@ var app = (function () {
     		const { ctx } = this.$$;
     		const props = options.props || {};
 
-    		if (/*title*/ ctx[0] === undefined && !('title' in props)) {
-    			console_1$2.warn("<ItemBanner> was created without expected prop 'title'");
+    		if (/*banner*/ ctx[0] === undefined && !('banner' in props)) {
+    			console.warn("<ItemBanner> was created without expected prop 'banner'");
     		}
+
+    		if (/*title*/ ctx[1] === undefined && !('title' in props)) {
+    			console.warn("<ItemBanner> was created without expected prop 'title'");
+    		}
+    	}
+
+    	get banner() {
+    		throw new Error("<ItemBanner>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set banner(value) {
+    		throw new Error("<ItemBanner>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
 
     	get title() {
@@ -24995,9 +24677,9 @@ var app = (function () {
     	}
     }
 
-    /* src\components\ItemDetails.svelte generated by Svelte v3.42.1 */
+    /* src/components/ItemDetails.svelte generated by Svelte v3.41.0 */
 
-    const file$3 = "src\\components\\ItemDetails.svelte";
+    const file$3 = "src/components/ItemDetails.svelte";
 
     function create_fragment$3(ctx) {
     	let div;
@@ -25008,7 +24690,7 @@ var app = (function () {
     			div = element("div");
     			t = text(/*votes*/ ctx[0]);
     			attr_dev(div, "class", "svelte-18wybds");
-    			add_location(div, file$3, 4, 0, 44);
+    			add_location(div, file$3, 4, 0, 40);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -25094,12 +24776,43 @@ var app = (function () {
     	}
     }
 
-    /* src\components\Item.svelte generated by Svelte v3.42.1 */
+    /**
+     * Checks if cachedData exists and if true returns cached data and expiry status.
+     * @param {string} key localStorage Key that you want to retrieve the value of.
+     */
+    function checkCache(key) {
+      const cacheLife = 86400; // Set cache lifetime to 24 hours in seconds
+      let expired;
+      let cachedData = localStorage.getItem(`${key}`); // Get cached data from local storage
+
+      // If cached data exists then parse the data and check if data is expired
+      if (cachedData) {
+        cachedData = JSON.parse(cachedData);
+        expired = parseInt(Date.now() / 1000) - cachedData.cachetime > cacheLife;
+        console.log(`${key} expired:`, expired);
+      }
+      return {
+        cachedData,
+        expired,
+      };
+    }
+
+    /**
+     *  Takes a key and an object array that will be converted to a JSON string and saves that key: value pair in localStorage.
+     * @param {string} key localStorage key that you want to create.
+     * @param {array} data Array that will be converted to JSON and used as the value for the key you are creating.
+     */
+    function cacheData(key, data) {
+      const cacheData = { data: data, cachetime: parseInt(Date.now() / 1000) };
+      localStorage.setItem(`${key}`, JSON.stringify(cacheData));
+    }
+
+    /* src/components/Item.svelte generated by Svelte v3.41.0 */
 
     const { console: console_1$1 } = globals;
-    const file$2 = "src\\components\\Item.svelte";
+    const file$2 = "src/components/Item.svelte";
 
-    // (111:0) {#if isActive}
+    // (112:0) {#if isActive}
     function create_if_block$1(ctx) {
     	let await_block_anchor;
 
@@ -25111,10 +24824,10 @@ var app = (function () {
     		pending: create_pending_block,
     		then: create_then_block,
     		catch: create_catch_block,
-    		value: 6
+    		value: 7
     	};
 
-    	handle_promise(/*fetchDetails*/ ctx[5](), info);
+    	handle_promise(/*fetchDetails*/ ctx[6](), info);
 
     	const block = {
     		c: function create() {
@@ -25143,14 +24856,14 @@ var app = (function () {
     		block,
     		id: create_if_block$1.name,
     		type: "if",
-    		source: "(111:0) {#if isActive}",
+    		source: "(112:0) {#if isActive}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (1:0) <script>    import axios from "axios";    import ItemRank from "./ItemRank.svelte";    import ItemBanner from "./ItemBanner.svelte";    import ItemDetails from "./ItemDetails.svelte";    import { checkCache, cacheData }
+    // (1:0) <script>   import axios from "axios";   import ItemRank from "./ItemRank.svelte";   import ItemBanner from "./ItemBanner.svelte";   import ItemDetails from "./ItemDetails.svelte";   import { checkCache, cacheData }
     function create_catch_block(ctx) {
     	const block = { c: noop$1, m: noop$1, p: noop$1, d: noop$1 };
 
@@ -25158,23 +24871,23 @@ var app = (function () {
     		block,
     		id: create_catch_block.name,
     		type: "catch",
-    		source: "(1:0) <script>    import axios from \\\"axios\\\";    import ItemRank from \\\"./ItemRank.svelte\\\";    import ItemBanner from \\\"./ItemBanner.svelte\\\";    import ItemDetails from \\\"./ItemDetails.svelte\\\";    import { checkCache, cacheData }",
+    		source: "(1:0) <script>   import axios from \\\"axios\\\";   import ItemRank from \\\"./ItemRank.svelte\\\";   import ItemBanner from \\\"./ItemBanner.svelte\\\";   import ItemDetails from \\\"./ItemDetails.svelte\\\";   import { checkCache, cacheData }",
     		ctx
     	});
 
     	return block;
     }
 
-    // (116:2) {:then anime}
+    // (117:2) {:then anime}
     function create_then_block(ctx) {
     	let div;
-    	let raw_value = /*anime*/ ctx[6].description + "";
+    	let raw_value = /*anime*/ ctx[7].description + "";
 
     	const block = {
     		c: function create() {
     			div = element("div");
     			attr_dev(div, "class", "card-content");
-    			add_location(div, file$2, 116, 4, 2884);
+    			add_location(div, file$2, 117, 4, 2798);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -25190,14 +24903,14 @@ var app = (function () {
     		block,
     		id: create_then_block.name,
     		type: "then",
-    		source: "(116:2) {:then anime}",
+    		source: "(117:2) {:then anime}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (112:25)       <div class="card-content">        <p>Loading...</p>      </div>    {:then anime}
+    // (113:25)      <div class="card-content">       <p>Loading...</p>     </div>   {:then anime}
     function create_pending_block(ctx) {
     	let div;
     	let p;
@@ -25207,9 +24920,9 @@ var app = (function () {
     			div = element("div");
     			p = element("p");
     			p.textContent = "Loading...";
-    			add_location(p, file$2, 113, 6, 2832);
+    			add_location(p, file$2, 114, 6, 2749);
     			attr_dev(div, "class", "card-content");
-    			add_location(div, file$2, 112, 4, 2798);
+    			add_location(div, file$2, 113, 4, 2716);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -25225,7 +24938,7 @@ var app = (function () {
     		block,
     		id: create_pending_block.name,
     		type: "pending",
-    		source: "(112:25)       <div class=\\\"card-content\\\">        <p>Loading...</p>      </div>    {:then anime}",
+    		source: "(113:25)      <div class=\\\"card-content\\\">       <p>Loading...</p>     </div>   {:then anime}",
     		ctx
     	});
 
@@ -25251,7 +24964,10 @@ var app = (function () {
     		});
 
     	itembanner = new ItemBanner({
-    			props: { title: /*title*/ ctx[2] },
+    			props: {
+    				banner: /*banner*/ ctx[4],
+    				title: /*title*/ ctx[2]
+    			},
     			$$inline: true
     		});
 
@@ -25274,7 +24990,7 @@ var app = (function () {
     			if (if_block) if_block.c();
     			if_block_anchor = empty();
     			attr_dev(div, "class", "card svelte-1gfowqy");
-    			add_location(div, file$2, 104, 0, 2621);
+    			add_location(div, file$2, 105, 0, 2538);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -25292,7 +25008,7 @@ var app = (function () {
     			current = true;
 
     			if (!mounted) {
-    				dispose = listen_dev(div, "click", /*toggleActive*/ ctx[4], false, false, false);
+    				dispose = listen_dev(div, "click", /*toggleActive*/ ctx[5], false, false, false);
     				mounted = true;
     			}
     		},
@@ -25301,6 +25017,7 @@ var app = (function () {
     			if (dirty & /*rank*/ 2) itemrank_changes.rank = /*rank*/ ctx[1];
     			itemrank.$set(itemrank_changes);
     			const itembanner_changes = {};
+    			if (dirty & /*banner*/ 16) itembanner_changes.banner = /*banner*/ ctx[4];
     			if (dirty & /*title*/ 4) itembanner_changes.title = /*title*/ ctx[2];
     			itembanner.$set(itembanner_changes);
     			const itemdetails_changes = {};
@@ -25363,6 +25080,7 @@ var app = (function () {
     	let { rank } = $$props;
     	let { title } = $$props;
     	let { votes } = $$props;
+    	let { banner } = $$props;
     	let { isActive } = $$props;
 
     	function toggleActive() {
@@ -25450,7 +25168,7 @@ var app = (function () {
     		}
     	};
 
-    	const writable_props = ['rank', 'title', 'votes', 'isActive'];
+    	const writable_props = ['rank', 'title', 'votes', 'banner', 'isActive'];
 
     	Object.keys($$props).forEach(key => {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console_1$1.warn(`<Item> was created with unknown prop '${key}'`);
@@ -25460,6 +25178,7 @@ var app = (function () {
     		if ('rank' in $$props) $$invalidate(1, rank = $$props.rank);
     		if ('title' in $$props) $$invalidate(2, title = $$props.title);
     		if ('votes' in $$props) $$invalidate(3, votes = $$props.votes);
+    		if ('banner' in $$props) $$invalidate(4, banner = $$props.banner);
     		if ('isActive' in $$props) $$invalidate(0, isActive = $$props.isActive);
     	};
 
@@ -25473,6 +25192,7 @@ var app = (function () {
     		rank,
     		title,
     		votes,
+    		banner,
     		isActive,
     		toggleActive,
     		fetchDetails
@@ -25482,6 +25202,7 @@ var app = (function () {
     		if ('rank' in $$props) $$invalidate(1, rank = $$props.rank);
     		if ('title' in $$props) $$invalidate(2, title = $$props.title);
     		if ('votes' in $$props) $$invalidate(3, votes = $$props.votes);
+    		if ('banner' in $$props) $$invalidate(4, banner = $$props.banner);
     		if ('isActive' in $$props) $$invalidate(0, isActive = $$props.isActive);
     	};
 
@@ -25489,13 +25210,20 @@ var app = (function () {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [isActive, rank, title, votes, toggleActive, fetchDetails];
+    	return [isActive, rank, title, votes, banner, toggleActive, fetchDetails];
     }
 
     class Item extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$2, create_fragment$2, safe_not_equal, { rank: 1, title: 2, votes: 3, isActive: 0 });
+
+    		init(this, options, instance$2, create_fragment$2, safe_not_equal, {
+    			rank: 1,
+    			title: 2,
+    			votes: 3,
+    			banner: 4,
+    			isActive: 0
+    		});
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
@@ -25517,6 +25245,10 @@ var app = (function () {
 
     		if (/*votes*/ ctx[3] === undefined && !('votes' in props)) {
     			console_1$1.warn("<Item> was created without expected prop 'votes'");
+    		}
+
+    		if (/*banner*/ ctx[4] === undefined && !('banner' in props)) {
+    			console_1$1.warn("<Item> was created without expected prop 'banner'");
     		}
 
     		if (/*isActive*/ ctx[0] === undefined && !('isActive' in props)) {
@@ -25545,6 +25277,14 @@ var app = (function () {
     	}
 
     	set votes(value) {
+    		throw new Error("<Item>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get banner() {
+    		throw new Error("<Item>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set banner(value) {
     		throw new Error("<Item>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
 
@@ -25610,30 +25350,30 @@ var app = (function () {
     const week = writable("Week-04");
     const isActive = writable(false);
 
-    /* src\components\Leaderboard.svelte generated by Svelte v3.42.1 */
+    /* src/components/Leaderboard.svelte generated by Svelte v3.41.0 */
 
     const { console: console_1 } = globals;
-    const file$1 = "src\\components\\Leaderboard.svelte";
+    const file$1 = "src/components/Leaderboard.svelte";
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[18] = list[i];
+    	child_ctx[19] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_1(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[21] = list[i];
+    	child_ctx[22] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_2(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[24] = list[i];
+    	child_ctx[25] = list[i];
     	return child_ctx;
     }
 
-    // (228:0) {:else}
+    // (289:0) {:else}
     function create_else_block_2(ctx) {
     	let select;
     	let mounted;
@@ -25655,7 +25395,7 @@ var app = (function () {
     			}
 
     			if (/*$season*/ ctx[4] === void 0) add_render_callback(() => /*select_change_handler*/ ctx[11].call(select));
-    			add_location(select, file$1, 229, 2, 6388);
+    			add_location(select, file$1, 290, 2, 7614);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -25716,14 +25456,14 @@ var app = (function () {
     		block,
     		id: create_else_block_2.name,
     		type: "else",
-    		source: "(228:0) {:else}",
+    		source: "(289:0) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (224:0) {#if seasons == 0}
+    // (285:0) {#if seasons == 0}
     function create_if_block_2(ctx) {
     	let select;
     	let option;
@@ -25735,8 +25475,8 @@ var app = (function () {
     			option.textContent = "Loading...";
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file$1, 225, 4, 6283);
-    			add_location(select, file$1, 224, 2, 6269);
+    			add_location(option, file$1, 286, 4, 7513);
+    			add_location(select, file$1, 285, 2, 7500);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -25752,17 +25492,17 @@ var app = (function () {
     		block,
     		id: create_if_block_2.name,
     		type: "if",
-    		source: "(224:0) {#if seasons == 0}",
+    		source: "(285:0) {#if seasons == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (231:4) {#each seasons as season}
+    // (292:4) {#each seasons as season}
     function create_each_block_2(ctx) {
     	let option;
-    	let t_value = /*season*/ ctx[24] + "";
+    	let t_value = /*season*/ ctx[25] + "";
     	let t;
     	let option_value_value;
 
@@ -25770,18 +25510,18 @@ var app = (function () {
     		c: function create() {
     			option = element("option");
     			t = text(t_value);
-    			option.__value = option_value_value = /*season*/ ctx[24];
+    			option.__value = option_value_value = /*season*/ ctx[25];
     			option.value = option.__value;
-    			add_location(option, file$1, 231, 6, 6481);
+    			add_location(option, file$1, 292, 6, 7705);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
     			append_dev(option, t);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*seasons*/ 1 && t_value !== (t_value = /*season*/ ctx[24] + "")) set_data_dev(t, t_value);
+    			if (dirty & /*seasons*/ 1 && t_value !== (t_value = /*season*/ ctx[25] + "")) set_data_dev(t, t_value);
 
-    			if (dirty & /*seasons*/ 1 && option_value_value !== (option_value_value = /*season*/ ctx[24])) {
+    			if (dirty & /*seasons*/ 1 && option_value_value !== (option_value_value = /*season*/ ctx[25])) {
     				prop_dev(option, "__value", option_value_value);
     				option.value = option.__value;
     			}
@@ -25795,14 +25535,14 @@ var app = (function () {
     		block,
     		id: create_each_block_2.name,
     		type: "each",
-    		source: "(231:4) {#each seasons as season}",
+    		source: "(292:4) {#each seasons as season}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (241:0) {:else}
+    // (302:0) {:else}
     function create_else_block_1(ctx) {
     	let select;
     	let mounted;
@@ -25824,7 +25564,7 @@ var app = (function () {
     			}
 
     			if (/*$week*/ ctx[3] === void 0) add_render_callback(() => /*select_change_handler_1*/ ctx[12].call(select));
-    			add_location(select, file$1, 242, 2, 6704);
+    			add_location(select, file$1, 303, 2, 7917);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -25885,14 +25625,14 @@ var app = (function () {
     		block,
     		id: create_else_block_1.name,
     		type: "else",
-    		source: "(241:0) {:else}",
+    		source: "(302:0) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (237:0) {#if weeks.length == 0}
+    // (298:0) {#if weeks.length == 0}
     function create_if_block_1(ctx) {
     	let select;
     	let option;
@@ -25904,8 +25644,8 @@ var app = (function () {
     			option.textContent = "Loading...";
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file$1, 238, 4, 6599);
-    			add_location(select, file$1, 237, 2, 6585);
+    			add_location(option, file$1, 299, 4, 7816);
+    			add_location(select, file$1, 298, 2, 7803);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -25921,17 +25661,17 @@ var app = (function () {
     		block,
     		id: create_if_block_1.name,
     		type: "if",
-    		source: "(237:0) {#if weeks.length == 0}",
+    		source: "(298:0) {#if weeks.length == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (244:4) {#each weeks as week}
+    // (305:4) {#each weeks as week}
     function create_each_block_1(ctx) {
     	let option;
-    	let t_value = /*week*/ ctx[21].replace("-", " ") + "";
+    	let t_value = /*week*/ ctx[22].replace("-", " ") + "";
     	let t;
     	let option_value_value;
 
@@ -25939,18 +25679,18 @@ var app = (function () {
     		c: function create() {
     			option = element("option");
     			t = text(t_value);
-    			option.__value = option_value_value = /*week*/ ctx[21];
+    			option.__value = option_value_value = /*week*/ ctx[22];
     			option.value = option.__value;
-    			add_location(option, file$1, 244, 6, 6790);
+    			add_location(option, file$1, 305, 6, 8001);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
     			append_dev(option, t);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*weeks*/ 2 && t_value !== (t_value = /*week*/ ctx[21].replace("-", " ") + "")) set_data_dev(t, t_value);
+    			if (dirty & /*weeks*/ 2 && t_value !== (t_value = /*week*/ ctx[22].replace("-", " ") + "")) set_data_dev(t, t_value);
 
-    			if (dirty & /*weeks*/ 2 && option_value_value !== (option_value_value = /*week*/ ctx[21])) {
+    			if (dirty & /*weeks*/ 2 && option_value_value !== (option_value_value = /*week*/ ctx[22])) {
     				prop_dev(option, "__value", option_value_value);
     				option.value = option.__value;
     			}
@@ -25964,14 +25704,14 @@ var app = (function () {
     		block,
     		id: create_each_block_1.name,
     		type: "each",
-    		source: "(244:4) {#each weeks as week}",
+    		source: "(305:4) {#each weeks as week}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (257:2) {:else}
+    // (318:2) {:else}
     function create_else_block(ctx) {
     	let each_1_anchor;
     	let current;
@@ -26060,14 +25800,14 @@ var app = (function () {
     		block,
     		id: create_else_block.name,
     		type: "else",
-    		source: "(257:2) {:else}",
+    		source: "(318:2) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (255:2) {#if items.length == 0}
+    // (316:2) {#if items.length == 0}
     function create_if_block(ctx) {
     	let p;
 
@@ -26075,7 +25815,7 @@ var app = (function () {
     		c: function create() {
     			p = element("p");
     			p.textContent = "Loading...";
-    			add_location(p, file$1, 255, 4, 7027);
+    			add_location(p, file$1, 316, 4, 8227);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, p, anchor);
@@ -26092,18 +25832,18 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(255:2) {#if items.length == 0}",
+    		source: "(316:2) {#if items.length == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (258:4) {#each items as item}
+    // (319:4) {#each items as item}
     function create_each_block(ctx) {
     	let item;
     	let current;
-    	const item_spread_levels = [/*item*/ ctx[18], { isActive: /*$isActive*/ ctx[5] }];
+    	const item_spread_levels = [/*item*/ ctx[19], { isActive: /*$isActive*/ ctx[5] }];
     	let item_props = {};
 
     	for (let i = 0; i < item_spread_levels.length; i += 1) {
@@ -26123,7 +25863,7 @@ var app = (function () {
     		p: function update(ctx, dirty) {
     			const item_changes = (dirty & /*items, $isActive*/ 36)
     			? get_spread_update(item_spread_levels, [
-    					dirty & /*items*/ 4 && get_spread_object(/*item*/ ctx[18]),
+    					dirty & /*items*/ 4 && get_spread_object(/*item*/ ctx[19]),
     					dirty & /*$isActive*/ 32 && { isActive: /*$isActive*/ ctx[5] }
     				])
     			: {};
@@ -26148,7 +25888,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(258:4) {#each items as item}",
+    		source: "(319:4) {#each items as item}",
     		ctx
     	});
 
@@ -26228,16 +25968,16 @@ var app = (function () {
     			button2.textContent = "Show more rankings";
     			attr_dev(button0, "id", "prev-btn");
     			attr_dev(button0, "class", "svelte-1hn3a7v");
-    			add_location(button0, file$1, 221, 0, 6186);
+    			add_location(button0, file$1, 282, 0, 7420);
     			attr_dev(button1, "id", "next-btn");
     			attr_dev(button1, "class", "svelte-1hn3a7v");
-    			add_location(button1, file$1, 249, 0, 6881);
-    			add_location(p, file$1, 251, 0, 6938);
+    			add_location(button1, file$1, 310, 0, 8087);
+    			add_location(p, file$1, 312, 0, 8142);
     			attr_dev(div, "class", "svelte-1hn3a7v");
-    			add_location(div, file$1, 253, 0, 6989);
+    			add_location(div, file$1, 314, 0, 8191);
     			attr_dev(button2, "id", "showMore");
     			attr_dev(button2, "class", "svelte-1hn3a7v");
-    			add_location(button2, file$1, 263, 0, 7163);
+    			add_location(button2, file$1, 324, 0, 8355);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -26407,6 +26147,9 @@ var app = (function () {
     			let data = await query.get().// Converts firestore collection into array of documents
     			then(snapshots => snapshots.docs.map(doc => doc.data()));
 
+    			// fetch banners and append banner property to data object
+    			await fetchBanners(data);
+
     			// Save data in local storage
     			cacheData(key, data);
 
@@ -26424,16 +26167,19 @@ var app = (function () {
 
     			query = db.collection($year).doc($season).collection($week).orderBy("rank", "asc").startAfter(lastVisible).limit(10);
 
-    			query.get().then(snapshots => {
+    			query.get().then(async snapshots => {
     				// Converts newly fetched collection into array of documents
     				let data = snapshots.docs.map(doc => doc.data());
+
+    				await fetchBanners(data);
 
     				// Update items array with new documents
     				for (let i = 0; i < data.length; i++) {
     					item = {
     						rank: data[i].rank,
     						title: data[i].title,
-    						votes: data[i].votes
+    						votes: data[i].votes,
+    						banner: data[i].banner
     					};
 
     					$$invalidate(2, items = [...items, item]);
@@ -26519,12 +26265,14 @@ var app = (function () {
     			query = db.collection($year).doc($season).collection($week).orderBy("rank", "asc").limit(10);
 
     			let data = await query.get().then(snapshots => snapshots.docs.map(doc => doc.data()));
+    			await fetchBanners(data);
 
     			for (let i = 0; i < data.length; i++) {
     				item = {
     					rank: data[i].rank,
     					title: data[i].title,
-    					votes: data[i].votes
+    					votes: data[i].votes,
+    					banner: data[i].banner
     				};
 
     				$$invalidate(2, items = [...items, item]);
@@ -26538,6 +26286,48 @@ var app = (function () {
 
     		// Re-enable button in the case that the user has fetched the entire subcollection and button was disabled
     		document.getElementById("showMore").disabled = false;
+    	};
+
+    	const fetchBanners = async data => {
+    		let title;
+
+    		for (let i = 0; i < data.length; i++) {
+    			let banner;
+    			title = data[i].title;
+
+    			const query = `
+  query ($title: String){
+    Media (search: $title, type: ANIME) {
+      bannerImage
+    }
+  }
+  `;
+
+    			const variables = { title };
+
+    			const headers = {
+    				"Content-Type": "application/json",
+    				Accept: "application/json"
+    			};
+
+    			await axios({
+    				method: "post",
+    				url: "https://graphql.anilist.co/",
+    				headers,
+    				data: JSON.stringify({ query, variables })
+    			}).then(result => {
+    				banner = result.data.data.Media.bannerImage;
+
+    				if (banner === null) {
+    					banner = "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
+    				}
+    			}).catch(err => {
+    				banner = "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
+    				console.log(err.message);
+    			});
+
+    			data[i].banner = banner;
+    		}
     	};
 
     	function goPrev() {
@@ -26597,6 +26387,7 @@ var app = (function () {
     	}
 
     	$$self.$capture_state = () => ({
+    		axios,
     		onMount,
     		db,
     		cf,
@@ -26617,6 +26408,7 @@ var app = (function () {
     		fetchWeeks,
     		updateSeason,
     		updateItems,
+    		fetchBanners,
     		goPrev,
     		goNext,
     		$week,
@@ -26667,8 +26459,8 @@ var app = (function () {
     	}
     }
 
-    /* src\App.svelte generated by Svelte v3.42.1 */
-    const file = "src\\App.svelte";
+    /* src/App.svelte generated by Svelte v3.41.0 */
+    const file = "src/App.svelte";
 
     function create_fragment(ctx) {
     	let main;
@@ -26686,9 +26478,9 @@ var app = (function () {
     			t1 = space();
     			create_component(leaderboard.$$.fragment);
     			attr_dev(h1, "class", "svelte-11a7f76");
-    			add_location(h1, file, 5, 2, 95);
+    			add_location(h1, file, 5, 2, 90);
     			attr_dev(main, "class", "svelte-11a7f76");
-    			add_location(main, file, 4, 0, 85);
+    			add_location(main, file, 4, 0, 81);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");

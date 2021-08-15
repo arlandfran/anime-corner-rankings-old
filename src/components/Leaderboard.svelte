@@ -1,4 +1,5 @@
 <script>
+  import axios from "axios";
   import { onMount } from "svelte";
   import { db, cf } from "../firebase";
   import Item from "./Item.svelte";
@@ -38,10 +39,14 @@
         // Converts firestore collection into array of documents
         .then((snapshots) => snapshots.docs.map((doc) => doc.data()));
 
+      // fetch banners and append banner property to data object
+      await fetchBanners(data);
+
       // Save data in local storage
       cacheData(key, data);
 
       console.log("Data fetched:", data);
+
       return data;
     }
   };
@@ -61,9 +66,11 @@
         .startAfter(lastVisible)
         .limit(10);
 
-      query.get().then((snapshots) => {
+      query.get().then(async (snapshots) => {
         // Converts newly fetched collection into array of documents
         let data = snapshots.docs.map((doc) => doc.data());
+
+        await fetchBanners(data);
 
         // Update items array with new documents
         for (let i = 0; i < data.length; i++) {
@@ -71,6 +78,7 @@
             rank: data[i].rank,
             title: data[i].title,
             votes: data[i].votes,
+            banner: data[i].banner,
           };
           items = [...items, item];
         }
@@ -166,11 +174,14 @@
         .get()
         .then((snapshots) => snapshots.docs.map((doc) => doc.data()));
 
+      await fetchBanners(data);
+
       for (let i = 0; i < data.length; i++) {
         item = {
           rank: data[i].rank,
           title: data[i].title,
           votes: data[i].votes,
+          banner: data[i].banner,
         };
         items = [...items, item];
       }
@@ -180,6 +191,56 @@
     }
     // Re-enable button in the case that the user has fetched the entire subcollection and button was disabled
     document.getElementById("showMore").disabled = false;
+  };
+
+  const fetchBanners = async (data) => {
+    let title;
+
+    for (let i = 0; i < data.length; i++) {
+      let banner;
+      title = data[i].title;
+
+      const query = `
+  query ($title: String){
+    Media (search: $title, type: ANIME) {
+      bannerImage
+    }
+  }
+  `;
+
+      const variables = {
+        title: title,
+      };
+
+      const headers = {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      };
+
+      await axios({
+        method: "post",
+        url: "https://graphql.anilist.co/",
+        headers,
+        data: JSON.stringify({
+          query: query,
+          variables: variables,
+        }),
+      })
+        .then((result) => {
+          banner = result.data.data.Media.bannerImage;
+
+          if (banner === null) {
+            banner =
+              "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
+          }
+        })
+        .catch((err) => {
+          banner =
+            "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
+          console.log(err.message);
+        });
+      data[i].banner = banner;
+    }
   };
 
   function goPrev() {

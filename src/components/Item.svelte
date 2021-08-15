@@ -8,6 +8,7 @@
   export let rank;
   export let title;
   export let votes;
+  export let banner;
   export let isActive;
 
   function toggleActive() {
@@ -104,7 +105,7 @@
 
 <div class="card" on:click={toggleActive}>
   <ItemRank {rank} />
-  <ItemBanner {title} />
+  <ItemBanner {banner} {title} />
   <ItemDetails {votes} />
 </div>
 
