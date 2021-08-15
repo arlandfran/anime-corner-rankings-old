@@ -24682,30 +24682,78 @@ var app = (function () {
     const file$3 = "src/components/ItemDetails.svelte";
 
     function create_fragment$3(ctx) {
-    	let div;
-    	let t;
+    	let div6;
+    	let div2;
+    	let div0;
+    	let t1;
+    	let div1;
+    	let t2;
+    	let t3;
+    	let t4;
+    	let div5;
+    	let div3;
+    	let t5;
+    	let t6;
+    	let div4;
 
     	const block = {
     		c: function create() {
-    			div = element("div");
-    			t = text(/*votes*/ ctx[0]);
-    			attr_dev(div, "class", "svelte-18wybds");
-    			add_location(div, file$3, 4, 0, 40);
+    			div6 = element("div");
+    			div2 = element("div");
+    			div0 = element("div");
+    			div0.textContent = `${/*rankProgression*/ ctx[2]}`;
+    			t1 = space();
+    			div1 = element("div");
+    			t2 = text("FROM RANK ");
+    			t3 = text(/*previousRank*/ ctx[0]);
+    			t4 = space();
+    			div5 = element("div");
+    			div3 = element("div");
+    			t5 = text(/*votes*/ ctx[1]);
+    			t6 = space();
+    			div4 = element("div");
+    			div4.textContent = `${/*voteDifference*/ ctx[3]}`;
+    			attr_dev(div0, "class", "figure svelte-1mwo41z");
+    			add_location(div0, file$3, 28, 4, 802);
+    			attr_dev(div1, "class", "label svelte-1mwo41z");
+    			add_location(div1, file$3, 29, 4, 850);
+    			attr_dev(div2, "class", "sub-container svelte-1mwo41z");
+    			add_location(div2, file$3, 27, 2, 770);
+    			attr_dev(div3, "class", "figure svelte-1mwo41z");
+    			add_location(div3, file$3, 32, 4, 943);
+    			attr_dev(div4, "class", "label svelte-1mwo41z");
+    			add_location(div4, file$3, 33, 4, 981);
+    			attr_dev(div5, "class", "sub-container svelte-1mwo41z");
+    			add_location(div5, file$3, 31, 2, 911);
+    			attr_dev(div6, "class", "container svelte-1mwo41z");
+    			add_location(div6, file$3, 26, 0, 744);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, div, anchor);
-    			append_dev(div, t);
+    			insert_dev(target, div6, anchor);
+    			append_dev(div6, div2);
+    			append_dev(div2, div0);
+    			append_dev(div2, t1);
+    			append_dev(div2, div1);
+    			append_dev(div1, t2);
+    			append_dev(div1, t3);
+    			append_dev(div6, t4);
+    			append_dev(div6, div5);
+    			append_dev(div5, div3);
+    			append_dev(div3, t5);
+    			append_dev(div5, t6);
+    			append_dev(div5, div4);
     		},
     		p: function update(ctx, [dirty]) {
-    			if (dirty & /*votes*/ 1) set_data_dev(t, /*votes*/ ctx[0]);
+    			if (dirty & /*previousRank*/ 1) set_data_dev(t3, /*previousRank*/ ctx[0]);
+    			if (dirty & /*votes*/ 2) set_data_dev(t5, /*votes*/ ctx[1]);
     		},
     		i: noop$1,
     		o: noop$1,
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(div);
+    			if (detaching) detach_dev(div6);
     		}
     	};
 
@@ -24720,37 +24768,83 @@ var app = (function () {
     	return block;
     }
 
+    function calculateRankProgression(currentRank, previousRank) {
+    	if (currentRank < previousRank) {
+    		return `⮅ ${previousRank - currentRank}`;
+    	} else {
+    		return `⮇ ${(previousRank - currentRank) * -1}`;
+    	}
+    }
+
+    function calculateVoteDifference(currentVotes, previousVotes) {
+    	let difference = currentVotes - previousVotes;
+
+    	if (difference > 0) {
+    		return `+${difference.toFixed(2)} GAIN`;
+    	} else {
+    		return `${difference.toFixed(2)} DROP`;
+    	}
+    }
+
     function instance$3($$self, $$props, $$invalidate) {
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('ItemDetails', slots, []);
+    	let { rank } = $$props;
+    	let { previousRank } = $$props;
     	let { votes } = $$props;
-    	const writable_props = ['votes'];
+    	let { previousVotes } = $$props;
+    	let rankProgression = calculateRankProgression(rank, previousRank);
+    	let voteDifference = calculateVoteDifference(votes, previousVotes);
+    	const writable_props = ['rank', 'previousRank', 'votes', 'previousVotes'];
 
     	Object.keys($$props).forEach(key => {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<ItemDetails> was created with unknown prop '${key}'`);
     	});
 
     	$$self.$$set = $$props => {
-    		if ('votes' in $$props) $$invalidate(0, votes = $$props.votes);
+    		if ('rank' in $$props) $$invalidate(4, rank = $$props.rank);
+    		if ('previousRank' in $$props) $$invalidate(0, previousRank = $$props.previousRank);
+    		if ('votes' in $$props) $$invalidate(1, votes = $$props.votes);
+    		if ('previousVotes' in $$props) $$invalidate(5, previousVotes = $$props.previousVotes);
     	};
 
-    	$$self.$capture_state = () => ({ votes });
+    	$$self.$capture_state = () => ({
+    		rank,
+    		previousRank,
+    		votes,
+    		previousVotes,
+    		calculateRankProgression,
+    		calculateVoteDifference,
+    		rankProgression,
+    		voteDifference
+    	});
 
     	$$self.$inject_state = $$props => {
-    		if ('votes' in $$props) $$invalidate(0, votes = $$props.votes);
+    		if ('rank' in $$props) $$invalidate(4, rank = $$props.rank);
+    		if ('previousRank' in $$props) $$invalidate(0, previousRank = $$props.previousRank);
+    		if ('votes' in $$props) $$invalidate(1, votes = $$props.votes);
+    		if ('previousVotes' in $$props) $$invalidate(5, previousVotes = $$props.previousVotes);
+    		if ('rankProgression' in $$props) $$invalidate(2, rankProgression = $$props.rankProgression);
+    		if ('voteDifference' in $$props) $$invalidate(3, voteDifference = $$props.voteDifference);
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [votes];
+    	return [previousRank, votes, rankProgression, voteDifference, rank, previousVotes];
     }
 
     class ItemDetails extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$3, create_fragment$3, safe_not_equal, { votes: 0 });
+
+    		init(this, options, instance$3, create_fragment$3, safe_not_equal, {
+    			rank: 4,
+    			previousRank: 0,
+    			votes: 1,
+    			previousVotes: 5
+    		});
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
@@ -24762,9 +24856,37 @@ var app = (function () {
     		const { ctx } = this.$$;
     		const props = options.props || {};
 
-    		if (/*votes*/ ctx[0] === undefined && !('votes' in props)) {
+    		if (/*rank*/ ctx[4] === undefined && !('rank' in props)) {
+    			console.warn("<ItemDetails> was created without expected prop 'rank'");
+    		}
+
+    		if (/*previousRank*/ ctx[0] === undefined && !('previousRank' in props)) {
+    			console.warn("<ItemDetails> was created without expected prop 'previousRank'");
+    		}
+
+    		if (/*votes*/ ctx[1] === undefined && !('votes' in props)) {
     			console.warn("<ItemDetails> was created without expected prop 'votes'");
     		}
+
+    		if (/*previousVotes*/ ctx[5] === undefined && !('previousVotes' in props)) {
+    			console.warn("<ItemDetails> was created without expected prop 'previousVotes'");
+    		}
+    	}
+
+    	get rank() {
+    		throw new Error("<ItemDetails>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set rank(value) {
+    		throw new Error("<ItemDetails>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get previousRank() {
+    		throw new Error("<ItemDetails>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set previousRank(value) {
+    		throw new Error("<ItemDetails>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
 
     	get votes() {
@@ -24772,6 +24894,14 @@ var app = (function () {
     	}
 
     	set votes(value) {
+    		throw new Error("<ItemDetails>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get previousVotes() {
+    		throw new Error("<ItemDetails>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set previousVotes(value) {
     		throw new Error("<ItemDetails>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
     }
@@ -24812,7 +24942,7 @@ var app = (function () {
     const { console: console_1$1 } = globals;
     const file$2 = "src/components/Item.svelte";
 
-    // (112:0) {#if isActive}
+    // (114:0) {#if isActive}
     function create_if_block$1(ctx) {
     	let await_block_anchor;
 
@@ -24824,10 +24954,10 @@ var app = (function () {
     		pending: create_pending_block,
     		then: create_then_block,
     		catch: create_catch_block,
-    		value: 7
+    		value: 9
     	};
 
-    	handle_promise(/*fetchDetails*/ ctx[6](), info);
+    	handle_promise(/*fetchDetails*/ ctx[8](), info);
 
     	const block = {
     		c: function create() {
@@ -24856,7 +24986,7 @@ var app = (function () {
     		block,
     		id: create_if_block$1.name,
     		type: "if",
-    		source: "(112:0) {#if isActive}",
+    		source: "(114:0) {#if isActive}",
     		ctx
     	});
 
@@ -24878,16 +25008,16 @@ var app = (function () {
     	return block;
     }
 
-    // (117:2) {:then anime}
+    // (119:2) {:then anime}
     function create_then_block(ctx) {
     	let div;
-    	let raw_value = /*anime*/ ctx[7].description + "";
+    	let raw_value = /*anime*/ ctx[9].description + "";
 
     	const block = {
     		c: function create() {
     			div = element("div");
     			attr_dev(div, "class", "card-content");
-    			add_location(div, file$2, 117, 4, 2798);
+    			add_location(div, file$2, 119, 4, 2891);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -24903,14 +25033,14 @@ var app = (function () {
     		block,
     		id: create_then_block.name,
     		type: "then",
-    		source: "(117:2) {:then anime}",
+    		source: "(119:2) {:then anime}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (113:25)      <div class="card-content">       <p>Loading...</p>     </div>   {:then anime}
+    // (115:25)      <div class="card-content">       <p>Loading...</p>     </div>   {:then anime}
     function create_pending_block(ctx) {
     	let div;
     	let p;
@@ -24920,9 +25050,9 @@ var app = (function () {
     			div = element("div");
     			p = element("p");
     			p.textContent = "Loading...";
-    			add_location(p, file$2, 114, 6, 2749);
+    			add_location(p, file$2, 116, 6, 2842);
     			attr_dev(div, "class", "card-content");
-    			add_location(div, file$2, 113, 4, 2716);
+    			add_location(div, file$2, 115, 4, 2809);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -24938,7 +25068,7 @@ var app = (function () {
     		block,
     		id: create_pending_block.name,
     		type: "pending",
-    		source: "(113:25)      <div class=\\\"card-content\\\">       <p>Loading...</p>     </div>   {:then anime}",
+    		source: "(115:25)      <div class=\\\"card-content\\\">       <p>Loading...</p>     </div>   {:then anime}",
     		ctx
     	});
 
@@ -24972,7 +25102,12 @@ var app = (function () {
     		});
 
     	itemdetails = new ItemDetails({
-    			props: { votes: /*votes*/ ctx[3] },
+    			props: {
+    				rank: /*rank*/ ctx[1],
+    				previousRank: /*previousRank*/ ctx[5],
+    				votes: /*votes*/ ctx[3],
+    				previousVotes: /*previousVotes*/ ctx[6]
+    			},
     			$$inline: true
     		});
 
@@ -24990,7 +25125,7 @@ var app = (function () {
     			if (if_block) if_block.c();
     			if_block_anchor = empty();
     			attr_dev(div, "class", "card svelte-1gfowqy");
-    			add_location(div, file$2, 105, 0, 2538);
+    			add_location(div, file$2, 107, 0, 2593);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -25008,7 +25143,7 @@ var app = (function () {
     			current = true;
 
     			if (!mounted) {
-    				dispose = listen_dev(div, "click", /*toggleActive*/ ctx[5], false, false, false);
+    				dispose = listen_dev(div, "click", /*toggleActive*/ ctx[7], false, false, false);
     				mounted = true;
     			}
     		},
@@ -25021,7 +25156,10 @@ var app = (function () {
     			if (dirty & /*title*/ 4) itembanner_changes.title = /*title*/ ctx[2];
     			itembanner.$set(itembanner_changes);
     			const itemdetails_changes = {};
+    			if (dirty & /*rank*/ 2) itemdetails_changes.rank = /*rank*/ ctx[1];
+    			if (dirty & /*previousRank*/ 32) itemdetails_changes.previousRank = /*previousRank*/ ctx[5];
     			if (dirty & /*votes*/ 8) itemdetails_changes.votes = /*votes*/ ctx[3];
+    			if (dirty & /*previousVotes*/ 64) itemdetails_changes.previousVotes = /*previousVotes*/ ctx[6];
     			itemdetails.$set(itemdetails_changes);
 
     			if (/*isActive*/ ctx[0]) {
@@ -25081,6 +25219,8 @@ var app = (function () {
     	let { title } = $$props;
     	let { votes } = $$props;
     	let { banner } = $$props;
+    	let { previousRank } = $$props;
+    	let { previousVotes } = $$props;
     	let { isActive } = $$props;
 
     	function toggleActive() {
@@ -25168,7 +25308,15 @@ var app = (function () {
     		}
     	};
 
-    	const writable_props = ['rank', 'title', 'votes', 'banner', 'isActive'];
+    	const writable_props = [
+    		'rank',
+    		'title',
+    		'votes',
+    		'banner',
+    		'previousRank',
+    		'previousVotes',
+    		'isActive'
+    	];
 
     	Object.keys($$props).forEach(key => {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console_1$1.warn(`<Item> was created with unknown prop '${key}'`);
@@ -25179,6 +25327,8 @@ var app = (function () {
     		if ('title' in $$props) $$invalidate(2, title = $$props.title);
     		if ('votes' in $$props) $$invalidate(3, votes = $$props.votes);
     		if ('banner' in $$props) $$invalidate(4, banner = $$props.banner);
+    		if ('previousRank' in $$props) $$invalidate(5, previousRank = $$props.previousRank);
+    		if ('previousVotes' in $$props) $$invalidate(6, previousVotes = $$props.previousVotes);
     		if ('isActive' in $$props) $$invalidate(0, isActive = $$props.isActive);
     	};
 
@@ -25193,6 +25343,8 @@ var app = (function () {
     		title,
     		votes,
     		banner,
+    		previousRank,
+    		previousVotes,
     		isActive,
     		toggleActive,
     		fetchDetails
@@ -25203,6 +25355,8 @@ var app = (function () {
     		if ('title' in $$props) $$invalidate(2, title = $$props.title);
     		if ('votes' in $$props) $$invalidate(3, votes = $$props.votes);
     		if ('banner' in $$props) $$invalidate(4, banner = $$props.banner);
+    		if ('previousRank' in $$props) $$invalidate(5, previousRank = $$props.previousRank);
+    		if ('previousVotes' in $$props) $$invalidate(6, previousVotes = $$props.previousVotes);
     		if ('isActive' in $$props) $$invalidate(0, isActive = $$props.isActive);
     	};
 
@@ -25210,7 +25364,17 @@ var app = (function () {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [isActive, rank, title, votes, banner, toggleActive, fetchDetails];
+    	return [
+    		isActive,
+    		rank,
+    		title,
+    		votes,
+    		banner,
+    		previousRank,
+    		previousVotes,
+    		toggleActive,
+    		fetchDetails
+    	];
     }
 
     class Item extends SvelteComponentDev {
@@ -25222,6 +25386,8 @@ var app = (function () {
     			title: 2,
     			votes: 3,
     			banner: 4,
+    			previousRank: 5,
+    			previousVotes: 6,
     			isActive: 0
     		});
 
@@ -25249,6 +25415,14 @@ var app = (function () {
 
     		if (/*banner*/ ctx[4] === undefined && !('banner' in props)) {
     			console_1$1.warn("<Item> was created without expected prop 'banner'");
+    		}
+
+    		if (/*previousRank*/ ctx[5] === undefined && !('previousRank' in props)) {
+    			console_1$1.warn("<Item> was created without expected prop 'previousRank'");
+    		}
+
+    		if (/*previousVotes*/ ctx[6] === undefined && !('previousVotes' in props)) {
+    			console_1$1.warn("<Item> was created without expected prop 'previousVotes'");
     		}
 
     		if (/*isActive*/ ctx[0] === undefined && !('isActive' in props)) {
@@ -25285,6 +25459,22 @@ var app = (function () {
     	}
 
     	set banner(value) {
+    		throw new Error("<Item>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get previousRank() {
+    		throw new Error("<Item>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set previousRank(value) {
+    		throw new Error("<Item>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get previousVotes() {
+    		throw new Error("<Item>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set previousVotes(value) {
     		throw new Error("<Item>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
 
@@ -25358,23 +25548,23 @@ var app = (function () {
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[20] = list[i];
+    	child_ctx[21] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_1(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[23] = list[i];
+    	child_ctx[24] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_2(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[26] = list[i];
+    	child_ctx[27] = list[i];
     	return child_ctx;
     }
 
-    // (308:0) {:else}
+    // (353:0) {:else}
     function create_else_block_2(ctx) {
     	let select;
     	let mounted;
@@ -25396,7 +25586,7 @@ var app = (function () {
     			}
 
     			if (/*$season*/ ctx[4] === void 0) add_render_callback(() => /*select_change_handler*/ ctx[11].call(select));
-    			add_location(select, file$1, 309, 2, 8227);
+    			add_location(select, file$1, 354, 2, 9664);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -25457,14 +25647,14 @@ var app = (function () {
     		block,
     		id: create_else_block_2.name,
     		type: "else",
-    		source: "(308:0) {:else}",
+    		source: "(353:0) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (304:0) {#if seasons == 0}
+    // (349:0) {#if seasons == 0}
     function create_if_block_2(ctx) {
     	let select;
     	let option;
@@ -25476,8 +25666,8 @@ var app = (function () {
     			option.textContent = "Loading...";
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file$1, 305, 4, 8126);
-    			add_location(select, file$1, 304, 2, 8113);
+    			add_location(option, file$1, 350, 4, 9563);
+    			add_location(select, file$1, 349, 2, 9550);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -25493,17 +25683,17 @@ var app = (function () {
     		block,
     		id: create_if_block_2.name,
     		type: "if",
-    		source: "(304:0) {#if seasons == 0}",
+    		source: "(349:0) {#if seasons == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (311:4) {#each seasons as season}
+    // (356:4) {#each seasons as season}
     function create_each_block_2(ctx) {
     	let option;
-    	let t_value = /*season*/ ctx[26] + "";
+    	let t_value = /*season*/ ctx[27] + "";
     	let t;
     	let option_value_value;
 
@@ -25511,18 +25701,18 @@ var app = (function () {
     		c: function create() {
     			option = element("option");
     			t = text(t_value);
-    			option.__value = option_value_value = /*season*/ ctx[26];
+    			option.__value = option_value_value = /*season*/ ctx[27];
     			option.value = option.__value;
-    			add_location(option, file$1, 311, 6, 8318);
+    			add_location(option, file$1, 356, 6, 9755);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
     			append_dev(option, t);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*seasons*/ 1 && t_value !== (t_value = /*season*/ ctx[26] + "")) set_data_dev(t, t_value);
+    			if (dirty & /*seasons*/ 1 && t_value !== (t_value = /*season*/ ctx[27] + "")) set_data_dev(t, t_value);
 
-    			if (dirty & /*seasons*/ 1 && option_value_value !== (option_value_value = /*season*/ ctx[26])) {
+    			if (dirty & /*seasons*/ 1 && option_value_value !== (option_value_value = /*season*/ ctx[27])) {
     				prop_dev(option, "__value", option_value_value);
     				option.value = option.__value;
     			}
@@ -25536,14 +25726,14 @@ var app = (function () {
     		block,
     		id: create_each_block_2.name,
     		type: "each",
-    		source: "(311:4) {#each seasons as season}",
+    		source: "(356:4) {#each seasons as season}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (321:0) {:else}
+    // (366:0) {:else}
     function create_else_block_1(ctx) {
     	let select;
     	let mounted;
@@ -25565,7 +25755,7 @@ var app = (function () {
     			}
 
     			if (/*$week*/ ctx[3] === void 0) add_render_callback(() => /*select_change_handler_1*/ ctx[12].call(select));
-    			add_location(select, file$1, 322, 2, 8530);
+    			add_location(select, file$1, 367, 2, 9967);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -25626,14 +25816,14 @@ var app = (function () {
     		block,
     		id: create_else_block_1.name,
     		type: "else",
-    		source: "(321:0) {:else}",
+    		source: "(366:0) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (317:0) {#if weeks.length == 0}
+    // (362:0) {#if weeks.length == 0}
     function create_if_block_1(ctx) {
     	let select;
     	let option;
@@ -25645,8 +25835,8 @@ var app = (function () {
     			option.textContent = "Loading...";
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file$1, 318, 4, 8429);
-    			add_location(select, file$1, 317, 2, 8416);
+    			add_location(option, file$1, 363, 4, 9866);
+    			add_location(select, file$1, 362, 2, 9853);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -25662,17 +25852,17 @@ var app = (function () {
     		block,
     		id: create_if_block_1.name,
     		type: "if",
-    		source: "(317:0) {#if weeks.length == 0}",
+    		source: "(362:0) {#if weeks.length == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (324:4) {#each weeks as week}
+    // (369:4) {#each weeks as week}
     function create_each_block_1(ctx) {
     	let option;
-    	let t_value = /*week*/ ctx[23].replace("-", " ") + "";
+    	let t_value = /*week*/ ctx[24].replace("-", " ") + "";
     	let t;
     	let option_value_value;
 
@@ -25680,18 +25870,18 @@ var app = (function () {
     		c: function create() {
     			option = element("option");
     			t = text(t_value);
-    			option.__value = option_value_value = /*week*/ ctx[23];
+    			option.__value = option_value_value = /*week*/ ctx[24];
     			option.value = option.__value;
-    			add_location(option, file$1, 324, 6, 8614);
+    			add_location(option, file$1, 369, 6, 10051);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
     			append_dev(option, t);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*weeks*/ 2 && t_value !== (t_value = /*week*/ ctx[23].replace("-", " ") + "")) set_data_dev(t, t_value);
+    			if (dirty & /*weeks*/ 2 && t_value !== (t_value = /*week*/ ctx[24].replace("-", " ") + "")) set_data_dev(t, t_value);
 
-    			if (dirty & /*weeks*/ 2 && option_value_value !== (option_value_value = /*week*/ ctx[23])) {
+    			if (dirty & /*weeks*/ 2 && option_value_value !== (option_value_value = /*week*/ ctx[24])) {
     				prop_dev(option, "__value", option_value_value);
     				option.value = option.__value;
     			}
@@ -25705,14 +25895,14 @@ var app = (function () {
     		block,
     		id: create_each_block_1.name,
     		type: "each",
-    		source: "(324:4) {#each weeks as week}",
+    		source: "(369:4) {#each weeks as week}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (337:2) {:else}
+    // (382:2) {:else}
     function create_else_block(ctx) {
     	let each_1_anchor;
     	let current;
@@ -25801,14 +25991,14 @@ var app = (function () {
     		block,
     		id: create_else_block.name,
     		type: "else",
-    		source: "(337:2) {:else}",
+    		source: "(382:2) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (335:2) {#if items.length == 0}
+    // (380:2) {#if items.length == 0}
     function create_if_block(ctx) {
     	let p;
 
@@ -25816,7 +26006,7 @@ var app = (function () {
     		c: function create() {
     			p = element("p");
     			p.textContent = "Loading...";
-    			add_location(p, file$1, 335, 4, 8840);
+    			add_location(p, file$1, 380, 4, 10277);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, p, anchor);
@@ -25833,18 +26023,18 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(335:2) {#if items.length == 0}",
+    		source: "(380:2) {#if items.length == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (338:4) {#each items as item}
+    // (383:4) {#each items as item}
     function create_each_block(ctx) {
     	let item;
     	let current;
-    	const item_spread_levels = [/*item*/ ctx[20], { isActive: /*$isActive*/ ctx[5] }];
+    	const item_spread_levels = [/*item*/ ctx[21], { isActive: /*$isActive*/ ctx[5] }];
     	let item_props = {};
 
     	for (let i = 0; i < item_spread_levels.length; i += 1) {
@@ -25864,7 +26054,7 @@ var app = (function () {
     		p: function update(ctx, dirty) {
     			const item_changes = (dirty & /*items, $isActive*/ 36)
     			? get_spread_update(item_spread_levels, [
-    					dirty & /*items*/ 4 && get_spread_object(/*item*/ ctx[20]),
+    					dirty & /*items*/ 4 && get_spread_object(/*item*/ ctx[21]),
     					dirty & /*$isActive*/ 32 && { isActive: /*$isActive*/ ctx[5] }
     				])
     			: {};
@@ -25889,7 +26079,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(338:4) {#each items as item}",
+    		source: "(383:4) {#each items as item}",
     		ctx
     	});
 
@@ -25969,16 +26159,16 @@ var app = (function () {
     			button2.textContent = "Show more rankings";
     			attr_dev(button0, "id", "prev-btn");
     			attr_dev(button0, "class", "svelte-1hn3a7v");
-    			add_location(button0, file$1, 301, 0, 8033);
+    			add_location(button0, file$1, 346, 0, 9470);
     			attr_dev(button1, "id", "next-btn");
     			attr_dev(button1, "class", "svelte-1hn3a7v");
-    			add_location(button1, file$1, 329, 0, 8700);
-    			add_location(p, file$1, 331, 0, 8755);
+    			add_location(button1, file$1, 374, 0, 10137);
+    			add_location(p, file$1, 376, 0, 10192);
     			attr_dev(div, "class", "svelte-1hn3a7v");
-    			add_location(div, file$1, 333, 0, 8804);
+    			add_location(div, file$1, 378, 0, 10241);
     			attr_dev(button2, "id", "showMore");
     			attr_dev(button2, "class", "svelte-1hn3a7v");
-    			add_location(button2, file$1, 343, 0, 8968);
+    			add_location(button2, file$1, 388, 0, 10405);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -26154,6 +26344,8 @@ var app = (function () {
     			// fetch banners and append banner property to data object
     			await fetchBanners(data);
 
+    			await fetchPreviousStandings(data);
+
     			// Save data in local storage
     			cacheData(key, data);
 
@@ -26177,7 +26369,9 @@ var app = (function () {
     					rank: data[i].rank,
     					title: data[i].title,
     					votes: data[i].votes,
-    					banner: data[i].banner
+    					banner: data[i].banner,
+    					previousRank: data[i].previousRank,
+    					previousVotes: data[i].previousVotes
     				};
 
     				$$invalidate(2, items = [...items, item]);
@@ -26194,6 +26388,7 @@ var app = (function () {
     					let data = snapshots.docs.map(doc => doc.data());
 
     					await fetchBanners(data);
+    					await fetchPreviousStandings(data);
 
     					// Update items array with new documents
     					for (let i = 0; i < data.length; i++) {
@@ -26201,7 +26396,9 @@ var app = (function () {
     							rank: data[i].rank,
     							title: data[i].title,
     							votes: data[i].votes,
-    							banner: data[i].banner
+    							banner: data[i].banner,
+    							previousRank: data[i].previousRank,
+    							previousVotes: data[i].previousVotes
     						};
 
     						$$invalidate(2, items = [...items, item]);
@@ -26291,13 +26488,16 @@ var app = (function () {
 
     			let data = await query.get().then(snapshots => snapshots.docs.map(doc => doc.data()));
     			await fetchBanners(data);
+    			await fetchPreviousStandings(data);
 
     			for (let i = 0; i < data.length; i++) {
     				item = {
     					rank: data[i].rank,
     					title: data[i].title,
     					votes: data[i].votes,
-    					banner: data[i].banner
+    					banner: data[i].banner,
+    					previousRank: data[i].previousRank,
+    					previousVotes: data[i].previousVotes
     				};
 
     				$$invalidate(2, items = [...items, item]);
@@ -26352,6 +26552,40 @@ var app = (function () {
     			});
 
     			data[i].banner = banner;
+    		}
+    	};
+
+    	const fetchPreviousStandings = async data => {
+    		let previousWeek;
+    		let query;
+    		let n = parseInt($week.split("-")[1]);
+    		n -= 1;
+
+    		if (n > 10) {
+    			previousWeek = "Week-" + n.toString();
+    		} else {
+    			previousWeek = "Week-0" + n.toString();
+    		}
+
+    		query = db.collection($year).doc($season).collection(previousWeek);
+
+    		if (previousWeek == "Week-00") {
+    			for (let i = 0; i < data.length; i++) {
+    				data[i].previousRank = 0;
+    				data[i].previousVotes = 0;
+    			}
+    		} else {
+    			for (let i = 0; i < data.length; i++) {
+    				let previousData = await query.where("title", "==", data[i].title).get().then(snapshots => snapshots.docs.map(doc => doc.data()));
+
+    				if (previousData[0] == undefined) {
+    					data[i].previousRank = 0;
+    					data[i].previousVotes = 0;
+    				} else {
+    					data[i].previousRank = previousData[0].rank;
+    					data[i].previousVotes = previousData[0].votes;
+    				}
+    			}
     		}
     	};
 
@@ -26435,6 +26669,7 @@ var app = (function () {
     		updateSeason,
     		updateItems,
     		fetchBanners,
+    		fetchPreviousStandings,
     		goPrev,
     		goNext,
     		$week,
