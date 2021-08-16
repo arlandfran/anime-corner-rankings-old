@@ -41,6 +41,7 @@
 
       // fetch banners and append banner property to data object
       await fetchBanners(data);
+      await fetchPreviousStandings(data);
 
       // Save data in local storage
       cacheData(key, data);
@@ -66,6 +67,8 @@
           title: data[i].title,
           votes: data[i].votes,
           banner: data[i].banner,
+          previousRank: data[i].previousRank,
+          previousVotes: data[i].previousVotes,
         };
         items = [...items, item];
       }
@@ -87,6 +90,7 @@
           let data = snapshots.docs.map((doc) => doc.data());
 
           await fetchBanners(data);
+          await fetchPreviousStandings(data);
 
           // Update items array with new documents
           for (let i = 0; i < data.length; i++) {
@@ -95,6 +99,8 @@
               title: data[i].title,
               votes: data[i].votes,
               banner: data[i].banner,
+              previousRank: data[i].previousRank,
+              previousVotes: data[i].previousVotes,
             };
             items = [...items, item];
           }
@@ -170,7 +176,7 @@
   };
 
   const updateItems = async () => {
-    let key = `${$season}-${$week}`;
+    let key = `${$season}-${$week}-page-${$page}`;
     let cache = checkCache(key);
 
     // If cached data exists and is not expired then return data
@@ -194,6 +200,7 @@
         .then((snapshots) => snapshots.docs.map((doc) => doc.data()));
 
       await fetchBanners(data);
+      await fetchPreviousStandings(data);
 
       for (let i = 0; i < data.length; i++) {
         item = {
@@ -201,6 +208,8 @@
           title: data[i].title,
           votes: data[i].votes,
           banner: data[i].banner,
+          previousRank: data[i].previousRank,
+          previousVotes: data[i].previousVotes,
         };
         items = [...items, item];
       }
@@ -259,6 +268,42 @@
           console.log(err.message);
         });
       data[i].banner = banner;
+    }
+  };
+
+  const fetchPreviousStandings = async (data) => {
+    let previousWeek;
+    let query;
+    let n = parseInt($week.split("-")[1]);
+    n -= 1;
+    if (n > 10) {
+      previousWeek = "Week-" + n.toString();
+    } else {
+      previousWeek = "Week-0" + n.toString();
+    }
+
+    query = db.collection($year).doc($season).collection(previousWeek);
+
+    if (previousWeek == "Week-00") {
+      for (let i = 0; i < data.length; i++) {
+        data[i].previousRank = null;
+        data[i].previousVotes = null;
+      }
+    } else {
+      for (let i = 0; i < data.length; i++) {
+        let previousData = await query
+          .where("title", "==", data[i].title)
+          .get()
+          .then((snapshots) => snapshots.docs.map((doc) => doc.data()));
+
+        if (previousData[0] == undefined) {
+          data[i].previousRank = null;
+          data[i].previousVotes = null;
+        } else {
+          data[i].previousRank = previousData[0].rank;
+          data[i].previousVotes = previousData[0].votes;
+        }
+      }
     }
   };
 
