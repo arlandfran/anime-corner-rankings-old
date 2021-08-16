@@ -25340,7 +25340,7 @@ var app = (function () {
     const { console: console_1$1 } = globals;
     const file$2 = "src/components/Item.svelte";
 
-    // (114:0) {#if isActive}
+    // (161:0) {#if isActive}
     function create_if_block$1(ctx) {
     	let await_block_anchor;
 
@@ -25384,7 +25384,7 @@ var app = (function () {
     		block,
     		id: create_if_block$1.name,
     		type: "if",
-    		source: "(114:0) {#if isActive}",
+    		source: "(161:0) {#if isActive}",
     		ctx
     	});
 
@@ -25406,7 +25406,7 @@ var app = (function () {
     	return block;
     }
 
-    // (119:2) {:then anime}
+    // (166:2) {:then anime}
     function create_then_block(ctx) {
     	let div;
     	let raw_value = /*anime*/ ctx[9].description + "";
@@ -25415,7 +25415,7 @@ var app = (function () {
     		c: function create() {
     			div = element("div");
     			attr_dev(div, "class", "card-content");
-    			add_location(div, file$2, 119, 4, 2891);
+    			add_location(div, file$2, 166, 4, 4283);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -25431,14 +25431,14 @@ var app = (function () {
     		block,
     		id: create_then_block.name,
     		type: "then",
-    		source: "(119:2) {:then anime}",
+    		source: "(166:2) {:then anime}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (115:25)      <div class="card-content">       <p>Loading...</p>     </div>   {:then anime}
+    // (162:25)      <div class="card-content">       <p>Loading...</p>     </div>   {:then anime}
     function create_pending_block(ctx) {
     	let div;
     	let p;
@@ -25448,9 +25448,9 @@ var app = (function () {
     			div = element("div");
     			p = element("p");
     			p.textContent = "Loading...";
-    			add_location(p, file$2, 116, 6, 2842);
+    			add_location(p, file$2, 163, 6, 4234);
     			attr_dev(div, "class", "card-content");
-    			add_location(div, file$2, 115, 4, 2809);
+    			add_location(div, file$2, 162, 4, 4201);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -25466,7 +25466,7 @@ var app = (function () {
     		block,
     		id: create_pending_block.name,
     		type: "pending",
-    		source: "(115:25)      <div class=\\\"card-content\\\">       <p>Loading...</p>     </div>   {:then anime}",
+    		source: "(162:25)      <div class=\\\"card-content\\\">       <p>Loading...</p>     </div>   {:then anime}",
     		ctx
     	});
 
@@ -25523,7 +25523,7 @@ var app = (function () {
     			if (if_block) if_block.c();
     			if_block_anchor = empty();
     			attr_dev(div, "class", "card svelte-7v63fk");
-    			add_location(div, file$2, 107, 0, 2593);
+    			add_location(div, file$2, 154, 0, 3985);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -25638,18 +25638,11 @@ var app = (function () {
     			const query = `
   query ($title: String){
     Media (search: $title, type: ANIME) {
-      rankings {
-        allTime
-        rank
-        context
-      }
-      genres
       description
+      genres
       externalLinks {
+        site
         url
-      }
-      coverImage {
-        extraLarge
       }
     }
   } 
@@ -25672,27 +25665,71 @@ var app = (function () {
     				console.log(err.message);
     				console.log("Trying Kitsu...");
 
-    				const headers = {
-    					"Content-Type": "application/vnd.api+json",
-    					Accept: "application/vnd.api+json"
-    				};
-
     				const fetchAnimeKitsu = async () => {
-    					const result = {};
+    					const data = {};
 
-    					const response = await axios({
-    						method: "get",
-    						url: `https://kitsu.io/api/edge/anime?filter[text]=${title}`,
-    						headers
+    					const query = `
+            query($title: String!) {
+  searchAnimeByTitle(first: 1, title: $title) {
+    nodes {
+      description
+      categories(first: 10) {
+        nodes {
+          slug
+        }
+      }
+      streamingLinks(first: 5) {
+        nodes {
+          streamer {
+            siteName
+          }
+          url
+        }
+      }
+    }
+  }
+}
+  `;
+
+    					const variables = { title };
+
+    					const headers = {
+    						"Content-Type": "application/json",
+    						Accept: "application/json"
+    					};
+
+    					await axios({
+    						method: "post",
+    						url: "https://kitsu.io/api/graphql",
+    						headers,
+    						data: JSON.stringify({ query, variables })
+    					}).then(result => {
+    						console.log(result);
+    						data.description = result.data.data.searchAnimeByTitle.nodes[0].description.en;
+    						let genres = [];
+    						let categories = result.data.data.searchAnimeByTitle.nodes[0].categories.nodes;
+
+    						for (let i = 0; i < categories.length; i++) {
+    							genres.push(categories[i].slug);
+    						}
+
+    						data.genres = genres;
+    						let streams = result.data.data.searchAnimeByTitle.nodes[0].streamingLinks.nodes;
+    						let links = [];
+
+    						for (let i = 0; i < streams.length; i++) {
+    							if (streams[i].streamer.siteName == "Crunchyroll" || streams[i].streamer.siteName == "Funimation") {
+    								links.push({
+    									site: streams[i].streamer.siteName,
+    									url: streams[i].url
+    								});
+    							}
+    						}
+
+    						data.externalLinks = links;
     					}).catch(err => console.log(err.message));
 
-    					result.description = response.data.data[0].attributes.synopsis.replace(
-    						// Replace \n with <br />
-    						/\n/g,
-    						"<br />"
-    					);
-
-    					return result;
+    					return data;
     				};
 
     				data = await fetchAnimeKitsu();
@@ -25946,23 +25983,23 @@ var app = (function () {
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[21] = list[i];
+    	child_ctx[22] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_1(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[24] = list[i];
+    	child_ctx[25] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_2(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[27] = list[i];
+    	child_ctx[28] = list[i];
     	return child_ctx;
     }
 
-    // (371:0) {:else}
+    // (425:0) {:else}
     function create_else_block_2(ctx) {
     	let select;
     	let mounted;
@@ -25984,7 +26021,7 @@ var app = (function () {
     			}
 
     			if (/*$season*/ ctx[4] === void 0) add_render_callback(() => /*select_change_handler*/ ctx[11].call(select));
-    			add_location(select, file$1, 372, 2, 10388);
+    			add_location(select, file$1, 426, 2, 11564);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -26045,14 +26082,14 @@ var app = (function () {
     		block,
     		id: create_else_block_2.name,
     		type: "else",
-    		source: "(371:0) {:else}",
+    		source: "(425:0) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (367:0) {#if seasons == 0}
+    // (421:0) {#if seasons == 0}
     function create_if_block_2(ctx) {
     	let select;
     	let option;
@@ -26064,8 +26101,8 @@ var app = (function () {
     			option.textContent = "Loading...";
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file$1, 368, 4, 10287);
-    			add_location(select, file$1, 367, 2, 10274);
+    			add_location(option, file$1, 422, 4, 11463);
+    			add_location(select, file$1, 421, 2, 11450);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -26081,17 +26118,17 @@ var app = (function () {
     		block,
     		id: create_if_block_2.name,
     		type: "if",
-    		source: "(367:0) {#if seasons == 0}",
+    		source: "(421:0) {#if seasons == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (374:4) {#each seasons as season}
+    // (428:4) {#each seasons as season}
     function create_each_block_2(ctx) {
     	let option;
-    	let t_value = /*season*/ ctx[27] + "";
+    	let t_value = /*season*/ ctx[28] + "";
     	let t;
     	let option_value_value;
 
@@ -26099,18 +26136,18 @@ var app = (function () {
     		c: function create() {
     			option = element("option");
     			t = text(t_value);
-    			option.__value = option_value_value = /*season*/ ctx[27];
+    			option.__value = option_value_value = /*season*/ ctx[28];
     			option.value = option.__value;
-    			add_location(option, file$1, 374, 6, 10479);
+    			add_location(option, file$1, 428, 6, 11655);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
     			append_dev(option, t);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*seasons*/ 1 && t_value !== (t_value = /*season*/ ctx[27] + "")) set_data_dev(t, t_value);
+    			if (dirty & /*seasons*/ 1 && t_value !== (t_value = /*season*/ ctx[28] + "")) set_data_dev(t, t_value);
 
-    			if (dirty & /*seasons*/ 1 && option_value_value !== (option_value_value = /*season*/ ctx[27])) {
+    			if (dirty & /*seasons*/ 1 && option_value_value !== (option_value_value = /*season*/ ctx[28])) {
     				prop_dev(option, "__value", option_value_value);
     				option.value = option.__value;
     			}
@@ -26124,14 +26161,14 @@ var app = (function () {
     		block,
     		id: create_each_block_2.name,
     		type: "each",
-    		source: "(374:4) {#each seasons as season}",
+    		source: "(428:4) {#each seasons as season}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (384:0) {:else}
+    // (438:0) {:else}
     function create_else_block_1(ctx) {
     	let select;
     	let mounted;
@@ -26153,7 +26190,7 @@ var app = (function () {
     			}
 
     			if (/*$week*/ ctx[3] === void 0) add_render_callback(() => /*select_change_handler_1*/ ctx[12].call(select));
-    			add_location(select, file$1, 385, 2, 10691);
+    			add_location(select, file$1, 439, 2, 11867);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -26214,14 +26251,14 @@ var app = (function () {
     		block,
     		id: create_else_block_1.name,
     		type: "else",
-    		source: "(384:0) {:else}",
+    		source: "(438:0) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (380:0) {#if weeks.length == 0}
+    // (434:0) {#if weeks.length == 0}
     function create_if_block_1(ctx) {
     	let select;
     	let option;
@@ -26233,8 +26270,8 @@ var app = (function () {
     			option.textContent = "Loading...";
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file$1, 381, 4, 10590);
-    			add_location(select, file$1, 380, 2, 10577);
+    			add_location(option, file$1, 435, 4, 11766);
+    			add_location(select, file$1, 434, 2, 11753);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -26250,17 +26287,17 @@ var app = (function () {
     		block,
     		id: create_if_block_1.name,
     		type: "if",
-    		source: "(380:0) {#if weeks.length == 0}",
+    		source: "(434:0) {#if weeks.length == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (387:4) {#each weeks as week}
+    // (441:4) {#each weeks as week}
     function create_each_block_1(ctx) {
     	let option;
-    	let t_value = /*week*/ ctx[24].replace("-", " ") + "";
+    	let t_value = /*week*/ ctx[25].replace("-", " ") + "";
     	let t;
     	let option_value_value;
 
@@ -26268,18 +26305,18 @@ var app = (function () {
     		c: function create() {
     			option = element("option");
     			t = text(t_value);
-    			option.__value = option_value_value = /*week*/ ctx[24];
+    			option.__value = option_value_value = /*week*/ ctx[25];
     			option.value = option.__value;
-    			add_location(option, file$1, 387, 6, 10775);
+    			add_location(option, file$1, 441, 6, 11951);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
     			append_dev(option, t);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*weeks*/ 2 && t_value !== (t_value = /*week*/ ctx[24].replace("-", " ") + "")) set_data_dev(t, t_value);
+    			if (dirty & /*weeks*/ 2 && t_value !== (t_value = /*week*/ ctx[25].replace("-", " ") + "")) set_data_dev(t, t_value);
 
-    			if (dirty & /*weeks*/ 2 && option_value_value !== (option_value_value = /*week*/ ctx[24])) {
+    			if (dirty & /*weeks*/ 2 && option_value_value !== (option_value_value = /*week*/ ctx[25])) {
     				prop_dev(option, "__value", option_value_value);
     				option.value = option.__value;
     			}
@@ -26293,14 +26330,14 @@ var app = (function () {
     		block,
     		id: create_each_block_1.name,
     		type: "each",
-    		source: "(387:4) {#each weeks as week}",
+    		source: "(441:4) {#each weeks as week}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (400:2) {:else}
+    // (454:2) {:else}
     function create_else_block(ctx) {
     	let each_1_anchor;
     	let current;
@@ -26389,14 +26426,14 @@ var app = (function () {
     		block,
     		id: create_else_block.name,
     		type: "else",
-    		source: "(400:2) {:else}",
+    		source: "(454:2) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (398:2) {#if items.length == 0}
+    // (452:2) {#if items.length == 0}
     function create_if_block(ctx) {
     	let p;
 
@@ -26404,7 +26441,7 @@ var app = (function () {
     		c: function create() {
     			p = element("p");
     			p.textContent = "Loading...";
-    			add_location(p, file$1, 398, 4, 11001);
+    			add_location(p, file$1, 452, 4, 12177);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, p, anchor);
@@ -26421,18 +26458,18 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(398:2) {#if items.length == 0}",
+    		source: "(452:2) {#if items.length == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (401:4) {#each items as item}
+    // (455:4) {#each items as item}
     function create_each_block(ctx) {
     	let item;
     	let current;
-    	const item_spread_levels = [/*item*/ ctx[21], { isActive: /*$isActive*/ ctx[5] }];
+    	const item_spread_levels = [/*item*/ ctx[22], { isActive: /*$isActive*/ ctx[5] }];
     	let item_props = {};
 
     	for (let i = 0; i < item_spread_levels.length; i += 1) {
@@ -26452,7 +26489,7 @@ var app = (function () {
     		p: function update(ctx, dirty) {
     			const item_changes = (dirty & /*items, $isActive*/ 36)
     			? get_spread_update(item_spread_levels, [
-    					dirty & /*items*/ 4 && get_spread_object(/*item*/ ctx[21]),
+    					dirty & /*items*/ 4 && get_spread_object(/*item*/ ctx[22]),
     					dirty & /*$isActive*/ 32 && { isActive: /*$isActive*/ ctx[5] }
     				])
     			: {};
@@ -26477,7 +26514,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(401:4) {#each items as item}",
+    		source: "(455:4) {#each items as item}",
     		ctx
     	});
 
@@ -26557,16 +26594,16 @@ var app = (function () {
     			button2.textContent = "Show more rankings";
     			attr_dev(button0, "id", "prev-btn");
     			attr_dev(button0, "class", "svelte-1hn3a7v");
-    			add_location(button0, file$1, 364, 0, 10194);
+    			add_location(button0, file$1, 418, 0, 11370);
     			attr_dev(button1, "id", "next-btn");
     			attr_dev(button1, "class", "svelte-1hn3a7v");
-    			add_location(button1, file$1, 392, 0, 10861);
-    			add_location(p, file$1, 394, 0, 10916);
+    			add_location(button1, file$1, 446, 0, 12037);
+    			add_location(p, file$1, 448, 0, 12092);
     			attr_dev(div, "class", "svelte-1hn3a7v");
-    			add_location(div, file$1, 396, 0, 10965);
+    			add_location(div, file$1, 450, 0, 12141);
     			attr_dev(button2, "id", "showMore");
     			attr_dev(button2, "class", "svelte-1hn3a7v");
-    			add_location(button2, file$1, 406, 0, 11129);
+    			add_location(button2, file$1, 460, 0, 12305);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -26954,19 +26991,62 @@ var app = (function () {
     				url: "https://graphql.anilist.co/",
     				headers,
     				data: JSON.stringify({ query, variables })
-    			}).then(result => {
+    			}).then(async result => {
     				banner = result.data.data.Media.bannerImage;
 
     				if (banner === null) {
-    					banner = "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
+    					banner = await fetchKitsuBanner(title);
     				}
-    			}).catch(err => {
-    				banner = "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
+    			}).catch(async err => {
     				console.log(err.message);
+    				banner = await fetchKitsuBanner(title);
     			});
 
     			data[i].banner = banner;
     		}
+    	};
+
+    	const fetchKitsuBanner = async title => {
+    		let banner;
+
+    		const query = `
+  query ($title: String!){
+    searchAnimeByTitle (first: 1, title: $title) {
+      nodes {
+        bannerImage {
+          original {
+            url
+          }
+        }
+      }
+    }
+  }
+  `;
+
+    		const variables = { title };
+
+    		const headers = {
+    			"Content-Type": "application/json",
+    			Accept: "application/json"
+    		};
+
+    		await axios({
+    			method: "post",
+    			url: "https://kitsu.io/api/graphql",
+    			headers,
+    			data: JSON.stringify({ query, variables })
+    		}).then(async result => {
+    			if (result.data.data.searchAnimeByTitle.nodes[0].bannerImage.original.url == "/cover_images/original/missing.png") {
+    				banner = "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
+    			} else {
+    				banner = result.data.data.searchAnimeByTitle.nodes[0].bannerImage.original.url;
+    			}
+    		}).catch(err => {
+    			banner = "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
+    			console.log(err.message);
+    		});
+
+    		return banner;
     	};
 
     	const fetchPreviousStandings = async data => {
@@ -27083,6 +27163,7 @@ var app = (function () {
     		updateSeason,
     		updateItems,
     		fetchBanners,
+    		fetchKitsuBanner,
     		fetchPreviousStandings,
     		goPrev,
     		goNext,

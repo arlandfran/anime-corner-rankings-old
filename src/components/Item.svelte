@@ -30,18 +30,11 @@
       const query = `
   query ($title: String){
     Media (search: $title, type: ANIME) {
-      rankings {
-        allTime
-        rank
-        context
-      }
-      genres
       description
+      genres
       externalLinks {
+        site
         url
-      }
-      coverImage {
-        extraLarge
       }
     }
   } 
@@ -71,27 +64,81 @@
           console.log(err.message);
           console.log("Trying Kitsu...");
 
-          const headers = {
-            "Content-Type": "application/vnd.api+json",
-            Accept: "application/vnd.api+json",
-          };
-
           const fetchAnimeKitsu = async () => {
-            const result = {};
-            const response = await axios({
-              method: "get",
-              url: `https://kitsu.io/api/edge/anime?filter[text]=${title}`,
+            const data = {};
+
+            const query = `
+            query($title: String!) {
+  searchAnimeByTitle(first: 1, title: $title) {
+    nodes {
+      description
+      categories(first: 10) {
+        nodes {
+          slug
+        }
+      }
+      streamingLinks(first: 5) {
+        nodes {
+          streamer {
+            siteName
+          }
+          url
+        }
+      }
+    }
+  }
+}
+  `;
+
+            const variables = {
+              title: title,
+            };
+
+            const headers = {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            };
+
+            await axios({
+              method: "post",
+              url: "https://kitsu.io/api/graphql",
               headers,
-            }).catch((err) => console.log(err.message));
+              data: JSON.stringify({
+                query: query,
+                variables: variables,
+              }),
+            })
+              .then((result) => {
+                console.log(result);
+                data.description =
+                  result.data.data.searchAnimeByTitle.nodes[0].description.en;
+                let genres = [];
+                let categories =
+                  result.data.data.searchAnimeByTitle.nodes[0].categories.nodes;
+                for (let i = 0; i < categories.length; i++) {
+                  genres.push(categories[i].slug);
+                }
+                data.genres = genres;
+                let streams =
+                  result.data.data.searchAnimeByTitle.nodes[0].streamingLinks
+                    .nodes;
+                let links = [];
+                for (let i = 0; i < streams.length; i++) {
+                  if (
+                    streams[i].streamer.siteName == "Crunchyroll" ||
+                    streams[i].streamer.siteName == "Funimation"
+                  ) {
+                    links.push({
+                      site: streams[i].streamer.siteName,
+                      url: streams[i].url,
+                    });
+                  }
+                }
+                data.externalLinks = links;
+              })
+              .catch((err) => console.log(err.message));
 
-            result.description =
-              response.data.data[0].attributes.synopsis.replace(
-                // Replace \n with <br />
-                /\n/g,
-                "<br />"
-              );
-
-            return result;
+            return data;
           };
 
           data = await fetchAnimeKitsu();
