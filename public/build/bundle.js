@@ -25340,7 +25340,7 @@ var app = (function () {
     const { console: console_1$1 } = globals;
     const file$2 = "src/components/Item.svelte";
 
-    // (114:0) {#if isActive}
+    // (161:0) {#if isActive}
     function create_if_block$1(ctx) {
     	let await_block_anchor;
 
@@ -25384,7 +25384,7 @@ var app = (function () {
     		block,
     		id: create_if_block$1.name,
     		type: "if",
-    		source: "(114:0) {#if isActive}",
+    		source: "(161:0) {#if isActive}",
     		ctx
     	});
 
@@ -25406,7 +25406,7 @@ var app = (function () {
     	return block;
     }
 
-    // (119:2) {:then anime}
+    // (166:2) {:then anime}
     function create_then_block(ctx) {
     	let div;
     	let raw_value = /*anime*/ ctx[9].description + "";
@@ -25415,7 +25415,7 @@ var app = (function () {
     		c: function create() {
     			div = element("div");
     			attr_dev(div, "class", "card-content");
-    			add_location(div, file$2, 119, 4, 2891);
+    			add_location(div, file$2, 166, 4, 4283);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -25431,14 +25431,14 @@ var app = (function () {
     		block,
     		id: create_then_block.name,
     		type: "then",
-    		source: "(119:2) {:then anime}",
+    		source: "(166:2) {:then anime}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (115:25)      <div class="card-content">       <p>Loading...</p>     </div>   {:then anime}
+    // (162:25)      <div class="card-content">       <p>Loading...</p>     </div>   {:then anime}
     function create_pending_block(ctx) {
     	let div;
     	let p;
@@ -25448,9 +25448,9 @@ var app = (function () {
     			div = element("div");
     			p = element("p");
     			p.textContent = "Loading...";
-    			add_location(p, file$2, 116, 6, 2842);
+    			add_location(p, file$2, 163, 6, 4234);
     			attr_dev(div, "class", "card-content");
-    			add_location(div, file$2, 115, 4, 2809);
+    			add_location(div, file$2, 162, 4, 4201);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -25466,7 +25466,7 @@ var app = (function () {
     		block,
     		id: create_pending_block.name,
     		type: "pending",
-    		source: "(115:25)      <div class=\\\"card-content\\\">       <p>Loading...</p>     </div>   {:then anime}",
+    		source: "(162:25)      <div class=\\\"card-content\\\">       <p>Loading...</p>     </div>   {:then anime}",
     		ctx
     	});
 
@@ -25523,7 +25523,7 @@ var app = (function () {
     			if (if_block) if_block.c();
     			if_block_anchor = empty();
     			attr_dev(div, "class", "card svelte-7v63fk");
-    			add_location(div, file$2, 107, 0, 2593);
+    			add_location(div, file$2, 154, 0, 3985);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -25638,18 +25638,11 @@ var app = (function () {
     			const query = `
   query ($title: String){
     Media (search: $title, type: ANIME) {
-      rankings {
-        allTime
-        rank
-        context
-      }
-      genres
       description
+      genres
       externalLinks {
+        site
         url
-      }
-      coverImage {
-        extraLarge
       }
     }
   } 
@@ -25672,27 +25665,71 @@ var app = (function () {
     				console.log(err.message);
     				console.log("Trying Kitsu...");
 
-    				const headers = {
-    					"Content-Type": "application/vnd.api+json",
-    					Accept: "application/vnd.api+json"
-    				};
-
     				const fetchAnimeKitsu = async () => {
-    					const result = {};
+    					const data = {};
 
-    					const response = await axios({
-    						method: "get",
-    						url: `https://kitsu.io/api/edge/anime?filter[text]=${title}`,
-    						headers
+    					const query = `
+            query($title: String!) {
+  searchAnimeByTitle(first: 1, title: $title) {
+    nodes {
+      description
+      categories(first: 10) {
+        nodes {
+          slug
+        }
+      }
+      streamingLinks(first: 5) {
+        nodes {
+          streamer {
+            siteName
+          }
+          url
+        }
+      }
+    }
+  }
+}
+  `;
+
+    					const variables = { title };
+
+    					const headers = {
+    						"Content-Type": "application/json",
+    						Accept: "application/json"
+    					};
+
+    					await axios({
+    						method: "post",
+    						url: "https://kitsu.io/api/graphql",
+    						headers,
+    						data: JSON.stringify({ query, variables })
+    					}).then(result => {
+    						console.log(result);
+    						data.description = result.data.data.searchAnimeByTitle.nodes[0].description.en;
+    						let genres = [];
+    						let categories = result.data.data.searchAnimeByTitle.nodes[0].categories.nodes;
+
+    						for (let i = 0; i < categories.length; i++) {
+    							genres.push(categories[i].slug);
+    						}
+
+    						data.genres = genres;
+    						let streams = result.data.data.searchAnimeByTitle.nodes[0].streamingLinks.nodes;
+    						let links = [];
+
+    						for (let i = 0; i < streams.length; i++) {
+    							if (streams[i].streamer.siteName == "Crunchyroll" || streams[i].streamer.siteName == "Funimation") {
+    								links.push({
+    									site: streams[i].streamer.siteName,
+    									url: streams[i].url
+    								});
+    							}
+    						}
+
+    						data.externalLinks = links;
     					}).catch(err => console.log(err.message));
 
-    					result.description = response.data.data[0].attributes.synopsis.replace(
-    						// Replace \n with <br />
-    						/\n/g,
-    						"<br />"
-    					);
-
-    					return result;
+    					return data;
     				};
 
     				data = await fetchAnimeKitsu();
