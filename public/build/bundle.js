@@ -25946,23 +25946,23 @@ var app = (function () {
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[21] = list[i];
+    	child_ctx[22] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_1(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[24] = list[i];
+    	child_ctx[25] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_2(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[27] = list[i];
+    	child_ctx[28] = list[i];
     	return child_ctx;
     }
 
-    // (353:0) {:else}
+    // (407:0) {:else}
     function create_else_block_2(ctx) {
     	let select;
     	let mounted;
@@ -25984,7 +25984,7 @@ var app = (function () {
     			}
 
     			if (/*$season*/ ctx[4] === void 0) add_render_callback(() => /*select_change_handler*/ ctx[11].call(select));
-    			add_location(select, file$1, 354, 2, 9690);
+    			add_location(select, file$1, 408, 2, 10866);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -26045,14 +26045,14 @@ var app = (function () {
     		block,
     		id: create_else_block_2.name,
     		type: "else",
-    		source: "(353:0) {:else}",
+    		source: "(407:0) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (349:0) {#if seasons == 0}
+    // (403:0) {#if seasons == 0}
     function create_if_block_2(ctx) {
     	let select;
     	let option;
@@ -26064,8 +26064,8 @@ var app = (function () {
     			option.textContent = "Loading...";
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file$1, 350, 4, 9589);
-    			add_location(select, file$1, 349, 2, 9576);
+    			add_location(option, file$1, 404, 4, 10765);
+    			add_location(select, file$1, 403, 2, 10752);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -26081,17 +26081,17 @@ var app = (function () {
     		block,
     		id: create_if_block_2.name,
     		type: "if",
-    		source: "(349:0) {#if seasons == 0}",
+    		source: "(403:0) {#if seasons == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (356:4) {#each seasons as season}
+    // (410:4) {#each seasons as season}
     function create_each_block_2(ctx) {
     	let option;
-    	let t_value = /*season*/ ctx[27] + "";
+    	let t_value = /*season*/ ctx[28] + "";
     	let t;
     	let option_value_value;
 
@@ -26099,18 +26099,18 @@ var app = (function () {
     		c: function create() {
     			option = element("option");
     			t = text(t_value);
-    			option.__value = option_value_value = /*season*/ ctx[27];
+    			option.__value = option_value_value = /*season*/ ctx[28];
     			option.value = option.__value;
-    			add_location(option, file$1, 356, 6, 9781);
+    			add_location(option, file$1, 410, 6, 10957);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
     			append_dev(option, t);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*seasons*/ 1 && t_value !== (t_value = /*season*/ ctx[27] + "")) set_data_dev(t, t_value);
+    			if (dirty & /*seasons*/ 1 && t_value !== (t_value = /*season*/ ctx[28] + "")) set_data_dev(t, t_value);
 
-    			if (dirty & /*seasons*/ 1 && option_value_value !== (option_value_value = /*season*/ ctx[27])) {
+    			if (dirty & /*seasons*/ 1 && option_value_value !== (option_value_value = /*season*/ ctx[28])) {
     				prop_dev(option, "__value", option_value_value);
     				option.value = option.__value;
     			}
@@ -26124,14 +26124,14 @@ var app = (function () {
     		block,
     		id: create_each_block_2.name,
     		type: "each",
-    		source: "(356:4) {#each seasons as season}",
+    		source: "(410:4) {#each seasons as season}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (366:0) {:else}
+    // (420:0) {:else}
     function create_else_block_1(ctx) {
     	let select;
     	let mounted;
@@ -26153,7 +26153,7 @@ var app = (function () {
     			}
 
     			if (/*$week*/ ctx[3] === void 0) add_render_callback(() => /*select_change_handler_1*/ ctx[12].call(select));
-    			add_location(select, file$1, 367, 2, 9993);
+    			add_location(select, file$1, 421, 2, 11169);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -26214,14 +26214,14 @@ var app = (function () {
     		block,
     		id: create_else_block_1.name,
     		type: "else",
-    		source: "(366:0) {:else}",
+    		source: "(420:0) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (362:0) {#if weeks.length == 0}
+    // (416:0) {#if weeks.length == 0}
     function create_if_block_1(ctx) {
     	let select;
     	let option;
@@ -26233,8 +26233,8 @@ var app = (function () {
     			option.textContent = "Loading...";
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file$1, 363, 4, 9892);
-    			add_location(select, file$1, 362, 2, 9879);
+    			add_location(option, file$1, 417, 4, 11068);
+    			add_location(select, file$1, 416, 2, 11055);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -26250,17 +26250,17 @@ var app = (function () {
     		block,
     		id: create_if_block_1.name,
     		type: "if",
-    		source: "(362:0) {#if weeks.length == 0}",
+    		source: "(416:0) {#if weeks.length == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (369:4) {#each weeks as week}
+    // (423:4) {#each weeks as week}
     function create_each_block_1(ctx) {
     	let option;
-    	let t_value = /*week*/ ctx[24].replace("-", " ") + "";
+    	let t_value = /*week*/ ctx[25].replace("-", " ") + "";
     	let t;
     	let option_value_value;
 
@@ -26268,18 +26268,18 @@ var app = (function () {
     		c: function create() {
     			option = element("option");
     			t = text(t_value);
-    			option.__value = option_value_value = /*week*/ ctx[24];
+    			option.__value = option_value_value = /*week*/ ctx[25];
     			option.value = option.__value;
-    			add_location(option, file$1, 369, 6, 10077);
+    			add_location(option, file$1, 423, 6, 11253);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
     			append_dev(option, t);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*weeks*/ 2 && t_value !== (t_value = /*week*/ ctx[24].replace("-", " ") + "")) set_data_dev(t, t_value);
+    			if (dirty & /*weeks*/ 2 && t_value !== (t_value = /*week*/ ctx[25].replace("-", " ") + "")) set_data_dev(t, t_value);
 
-    			if (dirty & /*weeks*/ 2 && option_value_value !== (option_value_value = /*week*/ ctx[24])) {
+    			if (dirty & /*weeks*/ 2 && option_value_value !== (option_value_value = /*week*/ ctx[25])) {
     				prop_dev(option, "__value", option_value_value);
     				option.value = option.__value;
     			}
@@ -26293,14 +26293,14 @@ var app = (function () {
     		block,
     		id: create_each_block_1.name,
     		type: "each",
-    		source: "(369:4) {#each weeks as week}",
+    		source: "(423:4) {#each weeks as week}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (382:2) {:else}
+    // (436:2) {:else}
     function create_else_block(ctx) {
     	let each_1_anchor;
     	let current;
@@ -26389,14 +26389,14 @@ var app = (function () {
     		block,
     		id: create_else_block.name,
     		type: "else",
-    		source: "(382:2) {:else}",
+    		source: "(436:2) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (380:2) {#if items.length == 0}
+    // (434:2) {#if items.length == 0}
     function create_if_block(ctx) {
     	let p;
 
@@ -26404,7 +26404,7 @@ var app = (function () {
     		c: function create() {
     			p = element("p");
     			p.textContent = "Loading...";
-    			add_location(p, file$1, 380, 4, 10303);
+    			add_location(p, file$1, 434, 4, 11479);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, p, anchor);
@@ -26421,18 +26421,18 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(380:2) {#if items.length == 0}",
+    		source: "(434:2) {#if items.length == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (383:4) {#each items as item}
+    // (437:4) {#each items as item}
     function create_each_block(ctx) {
     	let item;
     	let current;
-    	const item_spread_levels = [/*item*/ ctx[21], { isActive: /*$isActive*/ ctx[5] }];
+    	const item_spread_levels = [/*item*/ ctx[22], { isActive: /*$isActive*/ ctx[5] }];
     	let item_props = {};
 
     	for (let i = 0; i < item_spread_levels.length; i += 1) {
@@ -26452,7 +26452,7 @@ var app = (function () {
     		p: function update(ctx, dirty) {
     			const item_changes = (dirty & /*items, $isActive*/ 36)
     			? get_spread_update(item_spread_levels, [
-    					dirty & /*items*/ 4 && get_spread_object(/*item*/ ctx[21]),
+    					dirty & /*items*/ 4 && get_spread_object(/*item*/ ctx[22]),
     					dirty & /*$isActive*/ 32 && { isActive: /*$isActive*/ ctx[5] }
     				])
     			: {};
@@ -26477,7 +26477,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(383:4) {#each items as item}",
+    		source: "(437:4) {#each items as item}",
     		ctx
     	});
 
@@ -26557,16 +26557,16 @@ var app = (function () {
     			button2.textContent = "Show more rankings";
     			attr_dev(button0, "id", "prev-btn");
     			attr_dev(button0, "class", "svelte-1hn3a7v");
-    			add_location(button0, file$1, 346, 0, 9496);
+    			add_location(button0, file$1, 400, 0, 10672);
     			attr_dev(button1, "id", "next-btn");
     			attr_dev(button1, "class", "svelte-1hn3a7v");
-    			add_location(button1, file$1, 374, 0, 10163);
-    			add_location(p, file$1, 376, 0, 10218);
+    			add_location(button1, file$1, 428, 0, 11339);
+    			add_location(p, file$1, 430, 0, 11394);
     			attr_dev(div, "class", "svelte-1hn3a7v");
-    			add_location(div, file$1, 378, 0, 10267);
+    			add_location(div, file$1, 432, 0, 11443);
     			attr_dev(button2, "id", "showMore");
     			attr_dev(button2, "class", "svelte-1hn3a7v");
-    			add_location(button2, file$1, 388, 0, 10431);
+    			add_location(button2, file$1, 442, 0, 11607);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -26938,19 +26938,62 @@ var app = (function () {
     				url: "https://graphql.anilist.co/",
     				headers,
     				data: JSON.stringify({ query, variables })
-    			}).then(result => {
+    			}).then(async result => {
     				banner = result.data.data.Media.bannerImage;
 
     				if (banner === null) {
-    					banner = "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
+    					banner = await fetchKitsuBanner(title);
     				}
-    			}).catch(err => {
-    				banner = "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
+    			}).catch(async err => {
     				console.log(err.message);
+    				banner = await fetchKitsuBanner(title);
     			});
 
     			data[i].banner = banner;
     		}
+    	};
+
+    	const fetchKitsuBanner = async title => {
+    		let banner;
+
+    		const query = `
+  query ($title: String!){
+    searchAnimeByTitle (first: 1, title: $title) {
+      nodes {
+        bannerImage {
+          original {
+            url
+          }
+        }
+      }
+    }
+  }
+  `;
+
+    		const variables = { title };
+
+    		const headers = {
+    			"Content-Type": "application/json",
+    			Accept: "application/json"
+    		};
+
+    		await axios({
+    			method: "post",
+    			url: "https://kitsu.io/api/graphql",
+    			headers,
+    			data: JSON.stringify({ query, variables })
+    		}).then(async result => {
+    			if (result.data.data.searchAnimeByTitle.nodes[0].bannerImage.original.url == "/cover_images/original/missing.png") {
+    				banner = "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
+    			} else {
+    				banner = result.data.data.searchAnimeByTitle.nodes[0].bannerImage.original.url;
+    			}
+    		}).catch(err => {
+    			banner = "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
+    			console.log(err.message);
+    		});
+
+    		return banner;
     	};
 
     	const fetchPreviousStandings = async data => {
@@ -27067,6 +27110,7 @@ var app = (function () {
     		updateSeason,
     		updateItems,
     		fetchBanners,
+    		fetchKitsuBanner,
     		fetchPreviousStandings,
     		goPrev,
     		goNext,
