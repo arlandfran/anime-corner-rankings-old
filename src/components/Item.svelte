@@ -129,7 +129,7 @@
     align-items: center;
     height: 6rem;
     background-color: var(--primary-color);
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
   }
 </style>

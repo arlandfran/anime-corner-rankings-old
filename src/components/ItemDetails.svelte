@@ -40,7 +40,7 @@
   }
 </script>
 
-<div class="container">
+<div class="container border-tr border-br">
   <div class="sub-container">
     <div
       class="figure"
@@ -68,18 +68,20 @@
       </div>
     {/if}
   </div>
-  <div class="sub-container">
-    <div class="figure">{votes}%</div>
+  <div class="sub-container border-br">
+    <div class="figure border-br">{votes}%</div>
     {#if voteDifference > 0}
-      <div class="label" class:gain={voteDifference > 0}>
+      <div class="label border-br" class:gain={voteDifference > 0}>
         +{voteDifference}% GAIN
       </div>
     {:else if voteDifference < 0}
-      <div class="label" class:drop={voteDifference < 0}>
+      <div class="label border-br" class:drop={voteDifference < 0}>
         {voteDifference}% DROP
       </div>
     {:else}
-      <div class="label" class:neutral={voteDifference == 0}>NEW ENTRY</div>
+      <div class="label border-br" class:neutral={voteDifference == 0}>
+        NEW ENTRY
+      </div>
     {/if}
   </div>
 </div>
@@ -93,13 +95,11 @@
     font-weight: bold;
     text-align: center;
     background-color: #383838;
-    border-top-right-radius: 4px;
   }
 
   .sub-container {
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
     height: 50%;
   }
 
@@ -111,7 +111,45 @@
   }
 
   .label {
-    font-size: 0.8rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.7rem;
+  }
+
+  @media screen and (min-width: 424px) {
+    .label {
+      font-size: 0.8rem;
+    }
+  }
+
+  @media screen and (min-width: 767px) {
+    .container {
+      width: 20rem;
+      flex-direction: row;
+    }
+
+    .sub-container {
+      width: 100%;
+      height: 100%;
+    }
+
+    .figure {
+      height: 60%;
+      font-size: 1.5rem;
+    }
+
+    .label {
+      height: 40%;
+    }
+  }
+
+  .border-tr {
+    border-top-right-radius: 6px;
+  }
+
+  .border-br {
+    border-bottom-right-radius: 6px;
   }
 
   .arrow-gain::before {
@@ -132,35 +170,15 @@
   .gain {
     color: black;
     background-color: #36c120;
-    border-bottom-right-radius: 4px;
+    /* border-bottom-right-radius: 4px; */
   }
 
   .neutral {
     color: black;
     background-color: #ffaf18;
-    border-bottom-right-radius: 4px;
   }
 
   .drop {
     background-color: #dd0000;
-    border-bottom-right-radius: 4px;
-  }
-
-  .sub-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    height: 50%;
-  }
-
-  .figure {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-  }
-
-  .label {
-    font-size: 0.8rem;
   }
 </style>

@@ -13,4 +13,10 @@
     font-weight: bold;
     text-align: center;
   }
+
+  @media screen and (min-width: 767px) {
+    div {
+      width: 8rem;
+    }
+  }
 </style>
