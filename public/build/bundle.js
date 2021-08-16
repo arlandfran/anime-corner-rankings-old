@@ -25178,6 +25178,15 @@ var app = (function () {
     }
 
     function instance$3($$self, $$props, $$invalidate) {
+    	let $week;
+    	let $season;
+    	let $year;
+    	validate_store(week, 'week');
+    	component_subscribe($$self, week, $$value => $$invalidate(4, $week = $$value));
+    	validate_store(season, 'season');
+    	component_subscribe($$self, season, $$value => $$invalidate(5, $season = $$value));
+    	validate_store(year, 'year');
+    	component_subscribe($$self, year, $$value => $$invalidate(6, $year = $$value));
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('ItemDetails', slots, []);
     	let { rank } = $$props;
@@ -25219,32 +25228,11 @@ var app = (function () {
 
     	$$self.$inject_state = $$props => {
     		if ('rank' in $$props) $$invalidate(0, rank = $$props.rank);
-    		if ('previousRank' in $$props) $$invalidate(1, previousRank = $$props.previousRank);
     		if ('votes' in $$props) $$invalidate(2, votes = $$props.votes);
     		if ('previousVotes' in $$props) $$invalidate(5, previousVotes = $$props.previousVotes);
     		if ('rankProgression' in $$props) $$invalidate(3, rankProgression = $$props.rankProgression);
     		if ('voteDifference' in $$props) $$invalidate(4, voteDifference = $$props.voteDifference);
-    	};
-
-    	if ($$props && "$$inject" in $$props) {
-    		$$self.$inject_state($$props.$$inject);
-    	}
-
-    	return [rank, previousRank, votes, rankProgression, voteDifference, previousVotes];
-    }
-
-    class ItemDetails extends SvelteComponentDev {
-    	constructor(options) {
-    		super(options);
-
-    		init(this, options, instance$3, create_fragment$3, safe_not_equal, {
-    			rank: 0,
-    			previousRank: 1,
-    			votes: 2,
-    			previousVotes: 5
-    		});
-
-    		dispatch_dev("SvelteRegisterComponent", {
+=======
     			component: this,
     			tagName: "ItemDetails",
     			options,
@@ -25284,6 +25272,22 @@ var app = (function () {
     	}
 
     	set previousRank(value) {
+    		throw new Error("<ItemDetails>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get rank() {
+    		throw new Error("<ItemDetails>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set rank(value) {
+    		throw new Error("<ItemDetails>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get title() {
+    		throw new Error("<ItemDetails>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set title(value) {
     		throw new Error("<ItemDetails>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
 

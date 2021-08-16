@@ -145,4 +145,22 @@
     background-color: #dd0000;
     border-bottom-right-radius: 4px;
   }
+
+  .sub-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 50%;
+  }
+
+  .figure {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+  }
+
+  .label {
+    font-size: 0.8rem;
+  }
 </style>
