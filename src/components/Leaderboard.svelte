@@ -1,9 +1,10 @@
 <script>
+  import axios from "axios";
   import { onMount } from "svelte";
-  import { db, cf } from "./firebase";
+  import { db, cf } from "../firebase";
   import Item from "./Item.svelte";
-  import { year, season, week, isActive } from "./stores";
-  import { checkCache, cacheData } from "./cache";
+  import { year, season, week, page, isActive } from "../stores";
+  import { checkCache, cacheData } from "../cache";
 
   let seasons = [];
   let weeks = [];
@@ -25,7 +26,7 @@
   });
 
   const fetchData = async () => {
-    let key = `${$season}-${$week}`;
+    let key = `${$season}-${$week}-page-${$page}`;
     let cache = checkCache(key);
 
     // If cached data exists and is not expired then return data
@@ -38,52 +39,84 @@
         // Converts firestore collection into array of documents
         .then((snapshots) => snapshots.docs.map((doc) => doc.data()));
 
+      // fetch banners and append banner property to data object
+      await fetchBanners(data);
+      await fetchPreviousStandings(data);
+
       // Save data in local storage
       cacheData(key, data);
 
       console.log("Data fetched:", data);
+
       return data;
     }
   };
 
   const fetchNextData = async () => {
-    let item = [];
+    $page += 1;
+    let item;
+    let key = `${$season}-${$week}-page-${$page}`;
+    let cache = checkCache(key);
 
-    await query.get().then((snapshots) => {
-      // Get the last visible document
-      let lastVisible = snapshots.docs[snapshots.docs.length - 1];
+    if (cache.cachedData && !cache.expired) {
+      // Update items array with cached documents
+      let data = cache.cachedData.data;
+      for (let i = 0; i < data.length; i++) {
+        item = {
+          rank: data[i].rank,
+          title: data[i].title,
+          votes: data[i].votes,
+          banner: data[i].banner,
+          previousRank: data[i].previousRank,
+          previousVotes: data[i].previousVotes,
+        };
+        items = [...items, item];
+      }
+    } else {
+      await query.get().then((snapshots) => {
+        // Get the last visible document
+        let lastVisible = snapshots.docs[snapshots.docs.length - 1];
 
-      query = db
-        .collection($year)
-        .doc($season)
-        .collection($week)
-        .orderBy("rank", "asc")
-        .startAfter(lastVisible)
-        .limit(10);
+        query = db
+          .collection($year)
+          .doc($season)
+          .collection($week)
+          .orderBy("rank", "asc")
+          .startAfter(lastVisible)
+          .limit(10);
 
-      query.get().then((snapshots) => {
-        // Converts newly fetched collection into array of documents
-        let data = snapshots.docs.map((doc) => doc.data());
+        query.get().then(async (snapshots) => {
+          // Converts newly fetched collection into array of documents
+          let data = snapshots.docs.map((doc) => doc.data());
 
-        // Update items array with new documents
-        for (let i = 0; i < data.length; i++) {
-          item = {
-            rank: data[i].rank,
-            title: data[i].title,
-            votes: data[i].votes,
-          };
-          items = [...items, item];
-        }
+          await fetchBanners(data);
+          await fetchPreviousStandings(data);
 
-        // Disable show more button if there is no more data to be fetched
-        if (snapshots.size < 10) {
-          document.getElementById("showMore").disabled = true;
-          console.log("No more data to be fetched");
-        } else {
-          console.log("Next batch of data fetched");
-        }
+          // Update items array with new documents
+          for (let i = 0; i < data.length; i++) {
+            item = {
+              rank: data[i].rank,
+              title: data[i].title,
+              votes: data[i].votes,
+              banner: data[i].banner,
+              previousRank: data[i].previousRank,
+              previousVotes: data[i].previousVotes,
+            };
+            items = [...items, item];
+          }
+
+          cacheData(key, data);
+
+          // Disable show more button if there is no more data to be fetched
+          if (snapshots.size < 10) {
+            document.getElementById("showMore").disabled = true;
+            console.log("No more data to be fetched");
+          } else {
+            console.log("Next batch of data fetched");
+          }
+        });
       });
-    });
+    }
   };
 
   const fetchSeasons = async () => {
@@ -143,7 +176,7 @@
   };
 
   const updateItems = async () => {
-    let key = `${$season}-${$week}`;
+    let key = `${$season}-${$week}-page-${$page}`;
     let cache = checkCache(key);
 
     // If cached data exists and is not expired then return data
@@ -166,11 +199,17 @@
         .get()
         .then((snapshots) => snapshots.docs.map((doc) => doc.data()));
 
+      await fetchBanners(data);
+      await fetchPreviousStandings(data);
+
       for (let i = 0; i < data.length; i++) {
         item = {
           rank: data[i].rank,
           title: data[i].title,
           votes: data[i].votes,
+          banner: data[i].banner,
+          previousRank: data[i].previousRank,
+          previousVotes: data[i].previousVotes,
         };
         items = [...items, item];
       }
@@ -180,6 +219,92 @@
     }
     // Re-enable button in the case that the user has fetched the entire subcollection and button was disabled
     document.getElementById("showMore").disabled = false;
+  };
+
+  const fetchBanners = async (data) => {
+    let title;
+
+    for (let i = 0; i < data.length; i++) {
+      let banner;
+      title = data[i].title;
+
+      const query = `
+  query ($title: String){
+    Media (search: $title, type: ANIME) {
+      bannerImage
+    }
+  }
+  `;
+
+      const variables = {
+        title: title,
+      };
+
+      const headers = {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      };
+
+      await axios({
+        method: "post",
+        url: "https://graphql.anilist.co/",
+        headers,
+        data: JSON.stringify({
+          query: query,
+          variables: variables,
+        }),
+      })
+        .then((result) => {
+          banner = result.data.data.Media.bannerImage;
+
+          if (banner === null) {
+            banner =
+              "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
+          }
+        })
+        .catch((err) => {
+          banner =
+            "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
+          console.log(err.message);
+        });
+      data[i].banner = banner;
+    }
+  };
+
+  const fetchPreviousStandings = async (data) => {
+    let previousWeek;
+    let query;
+    let n = parseInt($week.split("-")[1]);
+    n -= 1;
+    if (n > 10) {
+      previousWeek = "Week-" + n.toString();
+    } else {
+      previousWeek = "Week-0" + n.toString();
+    }
+
+    query = db.collection($year).doc($season).collection(previousWeek);
+
+    if (previousWeek == "Week-00") {
+      for (let i = 0; i < data.length; i++) {
+        data[i].previousRank = null;
+        data[i].previousVotes = null;
+      }
+    } else {
+      for (let i = 0; i < data.length; i++) {
+        let previousData = await query
+          .where("title", "==", data[i].title)
+          .get()
+          .then((snapshots) => snapshots.docs.map((doc) => doc.data()));
+
+        if (previousData[0] == undefined) {
+          data[i].previousRank = null;
+          data[i].previousVotes = null;
+        } else {
+          data[i].previousRank = previousData[0].rank;
+          data[i].previousVotes = previousData[0].votes;
+        }
+      }
+    }
   };
 
   function goPrev() {

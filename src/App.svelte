@@ -1,5 +1,5 @@
 <script>
-  import Leaderboard from "./Leaderboard.svelte";
+  import Leaderboard from "./components/Leaderboard.svelte";
 </script>
 
 <main>
@@ -11,7 +11,7 @@
   main {
     text-align: center;
     min-width: 288px;
-    max-width: 520px;
+    max-width: 1024px;
     margin: 0 auto;
   }
 

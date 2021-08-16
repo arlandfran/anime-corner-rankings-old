@@ -1,10 +1,16 @@
 <script>
   import axios from "axios";
-  import { checkCache, cacheData } from "./cache";
+  import ItemRank from "./ItemRank.svelte";
+  import ItemBanner from "./ItemBanner.svelte";
+  import ItemDetails from "./ItemDetails.svelte";
+  import { checkCache, cacheData } from "../cache";
 
   export let rank;
   export let title;
   export let votes;
+  export let banner;
+  export let previousRank;
+  export let previousVotes;
   export let isActive;
 
   function toggleActive() {
@@ -100,15 +106,9 @@
 </script>
 
 <div class="card" on:click={toggleActive}>
-  <div class="card--rank">
-    {rank}
-  </div>
-  <div class="card--title">
-    {title}
-  </div>
-  <div class="card--votes">
-    {votes}%
-  </div>
+  <ItemRank {rank} />
+  <ItemBanner {banner} {title} />
+  <ItemDetails {rank} {previousRank} {votes} {previousVotes} />
 </div>
 
 {#if isActive}
@@ -126,14 +126,10 @@
 <style>
   .card {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    gap: 1rem;
-    height: 4rem;
-    padding-left: 1rem;
-    padding-right: 1rem;
+    height: 6rem;
     background-color: var(--primary-color);
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
   }
 </style>
