@@ -143,6 +143,7 @@
 
           data = await fetchAnimeKitsu();
         });
+      stripLinks(data);
       // Save data in local storage
       cacheData(key, data);
 
@@ -150,27 +151,71 @@
       return data;
     }
   };
+
+  function stripLinks(data) {
+    let links = [];
+    for (let i = 0; i < data.externalLinks.length; i++) {
+      if (
+        data.externalLinks[i].site == "Crunchyroll" ||
+        data.externalLinks[i].site == "Funimation"
+      ) {
+        links.push({
+          site: data.externalLinks[i].site,
+          url: data.externalLinks[i].url,
+        });
+      }
+    }
+    data.externalLinks = links;
+  }
 </script>
 
-<div class="card" on:click={toggleActive}>
-  <ItemRank {rank} />
-  <ItemBanner {banner} {title} />
-  <ItemDetails {rank} {previousRank} {votes} {previousVotes} />
+<div class="wrapper" on:click={toggleActive}>
+  <div class="card" class:straight-bottom-border={isActive}>
+    <ItemRank {rank} />
+    <ItemBanner {banner} {title} />
+    <ItemDetails {rank} {previousRank} {votes} {previousVotes} {isActive} />
+  </div>
+  {#if isActive}
+    {#await fetchDetails()}
+      <div class="card-content">
+        <p>Loading...</p>
+      </div>
+    {:then anime}
+      <div class="card-content">
+        <div class="pills">
+          {#each anime.genres as genres}
+            <div class="pill">{genres}</div>
+          {/each}
+        </div>
+        <div class="links">
+          Watch on:
+          {#each anime.externalLinks as link}
+            {#if link.site == "Crunchyroll"}
+              <a href={link.url} class="crunchy-pill">
+                <img src="logos/Crunchyroll.svg" alt="" class="crunchyroll" />
+              </a>
+            {:else if link.site == "Funimation"}
+              <a href={link.url} class="fun-pill">
+                <img
+                  src="logos/Funimation.svg"
+                  alt=""
+                  class="site funimation"
+                />
+              </a>
+            {/if}
+          {/each}
+        </div>
+        {@html anime.description}
+      </div>
+    {/await}
+  {/if}
 </div>
 
-{#if isActive}
-  {#await fetchDetails()}
-    <div class="card-content">
-      <p>Loading...</p>
-    </div>
-  {:then anime}
-    <div class="card-content">
-      {@html anime.description}
-    </div>
-  {/await}
-{/if}
-
 <style>
+  .wrapper {
+    display: flex;
+    flex-direction: column;
+  }
   .card {
     display: flex;
     align-items: center;
@@ -178,5 +223,74 @@
     background-color: var(--primary-color);
     border-radius: 6px;
     cursor: pointer;
+  }
+
+  .straight-bottom-border {
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
+  }
+
+  .card-content {
+    padding: 1rem;
+    background-color: #383838;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+  }
+
+  .pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: bold;
+  }
+
+  .pill {
+    padding: 0.5rem;
+    background-color: var(--primary-color);
+    border-radius: 12px;
+  }
+
+  .links {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    font-weight: bold;
+  }
+
+  .site {
+    height: 1.1rem;
+  }
+
+  .crunchyroll {
+    height: 1.6rem;
+  }
+
+  .crunchy-pill {
+    display: flex;
+    align-items: center;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    padding-top: 0.2rem;
+    padding-bottom: 0.2rem;
+    border-radius: 6px;
+    background-color: #f47521;
+  }
+
+  .funimation {
+    height: 1rem;
+  }
+
+  .fun-pill {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    border-radius: 6px;
+    background-color: #472d8e;
   }
 </style>

@@ -5,6 +5,7 @@
   export let previousRank;
   export let votes;
   export let previousVotes;
+  export let isActive;
   let rankProgression;
   let voteDifference;
 
@@ -71,15 +72,27 @@
   <div class="sub-container border-br">
     <div class="figure border-br">{votes}%</div>
     {#if voteDifference > 0}
-      <div class="label border-br" class:gain={voteDifference > 0}>
+      <div
+        class="label border-br"
+        class:gain={voteDifference > 0}
+        class:no-border-br={isActive}
+      >
         +{voteDifference}% GAIN
       </div>
     {:else if voteDifference < 0}
-      <div class="label border-br" class:drop={voteDifference < 0}>
+      <div
+        class="label border-br"
+        class:drop={voteDifference < 0}
+        class:no-border-br={isActive}
+      >
         {voteDifference}% DROP
       </div>
     {:else}
-      <div class="label border-br" class:neutral={voteDifference == 0}>
+      <div
+        class="label border-br"
+        class:neutral={voteDifference == 0}
+        class:no-border-br={isActive}
+      >
         NEW ENTRY
       </div>
     {/if}
@@ -150,6 +163,10 @@
 
   .border-br {
     border-bottom-right-radius: 6px;
+  }
+
+  .no-border-br {
+    border-bottom-right-radius: 0px;
   }
 
   .arrow-gain::before {
