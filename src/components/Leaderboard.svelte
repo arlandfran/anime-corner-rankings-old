@@ -272,21 +272,75 @@
           variables: variables,
         }),
       })
-        .then((result) => {
+        .then(async (result) => {
           banner = result.data.data.Media.bannerImage;
 
           if (banner === null) {
-            banner =
-              "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
+            banner = await fetchKitsuBanner(title);
           }
         })
-        .catch((err) => {
-          banner =
-            "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
+        .catch(async (err) => {
           console.log(err.message);
+          banner = await fetchKitsuBanner(title);
         });
       data[i].banner = banner;
     }
+  };
+
+  const fetchKitsuBanner = async (title) => {
+    let banner;
+
+    const query = `
+  query ($title: String!){
+    searchAnimeByTitle (first: 1, title: $title) {
+      nodes {
+        bannerImage {
+          original {
+            url
+          }
+        }
+      }
+    }
+  }
+  `;
+
+    const variables = {
+      title: title,
+    };
+
+    const headers = {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    };
+
+    await axios({
+      method: "post",
+      url: "https://kitsu.io/api/graphql",
+      headers,
+      data: JSON.stringify({
+        query: query,
+        variables: variables,
+      }),
+    })
+      .then(async (result) => {
+        if (
+          result.data.data.searchAnimeByTitle.nodes[0].bannerImage.original
+            .url == "/cover_images/original/missing.png"
+        ) {
+          banner =
+            "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
+        } else {
+          banner =
+            result.data.data.searchAnimeByTitle.nodes[0].bannerImage.original
+              .url;
+        }
+      })
+      .catch((err) => {
+        banner =
+          "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
+        console.log(err.message);
+      });
+    return banner;
   };
 
   const fetchPreviousStandings = async (data) => {
