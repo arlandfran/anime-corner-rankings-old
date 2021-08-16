@@ -26,11 +26,15 @@
   });
 
   const fetchData = async () => {
+    document.getElementById("prev-btn").disabled = true;
+    document.getElementById("next-btn").disabled = true;
     let key = `${$season}-${$week}-page-${$page}`;
     let cache = checkCache(key);
 
     // If cached data exists and is not expired then return data
     if (cache.cachedData && !cache.expired) {
+      document.getElementById("prev-btn").disabled = false;
+      document.getElementById("next-btn").disabled = false;
       return cache.cachedData.data;
     } else {
       // Otherwise fetch data
@@ -47,6 +51,9 @@
       cacheData(key, data);
 
       console.log("Data fetched:", data);
+
+      document.getElementById("prev-btn").disabled = false;
+      document.getElementById("next-btn").disabled = false;
 
       return data;
     }
@@ -176,6 +183,9 @@
   };
 
   const updateItems = async () => {
+    document.getElementById("prev-btn").disabled = true;
+    document.getElementById("next-btn").disabled = true;
+
     let key = `${$season}-${$week}-page-${$page}`;
     let cache = checkCache(key);
 
@@ -217,6 +227,14 @@
       cacheData(key, data);
       console.log("Items array updated. New Items:", items);
     }
+
+    document.getElementById("next-btn").disabled = false;
+    if ($week == "Week-01") {
+      document.getElementById("prev-btn").disabled = true;
+    } else {
+      document.getElementById("prev-btn").disabled = false;
+    }
+
     // Re-enable button in the case that the user has fetched the entire subcollection and button was disabled
     document.getElementById("showMore").disabled = false;
   };
