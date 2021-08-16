@@ -176,7 +176,7 @@
   };
 
   const updateItems = async () => {
-    let key = `${$season}-${$week}`;
+    let key = `${$season}-${$week}-page-${$page}`;
     let cache = checkCache(key);
 
     // If cached data exists and is not expired then return data
@@ -286,8 +286,8 @@
 
     if (previousWeek == "Week-00") {
       for (let i = 0; i < data.length; i++) {
-        data[i].previousRank = 0;
-        data[i].previousVotes = 0;
+        data[i].previousRank = null;
+        data[i].previousVotes = null;
       }
     } else {
       for (let i = 0; i < data.length; i++) {
@@ -297,8 +297,8 @@
           .then((snapshots) => snapshots.docs.map((doc) => doc.data()));
 
         if (previousData[0] == undefined) {
-          data[i].previousRank = 0;
-          data[i].previousVotes = 0;
+          data[i].previousRank = null;
+          data[i].previousVotes = null;
         } else {
           data[i].previousRank = previousData[0].rank;
           data[i].previousVotes = previousData[0].votes;
