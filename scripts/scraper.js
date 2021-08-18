@@ -22,6 +22,7 @@ const main = async () => {
     data.rankings[anime].genres = details[anime].genres;
     data.rankings[anime].externalLinks = details[anime].externalLinks;
   }
+  await fetchPreviousRankings(data);
   await writeDataToFirestore(data);
   console.log("Done");
 };
@@ -285,5 +286,48 @@ function stripLinks(data) {
   }
 }
 
-// Execute main script
-main();
+// Fetch the previous ranks and votes of each anime object
+const fetchPreviousRankings = async (data) => {
+  console.log("Details fetched, fetching previous weeks data...");
+  // Decrement week
+  let previousWeek;
+  let n = parseInt(data.week.split("-")[1]);
+  n -= 1;
+  if (n > 10) {
+    previousWeek = "Week-" + n.toString();
+  } else {
+    previousWeek = "Week-0" + n.toString();
+  }
+
+  const query = db
+    .collection(data.year)
+    .doc(data.season)
+    .collection(previousWeek);
+
+  // All animes found in Week 1 are new entries so make values null
+  if (previousWeek == "Week-00") {
+    for (anime in data.rankings) {
+      data.rankings[anime].previousRank = null;
+      data.rankings[anime].previousVotes = null;
+    }
+  } else {
+    for (anime in data.rankings) {
+      let previousData = await query
+        .where("title", "==", data.rankings[anime].title)
+        .get()
+        .then((snapshots) => snapshots.docs.map((doc) => doc.data()));
+      // If anime is a new entry then make values null
+      if (previousData[0] == undefined) {
+        data.rankings[anime].previousRank = null;
+        data.rankings[anime].previousVotes = null;
+      } else {
+        // Otherwise return previous rank and votes
+        data.rankings[anime].previousRank = previousData[0].rank;
+        data.rankings[anime].previousVotes = previousData[0].votes;
+      }
+      console.log(`${data.rankings[anime].title}: Previous data fetched`);
+    }
+  }
+};
+
+main(); // Execute main script
