@@ -24,8 +24,10 @@ const main = async () => {
   }
   await fetchPreviousRankings(data);
   await writeDataToFirestore(data);
-  let animeTitles = extractTitles();
-  let newBanners = await fetchAnilistBanners(animeTitles);
+  let titles = extractTitles();
+  let existingBanners = await fetchExistingBanners();
+  let bannersToFetch = await checkForExistingEntries(existingBanners, titles);
+  let newBanners = await fetchAnilistBanners(bannersToFetch);
   await writeBannersToFirestore(newBanners);
   console.log("Done");
 };
@@ -340,6 +342,28 @@ function extractTitles(data) {
     titles.push(data.rankings[anime].title);
   }
   return titles;
+}
+
+const fetchExistingBanners = async () => {
+  const banners = await db
+    .collection("banners")
+    .get()
+    .then((snapshots) => snapshots.docs.map((doc) => doc.id));
+  console.log("Existing banners:", banners.length);
+  return banners;
+};
+
+function checkForExistingEntries(existingBanners, titles) {
+  const toRemove = new Set(existingBanners);
+
+  //Code adapted from: https://stackoverflow.com/a/44204227
+  const noMatch = titles.filter((title) => !toRemove.has(title)); // returns array with banners that are new
+  const match = titles.filter((title) => toRemove.has(title)); // returns array with banners that are already in collection
+
+  console.log("Banners already in DB:", match.length);
+  console.log("Banners to be added:", noMatch.length);
+
+  return noMatch;
 }
 
 // Fetch banner images using Anilist API and returns banner array
