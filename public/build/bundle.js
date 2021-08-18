@@ -10,9 +10,6 @@ var app = (function () {
             tar[k] = src[k];
         return tar;
     }
-    function is_promise(value) {
-        return value && typeof value === 'object' && typeof value.then === 'function';
-    }
     function add_location(element, file, line, column, char) {
         element.__svelte_meta = {
             loc: { file, line, column, char }
@@ -32,6 +29,14 @@ var app = (function () {
     }
     function safe_not_equal(a, b) {
         return a != a ? b == b : a !== b || ((a && typeof a === 'object') || typeof a === 'function');
+    }
+    let src_url_equal_anchor;
+    function src_url_equal(element_src, url) {
+        if (!src_url_equal_anchor) {
+            src_url_equal_anchor = document.createElement('a');
+        }
+        src_url_equal_anchor.href = url;
+        return element_src === src_url_equal_anchor.href;
     }
     function is_empty(obj) {
         return Object.keys(obj).length === 0;
@@ -95,6 +100,9 @@ var app = (function () {
     function children(element) {
         return Array.from(element.childNodes);
     }
+    function set_style(node, key, value, important) {
+        node.style.setProperty(key, value, important ? 'important' : '');
+    }
     function select_option(select, value) {
         for (let i = 0; i < select.options.length; i += 1) {
             const option = select.options[i];
@@ -108,10 +116,46 @@ var app = (function () {
         const selected_option = select.querySelector(':checked') || select.options[0];
         return selected_option && selected_option.__value;
     }
+    function toggle_class(element, name, toggle) {
+        element.classList[toggle ? 'add' : 'remove'](name);
+    }
     function custom_event(type, detail, bubbles = false) {
         const e = document.createEvent('CustomEvent');
         e.initCustomEvent(type, bubbles, false, detail);
         return e;
+    }
+    class HtmlTag {
+        constructor() {
+            this.e = this.n = null;
+        }
+        c(html) {
+            this.h(html);
+        }
+        m(html, target, anchor = null) {
+            if (!this.e) {
+                this.e = element(target.nodeName);
+                this.t = target;
+                this.c(html);
+            }
+            this.i(anchor);
+        }
+        h(html) {
+            this.e.innerHTML = html;
+            this.n = Array.from(this.e.childNodes);
+        }
+        i(anchor) {
+            for (let i = 0; i < this.n.length; i += 1) {
+                insert(this.t, this.n[i], anchor);
+            }
+        }
+        p(html) {
+            this.d();
+            this.h(html);
+            this.i(this.a);
+        }
+        d() {
+            this.n.forEach(detach);
+        }
     }
 
     let current_component;
@@ -125,6 +169,9 @@ var app = (function () {
     }
     function onMount(fn) {
         get_current_component().$$.on_mount.push(fn);
+    }
+    function afterUpdate(fn) {
+        get_current_component().$$.after_update.push(fn);
     }
 
     const dirty_components = [];
@@ -226,88 +273,6 @@ var app = (function () {
             });
             block.o(local);
         }
-    }
-
-    function handle_promise(promise, info) {
-        const token = info.token = {};
-        function update(type, index, key, value) {
-            if (info.token !== token)
-                return;
-            info.resolved = value;
-            let child_ctx = info.ctx;
-            if (key !== undefined) {
-                child_ctx = child_ctx.slice();
-                child_ctx[key] = value;
-            }
-            const block = type && (info.current = type)(child_ctx);
-            let needs_flush = false;
-            if (info.block) {
-                if (info.blocks) {
-                    info.blocks.forEach((block, i) => {
-                        if (i !== index && block) {
-                            group_outros();
-                            transition_out(block, 1, 1, () => {
-                                if (info.blocks[i] === block) {
-                                    info.blocks[i] = null;
-                                }
-                            });
-                            check_outros();
-                        }
-                    });
-                }
-                else {
-                    info.block.d(1);
-                }
-                block.c();
-                transition_in(block, 1);
-                block.m(info.mount(), info.anchor);
-                needs_flush = true;
-            }
-            info.block = block;
-            if (info.blocks)
-                info.blocks[index] = block;
-            if (needs_flush) {
-                flush();
-            }
-        }
-        if (is_promise(promise)) {
-            const current_component = get_current_component();
-            promise.then(value => {
-                set_current_component(current_component);
-                update(info.then, 1, info.value, value);
-                set_current_component(null);
-            }, error => {
-                set_current_component(current_component);
-                update(info.catch, 2, info.error, error);
-                set_current_component(null);
-                if (!info.hasCatch) {
-                    throw error;
-                }
-            });
-            // if we previously had a then/catch block, destroy it
-            if (info.current !== info.pending) {
-                update(info.pending, 0);
-                return true;
-            }
-        }
-        else {
-            if (info.current !== info.then) {
-                update(info.then, 1, info.value, promise);
-                return true;
-            }
-            info.resolved = promise;
-        }
-    }
-    function update_await_block_branch(info, ctx, dirty) {
-        const child_ctx = ctx.slice();
-        const { resolved } = info;
-        if (info.current === info.then) {
-            child_ctx[info.value] = resolved;
-        }
-        if (info.current === info.catch) {
-            child_ctx[info.error] = resolved;
-        }
-        info.block.p(child_ctx, dirty);
     }
 
     const globals = (typeof window !== 'undefined'
@@ -22994,1536 +22959,1031 @@ var app = (function () {
     const db = firebase.firestore();
     const cf = firebase.functions();
 
-    var bind = function bind(fn, thisArg) {
-      return function wrap() {
-        var args = new Array(arguments.length);
-        for (var i = 0; i < args.length; i++) {
-          args[i] = arguments[i];
-        }
-        return fn.apply(thisArg, args);
-      };
-    };
+    /* src/components/ItemRank.svelte generated by Svelte v3.41.0 */
 
-    /*global toString:true*/
+    const file$5 = "src/components/ItemRank.svelte";
 
-    // utils is a library of generic helper functions non-specific to axios
-
-    var toString = Object.prototype.toString;
-
-    /**
-     * Determine if a value is an Array
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is an Array, otherwise false
-     */
-    function isArray(val) {
-      return toString.call(val) === '[object Array]';
-    }
-
-    /**
-     * Determine if a value is undefined
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if the value is undefined, otherwise false
-     */
-    function isUndefined(val) {
-      return typeof val === 'undefined';
-    }
-
-    /**
-     * Determine if a value is a Buffer
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is a Buffer, otherwise false
-     */
-    function isBuffer(val) {
-      return val !== null && !isUndefined(val) && val.constructor !== null && !isUndefined(val.constructor)
-        && typeof val.constructor.isBuffer === 'function' && val.constructor.isBuffer(val);
-    }
-
-    /**
-     * Determine if a value is an ArrayBuffer
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is an ArrayBuffer, otherwise false
-     */
-    function isArrayBuffer(val) {
-      return toString.call(val) === '[object ArrayBuffer]';
-    }
-
-    /**
-     * Determine if a value is a FormData
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is an FormData, otherwise false
-     */
-    function isFormData(val) {
-      return (typeof FormData !== 'undefined') && (val instanceof FormData);
-    }
-
-    /**
-     * Determine if a value is a view on an ArrayBuffer
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is a view on an ArrayBuffer, otherwise false
-     */
-    function isArrayBufferView(val) {
-      var result;
-      if ((typeof ArrayBuffer !== 'undefined') && (ArrayBuffer.isView)) {
-        result = ArrayBuffer.isView(val);
-      } else {
-        result = (val) && (val.buffer) && (val.buffer instanceof ArrayBuffer);
-      }
-      return result;
-    }
-
-    /**
-     * Determine if a value is a String
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is a String, otherwise false
-     */
-    function isString(val) {
-      return typeof val === 'string';
-    }
-
-    /**
-     * Determine if a value is a Number
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is a Number, otherwise false
-     */
-    function isNumber(val) {
-      return typeof val === 'number';
-    }
-
-    /**
-     * Determine if a value is an Object
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is an Object, otherwise false
-     */
-    function isObject(val) {
-      return val !== null && typeof val === 'object';
-    }
-
-    /**
-     * Determine if a value is a plain Object
-     *
-     * @param {Object} val The value to test
-     * @return {boolean} True if value is a plain Object, otherwise false
-     */
-    function isPlainObject(val) {
-      if (toString.call(val) !== '[object Object]') {
-        return false;
-      }
-
-      var prototype = Object.getPrototypeOf(val);
-      return prototype === null || prototype === Object.prototype;
-    }
-
-    /**
-     * Determine if a value is a Date
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is a Date, otherwise false
-     */
-    function isDate(val) {
-      return toString.call(val) === '[object Date]';
-    }
-
-    /**
-     * Determine if a value is a File
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is a File, otherwise false
-     */
-    function isFile(val) {
-      return toString.call(val) === '[object File]';
-    }
-
-    /**
-     * Determine if a value is a Blob
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is a Blob, otherwise false
-     */
-    function isBlob(val) {
-      return toString.call(val) === '[object Blob]';
-    }
-
-    /**
-     * Determine if a value is a Function
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is a Function, otherwise false
-     */
-    function isFunction(val) {
-      return toString.call(val) === '[object Function]';
-    }
-
-    /**
-     * Determine if a value is a Stream
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is a Stream, otherwise false
-     */
-    function isStream(val) {
-      return isObject(val) && isFunction(val.pipe);
-    }
-
-    /**
-     * Determine if a value is a URLSearchParams object
-     *
-     * @param {Object} val The value to test
-     * @returns {boolean} True if value is a URLSearchParams object, otherwise false
-     */
-    function isURLSearchParams(val) {
-      return typeof URLSearchParams !== 'undefined' && val instanceof URLSearchParams;
-    }
-
-    /**
-     * Trim excess whitespace off the beginning and end of a string
-     *
-     * @param {String} str The String to trim
-     * @returns {String} The String freed of excess whitespace
-     */
-    function trim(str) {
-      return str.replace(/^\s*/, '').replace(/\s*$/, '');
-    }
-
-    /**
-     * Determine if we're running in a standard browser environment
-     *
-     * This allows axios to run in a web worker, and react-native.
-     * Both environments support XMLHttpRequest, but not fully standard globals.
-     *
-     * web workers:
-     *  typeof window -> undefined
-     *  typeof document -> undefined
-     *
-     * react-native:
-     *  navigator.product -> 'ReactNative'
-     * nativescript
-     *  navigator.product -> 'NativeScript' or 'NS'
-     */
-    function isStandardBrowserEnv() {
-      if (typeof navigator !== 'undefined' && (navigator.product === 'ReactNative' ||
-                                               navigator.product === 'NativeScript' ||
-                                               navigator.product === 'NS')) {
-        return false;
-      }
-      return (
-        typeof window !== 'undefined' &&
-        typeof document !== 'undefined'
-      );
-    }
-
-    /**
-     * Iterate over an Array or an Object invoking a function for each item.
-     *
-     * If `obj` is an Array callback will be called passing
-     * the value, index, and complete array for each item.
-     *
-     * If 'obj' is an Object callback will be called passing
-     * the value, key, and complete object for each property.
-     *
-     * @param {Object|Array} obj The object to iterate
-     * @param {Function} fn The callback to invoke for each item
-     */
-    function forEach(obj, fn) {
-      // Don't bother if no value provided
-      if (obj === null || typeof obj === 'undefined') {
-        return;
-      }
-
-      // Force an array if not already something iterable
-      if (typeof obj !== 'object') {
-        /*eslint no-param-reassign:0*/
-        obj = [obj];
-      }
-
-      if (isArray(obj)) {
-        // Iterate over array values
-        for (var i = 0, l = obj.length; i < l; i++) {
-          fn.call(null, obj[i], i, obj);
-        }
-      } else {
-        // Iterate over object keys
-        for (var key in obj) {
-          if (Object.prototype.hasOwnProperty.call(obj, key)) {
-            fn.call(null, obj[key], key, obj);
-          }
-        }
-      }
-    }
-
-    /**
-     * Accepts varargs expecting each argument to be an object, then
-     * immutably merges the properties of each object and returns result.
-     *
-     * When multiple objects contain the same key the later object in
-     * the arguments list will take precedence.
-     *
-     * Example:
-     *
-     * ```js
-     * var result = merge({foo: 123}, {foo: 456});
-     * console.log(result.foo); // outputs 456
-     * ```
-     *
-     * @param {Object} obj1 Object to merge
-     * @returns {Object} Result of all merge properties
-     */
-    function merge(/* obj1, obj2, obj3, ... */) {
-      var result = {};
-      function assignValue(val, key) {
-        if (isPlainObject(result[key]) && isPlainObject(val)) {
-          result[key] = merge(result[key], val);
-        } else if (isPlainObject(val)) {
-          result[key] = merge({}, val);
-        } else if (isArray(val)) {
-          result[key] = val.slice();
-        } else {
-          result[key] = val;
-        }
-      }
-
-      for (var i = 0, l = arguments.length; i < l; i++) {
-        forEach(arguments[i], assignValue);
-      }
-      return result;
-    }
-
-    /**
-     * Extends object a by mutably adding to it the properties of object b.
-     *
-     * @param {Object} a The object to be extended
-     * @param {Object} b The object to copy properties from
-     * @param {Object} thisArg The object to bind function to
-     * @return {Object} The resulting value of object a
-     */
-    function extend(a, b, thisArg) {
-      forEach(b, function assignValue(val, key) {
-        if (thisArg && typeof val === 'function') {
-          a[key] = bind(val, thisArg);
-        } else {
-          a[key] = val;
-        }
-      });
-      return a;
-    }
-
-    /**
-     * Remove byte order marker. This catches EF BB BF (the UTF-8 BOM)
-     *
-     * @param {string} content with BOM
-     * @return {string} content value without BOM
-     */
-    function stripBOM(content) {
-      if (content.charCodeAt(0) === 0xFEFF) {
-        content = content.slice(1);
-      }
-      return content;
-    }
-
-    var utils = {
-      isArray: isArray,
-      isArrayBuffer: isArrayBuffer,
-      isBuffer: isBuffer,
-      isFormData: isFormData,
-      isArrayBufferView: isArrayBufferView,
-      isString: isString,
-      isNumber: isNumber,
-      isObject: isObject,
-      isPlainObject: isPlainObject,
-      isUndefined: isUndefined,
-      isDate: isDate,
-      isFile: isFile,
-      isBlob: isBlob,
-      isFunction: isFunction,
-      isStream: isStream,
-      isURLSearchParams: isURLSearchParams,
-      isStandardBrowserEnv: isStandardBrowserEnv,
-      forEach: forEach,
-      merge: merge,
-      extend: extend,
-      trim: trim,
-      stripBOM: stripBOM
-    };
-
-    function encode(val) {
-      return encodeURIComponent(val).
-        replace(/%3A/gi, ':').
-        replace(/%24/g, '$').
-        replace(/%2C/gi, ',').
-        replace(/%20/g, '+').
-        replace(/%5B/gi, '[').
-        replace(/%5D/gi, ']');
-    }
-
-    /**
-     * Build a URL by appending params to the end
-     *
-     * @param {string} url The base of the url (e.g., http://www.google.com)
-     * @param {object} [params] The params to be appended
-     * @returns {string} The formatted url
-     */
-    var buildURL = function buildURL(url, params, paramsSerializer) {
-      /*eslint no-param-reassign:0*/
-      if (!params) {
-        return url;
-      }
-
-      var serializedParams;
-      if (paramsSerializer) {
-        serializedParams = paramsSerializer(params);
-      } else if (utils.isURLSearchParams(params)) {
-        serializedParams = params.toString();
-      } else {
-        var parts = [];
-
-        utils.forEach(params, function serialize(val, key) {
-          if (val === null || typeof val === 'undefined') {
-            return;
-          }
-
-          if (utils.isArray(val)) {
-            key = key + '[]';
-          } else {
-            val = [val];
-          }
-
-          utils.forEach(val, function parseValue(v) {
-            if (utils.isDate(v)) {
-              v = v.toISOString();
-            } else if (utils.isObject(v)) {
-              v = JSON.stringify(v);
-            }
-            parts.push(encode(key) + '=' + encode(v));
-          });
-        });
-
-        serializedParams = parts.join('&');
-      }
-
-      if (serializedParams) {
-        var hashmarkIndex = url.indexOf('#');
-        if (hashmarkIndex !== -1) {
-          url = url.slice(0, hashmarkIndex);
-        }
-
-        url += (url.indexOf('?') === -1 ? '?' : '&') + serializedParams;
-      }
-
-      return url;
-    };
-
-    function InterceptorManager() {
-      this.handlers = [];
-    }
-
-    /**
-     * Add a new interceptor to the stack
-     *
-     * @param {Function} fulfilled The function to handle `then` for a `Promise`
-     * @param {Function} rejected The function to handle `reject` for a `Promise`
-     *
-     * @return {Number} An ID used to remove interceptor later
-     */
-    InterceptorManager.prototype.use = function use(fulfilled, rejected) {
-      this.handlers.push({
-        fulfilled: fulfilled,
-        rejected: rejected
-      });
-      return this.handlers.length - 1;
-    };
-
-    /**
-     * Remove an interceptor from the stack
-     *
-     * @param {Number} id The ID that was returned by `use`
-     */
-    InterceptorManager.prototype.eject = function eject(id) {
-      if (this.handlers[id]) {
-        this.handlers[id] = null;
-      }
-    };
-
-    /**
-     * Iterate over all the registered interceptors
-     *
-     * This method is particularly useful for skipping over any
-     * interceptors that may have become `null` calling `eject`.
-     *
-     * @param {Function} fn The function to call for each interceptor
-     */
-    InterceptorManager.prototype.forEach = function forEach(fn) {
-      utils.forEach(this.handlers, function forEachHandler(h) {
-        if (h !== null) {
-          fn(h);
-        }
-      });
-    };
-
-    var InterceptorManager_1 = InterceptorManager;
-
-    /**
-     * Transform the data for a request or a response
-     *
-     * @param {Object|String} data The data to be transformed
-     * @param {Array} headers The headers for the request or response
-     * @param {Array|Function} fns A single function or Array of functions
-     * @returns {*} The resulting transformed data
-     */
-    var transformData = function transformData(data, headers, fns) {
-      /*eslint no-param-reassign:0*/
-      utils.forEach(fns, function transform(fn) {
-        data = fn(data, headers);
-      });
-
-      return data;
-    };
-
-    var isCancel = function isCancel(value) {
-      return !!(value && value.__CANCEL__);
-    };
-
-    var normalizeHeaderName = function normalizeHeaderName(headers, normalizedName) {
-      utils.forEach(headers, function processHeader(value, name) {
-        if (name !== normalizedName && name.toUpperCase() === normalizedName.toUpperCase()) {
-          headers[normalizedName] = value;
-          delete headers[name];
-        }
-      });
-    };
-
-    /**
-     * Update an Error with the specified config, error code, and response.
-     *
-     * @param {Error} error The error to update.
-     * @param {Object} config The config.
-     * @param {string} [code] The error code (for example, 'ECONNABORTED').
-     * @param {Object} [request] The request.
-     * @param {Object} [response] The response.
-     * @returns {Error} The error.
-     */
-    var enhanceError = function enhanceError(error, config, code, request, response) {
-      error.config = config;
-      if (code) {
-        error.code = code;
-      }
-
-      error.request = request;
-      error.response = response;
-      error.isAxiosError = true;
-
-      error.toJSON = function toJSON() {
-        return {
-          // Standard
-          message: this.message,
-          name: this.name,
-          // Microsoft
-          description: this.description,
-          number: this.number,
-          // Mozilla
-          fileName: this.fileName,
-          lineNumber: this.lineNumber,
-          columnNumber: this.columnNumber,
-          stack: this.stack,
-          // Axios
-          config: this.config,
-          code: this.code
-        };
-      };
-      return error;
-    };
-
-    /**
-     * Create an Error with the specified message, config, error code, request and response.
-     *
-     * @param {string} message The error message.
-     * @param {Object} config The config.
-     * @param {string} [code] The error code (for example, 'ECONNABORTED').
-     * @param {Object} [request] The request.
-     * @param {Object} [response] The response.
-     * @returns {Error} The created error.
-     */
-    var createError = function createError(message, config, code, request, response) {
-      var error = new Error(message);
-      return enhanceError(error, config, code, request, response);
-    };
-
-    /**
-     * Resolve or reject a Promise based on response status.
-     *
-     * @param {Function} resolve A function that resolves the promise.
-     * @param {Function} reject A function that rejects the promise.
-     * @param {object} response The response.
-     */
-    var settle = function settle(resolve, reject, response) {
-      var validateStatus = response.config.validateStatus;
-      if (!response.status || !validateStatus || validateStatus(response.status)) {
-        resolve(response);
-      } else {
-        reject(createError(
-          'Request failed with status code ' + response.status,
-          response.config,
-          null,
-          response.request,
-          response
-        ));
-      }
-    };
-
-    var cookies = (
-      utils.isStandardBrowserEnv() ?
-
-      // Standard browser envs support document.cookie
-        (function standardBrowserEnv() {
-          return {
-            write: function write(name, value, expires, path, domain, secure) {
-              var cookie = [];
-              cookie.push(name + '=' + encodeURIComponent(value));
-
-              if (utils.isNumber(expires)) {
-                cookie.push('expires=' + new Date(expires).toGMTString());
-              }
-
-              if (utils.isString(path)) {
-                cookie.push('path=' + path);
-              }
-
-              if (utils.isString(domain)) {
-                cookie.push('domain=' + domain);
-              }
-
-              if (secure === true) {
-                cookie.push('secure');
-              }
-
-              document.cookie = cookie.join('; ');
-            },
-
-            read: function read(name) {
-              var match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
-              return (match ? decodeURIComponent(match[3]) : null);
-            },
-
-            remove: function remove(name) {
-              this.write(name, '', Date.now() - 86400000);
-            }
-          };
-        })() :
-
-      // Non standard browser env (web workers, react-native) lack needed support.
-        (function nonStandardBrowserEnv() {
-          return {
-            write: function write() {},
-            read: function read() { return null; },
-            remove: function remove() {}
-          };
-        })()
-    );
-
-    /**
-     * Determines whether the specified URL is absolute
-     *
-     * @param {string} url The URL to test
-     * @returns {boolean} True if the specified URL is absolute, otherwise false
-     */
-    var isAbsoluteURL = function isAbsoluteURL(url) {
-      // A URL is considered absolute if it begins with "<scheme>://" or "//" (protocol-relative URL).
-      // RFC 3986 defines scheme name as a sequence of characters beginning with a letter and followed
-      // by any combination of letters, digits, plus, period, or hyphen.
-      return /^([a-z][a-z\d\+\-\.]*:)?\/\//i.test(url);
-    };
-
-    /**
-     * Creates a new URL by combining the specified URLs
-     *
-     * @param {string} baseURL The base URL
-     * @param {string} relativeURL The relative URL
-     * @returns {string} The combined URL
-     */
-    var combineURLs = function combineURLs(baseURL, relativeURL) {
-      return relativeURL
-        ? baseURL.replace(/\/+$/, '') + '/' + relativeURL.replace(/^\/+/, '')
-        : baseURL;
-    };
-
-    /**
-     * Creates a new URL by combining the baseURL with the requestedURL,
-     * only when the requestedURL is not already an absolute URL.
-     * If the requestURL is absolute, this function returns the requestedURL untouched.
-     *
-     * @param {string} baseURL The base URL
-     * @param {string} requestedURL Absolute or relative URL to combine
-     * @returns {string} The combined full path
-     */
-    var buildFullPath = function buildFullPath(baseURL, requestedURL) {
-      if (baseURL && !isAbsoluteURL(requestedURL)) {
-        return combineURLs(baseURL, requestedURL);
-      }
-      return requestedURL;
-    };
-
-    // Headers whose duplicates are ignored by node
-    // c.f. https://nodejs.org/api/http.html#http_message_headers
-    var ignoreDuplicateOf = [
-      'age', 'authorization', 'content-length', 'content-type', 'etag',
-      'expires', 'from', 'host', 'if-modified-since', 'if-unmodified-since',
-      'last-modified', 'location', 'max-forwards', 'proxy-authorization',
-      'referer', 'retry-after', 'user-agent'
-    ];
-
-    /**
-     * Parse headers into an object
-     *
-     * ```
-     * Date: Wed, 27 Aug 2014 08:58:49 GMT
-     * Content-Type: application/json
-     * Connection: keep-alive
-     * Transfer-Encoding: chunked
-     * ```
-     *
-     * @param {String} headers Headers needing to be parsed
-     * @returns {Object} Headers parsed into an object
-     */
-    var parseHeaders = function parseHeaders(headers) {
-      var parsed = {};
-      var key;
-      var val;
-      var i;
-
-      if (!headers) { return parsed; }
-
-      utils.forEach(headers.split('\n'), function parser(line) {
-        i = line.indexOf(':');
-        key = utils.trim(line.substr(0, i)).toLowerCase();
-        val = utils.trim(line.substr(i + 1));
-
-        if (key) {
-          if (parsed[key] && ignoreDuplicateOf.indexOf(key) >= 0) {
-            return;
-          }
-          if (key === 'set-cookie') {
-            parsed[key] = (parsed[key] ? parsed[key] : []).concat([val]);
-          } else {
-            parsed[key] = parsed[key] ? parsed[key] + ', ' + val : val;
-          }
-        }
-      });
-
-      return parsed;
-    };
-
-    var isURLSameOrigin = (
-      utils.isStandardBrowserEnv() ?
-
-      // Standard browser envs have full support of the APIs needed to test
-      // whether the request URL is of the same origin as current location.
-        (function standardBrowserEnv() {
-          var msie = /(msie|trident)/i.test(navigator.userAgent);
-          var urlParsingNode = document.createElement('a');
-          var originURL;
-
-          /**
-        * Parse a URL to discover it's components
-        *
-        * @param {String} url The URL to be parsed
-        * @returns {Object}
-        */
-          function resolveURL(url) {
-            var href = url;
-
-            if (msie) {
-            // IE needs attribute set twice to normalize properties
-              urlParsingNode.setAttribute('href', href);
-              href = urlParsingNode.href;
-            }
-
-            urlParsingNode.setAttribute('href', href);
-
-            // urlParsingNode provides the UrlUtils interface - http://url.spec.whatwg.org/#urlutils
-            return {
-              href: urlParsingNode.href,
-              protocol: urlParsingNode.protocol ? urlParsingNode.protocol.replace(/:$/, '') : '',
-              host: urlParsingNode.host,
-              search: urlParsingNode.search ? urlParsingNode.search.replace(/^\?/, '') : '',
-              hash: urlParsingNode.hash ? urlParsingNode.hash.replace(/^#/, '') : '',
-              hostname: urlParsingNode.hostname,
-              port: urlParsingNode.port,
-              pathname: (urlParsingNode.pathname.charAt(0) === '/') ?
-                urlParsingNode.pathname :
-                '/' + urlParsingNode.pathname
-            };
-          }
-
-          originURL = resolveURL(window.location.href);
-
-          /**
-        * Determine if a URL shares the same origin as the current location
-        *
-        * @param {String} requestURL The URL to test
-        * @returns {boolean} True if URL shares the same origin, otherwise false
-        */
-          return function isURLSameOrigin(requestURL) {
-            var parsed = (utils.isString(requestURL)) ? resolveURL(requestURL) : requestURL;
-            return (parsed.protocol === originURL.protocol &&
-                parsed.host === originURL.host);
-          };
-        })() :
-
-      // Non standard browser envs (web workers, react-native) lack needed support.
-        (function nonStandardBrowserEnv() {
-          return function isURLSameOrigin() {
-            return true;
-          };
-        })()
-    );
-
-    var xhr = function xhrAdapter(config) {
-      return new Promise(function dispatchXhrRequest(resolve, reject) {
-        var requestData = config.data;
-        var requestHeaders = config.headers;
-
-        if (utils.isFormData(requestData)) {
-          delete requestHeaders['Content-Type']; // Let the browser set it
-        }
-
-        var request = new XMLHttpRequest();
-
-        // HTTP basic authentication
-        if (config.auth) {
-          var username = config.auth.username || '';
-          var password = config.auth.password ? unescape(encodeURIComponent(config.auth.password)) : '';
-          requestHeaders.Authorization = 'Basic ' + btoa(username + ':' + password);
-        }
-
-        var fullPath = buildFullPath(config.baseURL, config.url);
-        request.open(config.method.toUpperCase(), buildURL(fullPath, config.params, config.paramsSerializer), true);
-
-        // Set the request timeout in MS
-        request.timeout = config.timeout;
-
-        // Listen for ready state
-        request.onreadystatechange = function handleLoad() {
-          if (!request || request.readyState !== 4) {
-            return;
-          }
-
-          // The request errored out and we didn't get a response, this will be
-          // handled by onerror instead
-          // With one exception: request that using file: protocol, most browsers
-          // will return status as 0 even though it's a successful request
-          if (request.status === 0 && !(request.responseURL && request.responseURL.indexOf('file:') === 0)) {
-            return;
-          }
-
-          // Prepare the response
-          var responseHeaders = 'getAllResponseHeaders' in request ? parseHeaders(request.getAllResponseHeaders()) : null;
-          var responseData = !config.responseType || config.responseType === 'text' ? request.responseText : request.response;
-          var response = {
-            data: responseData,
-            status: request.status,
-            statusText: request.statusText,
-            headers: responseHeaders,
-            config: config,
-            request: request
-          };
-
-          settle(resolve, reject, response);
-
-          // Clean up request
-          request = null;
-        };
-
-        // Handle browser request cancellation (as opposed to a manual cancellation)
-        request.onabort = function handleAbort() {
-          if (!request) {
-            return;
-          }
-
-          reject(createError('Request aborted', config, 'ECONNABORTED', request));
-
-          // Clean up request
-          request = null;
-        };
-
-        // Handle low level network errors
-        request.onerror = function handleError() {
-          // Real errors are hidden from us by the browser
-          // onerror should only fire if it's a network error
-          reject(createError('Network Error', config, null, request));
-
-          // Clean up request
-          request = null;
-        };
-
-        // Handle timeout
-        request.ontimeout = function handleTimeout() {
-          var timeoutErrorMessage = 'timeout of ' + config.timeout + 'ms exceeded';
-          if (config.timeoutErrorMessage) {
-            timeoutErrorMessage = config.timeoutErrorMessage;
-          }
-          reject(createError(timeoutErrorMessage, config, 'ECONNABORTED',
-            request));
-
-          // Clean up request
-          request = null;
-        };
-
-        // Add xsrf header
-        // This is only done if running in a standard browser environment.
-        // Specifically not if we're in a web worker, or react-native.
-        if (utils.isStandardBrowserEnv()) {
-          // Add xsrf header
-          var xsrfValue = (config.withCredentials || isURLSameOrigin(fullPath)) && config.xsrfCookieName ?
-            cookies.read(config.xsrfCookieName) :
-            undefined;
-
-          if (xsrfValue) {
-            requestHeaders[config.xsrfHeaderName] = xsrfValue;
-          }
-        }
-
-        // Add headers to the request
-        if ('setRequestHeader' in request) {
-          utils.forEach(requestHeaders, function setRequestHeader(val, key) {
-            if (typeof requestData === 'undefined' && key.toLowerCase() === 'content-type') {
-              // Remove Content-Type if data is undefined
-              delete requestHeaders[key];
-            } else {
-              // Otherwise add header to the request
-              request.setRequestHeader(key, val);
-            }
-          });
-        }
-
-        // Add withCredentials to request if needed
-        if (!utils.isUndefined(config.withCredentials)) {
-          request.withCredentials = !!config.withCredentials;
-        }
-
-        // Add responseType to request if needed
-        if (config.responseType) {
-          try {
-            request.responseType = config.responseType;
-          } catch (e) {
-            // Expected DOMException thrown by browsers not compatible XMLHttpRequest Level 2.
-            // But, this can be suppressed for 'json' type as it can be parsed by default 'transformResponse' function.
-            if (config.responseType !== 'json') {
-              throw e;
-            }
-          }
-        }
-
-        // Handle progress if needed
-        if (typeof config.onDownloadProgress === 'function') {
-          request.addEventListener('progress', config.onDownloadProgress);
-        }
-
-        // Not all browsers support upload events
-        if (typeof config.onUploadProgress === 'function' && request.upload) {
-          request.upload.addEventListener('progress', config.onUploadProgress);
-        }
-
-        if (config.cancelToken) {
-          // Handle cancellation
-          config.cancelToken.promise.then(function onCanceled(cancel) {
-            if (!request) {
-              return;
-            }
-
-            request.abort();
-            reject(cancel);
-            // Clean up request
-            request = null;
-          });
-        }
-
-        if (!requestData) {
-          requestData = null;
-        }
-
-        // Send the request
-        request.send(requestData);
-      });
-    };
-
-    var DEFAULT_CONTENT_TYPE = {
-      'Content-Type': 'application/x-www-form-urlencoded'
-    };
-
-    function setContentTypeIfUnset(headers, value) {
-      if (!utils.isUndefined(headers) && utils.isUndefined(headers['Content-Type'])) {
-        headers['Content-Type'] = value;
-      }
-    }
-
-    function getDefaultAdapter() {
-      var adapter;
-      if (typeof XMLHttpRequest !== 'undefined') {
-        // For browsers use XHR adapter
-        adapter = xhr;
-      } else if (typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]') {
-        // For node use HTTP adapter
-        adapter = xhr;
-      }
-      return adapter;
-    }
-
-    var defaults = {
-      adapter: getDefaultAdapter(),
-
-      transformRequest: [function transformRequest(data, headers) {
-        normalizeHeaderName(headers, 'Accept');
-        normalizeHeaderName(headers, 'Content-Type');
-        if (utils.isFormData(data) ||
-          utils.isArrayBuffer(data) ||
-          utils.isBuffer(data) ||
-          utils.isStream(data) ||
-          utils.isFile(data) ||
-          utils.isBlob(data)
-        ) {
-          return data;
-        }
-        if (utils.isArrayBufferView(data)) {
-          return data.buffer;
-        }
-        if (utils.isURLSearchParams(data)) {
-          setContentTypeIfUnset(headers, 'application/x-www-form-urlencoded;charset=utf-8');
-          return data.toString();
-        }
-        if (utils.isObject(data)) {
-          setContentTypeIfUnset(headers, 'application/json;charset=utf-8');
-          return JSON.stringify(data);
-        }
-        return data;
-      }],
-
-      transformResponse: [function transformResponse(data) {
-        /*eslint no-param-reassign:0*/
-        if (typeof data === 'string') {
-          try {
-            data = JSON.parse(data);
-          } catch (e) { /* Ignore */ }
-        }
-        return data;
-      }],
-
-      /**
-       * A timeout in milliseconds to abort a request. If set to 0 (default) a
-       * timeout is not created.
-       */
-      timeout: 0,
-
-      xsrfCookieName: 'XSRF-TOKEN',
-      xsrfHeaderName: 'X-XSRF-TOKEN',
-
-      maxContentLength: -1,
-      maxBodyLength: -1,
-
-      validateStatus: function validateStatus(status) {
-        return status >= 200 && status < 300;
-      }
-    };
-
-    defaults.headers = {
-      common: {
-        'Accept': 'application/json, text/plain, */*'
-      }
-    };
-
-    utils.forEach(['delete', 'get', 'head'], function forEachMethodNoData(method) {
-      defaults.headers[method] = {};
-    });
-
-    utils.forEach(['post', 'put', 'patch'], function forEachMethodWithData(method) {
-      defaults.headers[method] = utils.merge(DEFAULT_CONTENT_TYPE);
-    });
-
-    var defaults_1 = defaults;
-
-    /**
-     * Throws a `Cancel` if cancellation has been requested.
-     */
-    function throwIfCancellationRequested(config) {
-      if (config.cancelToken) {
-        config.cancelToken.throwIfRequested();
-      }
-    }
-
-    /**
-     * Dispatch a request to the server using the configured adapter.
-     *
-     * @param {object} config The config that is to be used for the request
-     * @returns {Promise} The Promise to be fulfilled
-     */
-    var dispatchRequest = function dispatchRequest(config) {
-      throwIfCancellationRequested(config);
-
-      // Ensure headers exist
-      config.headers = config.headers || {};
-
-      // Transform request data
-      config.data = transformData(
-        config.data,
-        config.headers,
-        config.transformRequest
-      );
-
-      // Flatten headers
-      config.headers = utils.merge(
-        config.headers.common || {},
-        config.headers[config.method] || {},
-        config.headers
-      );
-
-      utils.forEach(
-        ['delete', 'get', 'head', 'post', 'put', 'patch', 'common'],
-        function cleanHeaderConfig(method) {
-          delete config.headers[method];
-        }
-      );
-
-      var adapter = config.adapter || defaults_1.adapter;
-
-      return adapter(config).then(function onAdapterResolution(response) {
-        throwIfCancellationRequested(config);
-
-        // Transform response data
-        response.data = transformData(
-          response.data,
-          response.headers,
-          config.transformResponse
-        );
-
-        return response;
-      }, function onAdapterRejection(reason) {
-        if (!isCancel(reason)) {
-          throwIfCancellationRequested(config);
-
-          // Transform response data
-          if (reason && reason.response) {
-            reason.response.data = transformData(
-              reason.response.data,
-              reason.response.headers,
-              config.transformResponse
-            );
-          }
-        }
-
-        return Promise.reject(reason);
-      });
-    };
-
-    /**
-     * Config-specific merge-function which creates a new config-object
-     * by merging two configuration objects together.
-     *
-     * @param {Object} config1
-     * @param {Object} config2
-     * @returns {Object} New object resulting from merging config2 to config1
-     */
-    var mergeConfig = function mergeConfig(config1, config2) {
-      // eslint-disable-next-line no-param-reassign
-      config2 = config2 || {};
-      var config = {};
-
-      var valueFromConfig2Keys = ['url', 'method', 'data'];
-      var mergeDeepPropertiesKeys = ['headers', 'auth', 'proxy', 'params'];
-      var defaultToConfig2Keys = [
-        'baseURL', 'transformRequest', 'transformResponse', 'paramsSerializer',
-        'timeout', 'timeoutMessage', 'withCredentials', 'adapter', 'responseType', 'xsrfCookieName',
-        'xsrfHeaderName', 'onUploadProgress', 'onDownloadProgress', 'decompress',
-        'maxContentLength', 'maxBodyLength', 'maxRedirects', 'transport', 'httpAgent',
-        'httpsAgent', 'cancelToken', 'socketPath', 'responseEncoding'
-      ];
-      var directMergeKeys = ['validateStatus'];
-
-      function getMergedValue(target, source) {
-        if (utils.isPlainObject(target) && utils.isPlainObject(source)) {
-          return utils.merge(target, source);
-        } else if (utils.isPlainObject(source)) {
-          return utils.merge({}, source);
-        } else if (utils.isArray(source)) {
-          return source.slice();
-        }
-        return source;
-      }
-
-      function mergeDeepProperties(prop) {
-        if (!utils.isUndefined(config2[prop])) {
-          config[prop] = getMergedValue(config1[prop], config2[prop]);
-        } else if (!utils.isUndefined(config1[prop])) {
-          config[prop] = getMergedValue(undefined, config1[prop]);
-        }
-      }
-
-      utils.forEach(valueFromConfig2Keys, function valueFromConfig2(prop) {
-        if (!utils.isUndefined(config2[prop])) {
-          config[prop] = getMergedValue(undefined, config2[prop]);
-        }
-      });
-
-      utils.forEach(mergeDeepPropertiesKeys, mergeDeepProperties);
-
-      utils.forEach(defaultToConfig2Keys, function defaultToConfig2(prop) {
-        if (!utils.isUndefined(config2[prop])) {
-          config[prop] = getMergedValue(undefined, config2[prop]);
-        } else if (!utils.isUndefined(config1[prop])) {
-          config[prop] = getMergedValue(undefined, config1[prop]);
-        }
-      });
-
-      utils.forEach(directMergeKeys, function merge(prop) {
-        if (prop in config2) {
-          config[prop] = getMergedValue(config1[prop], config2[prop]);
-        } else if (prop in config1) {
-          config[prop] = getMergedValue(undefined, config1[prop]);
-        }
-      });
-
-      var axiosKeys = valueFromConfig2Keys
-        .concat(mergeDeepPropertiesKeys)
-        .concat(defaultToConfig2Keys)
-        .concat(directMergeKeys);
-
-      var otherKeys = Object
-        .keys(config1)
-        .concat(Object.keys(config2))
-        .filter(function filterAxiosKeys(key) {
-          return axiosKeys.indexOf(key) === -1;
-        });
-
-      utils.forEach(otherKeys, mergeDeepProperties);
-
-      return config;
-    };
-
-    /**
-     * Create a new instance of Axios
-     *
-     * @param {Object} instanceConfig The default config for the instance
-     */
-    function Axios(instanceConfig) {
-      this.defaults = instanceConfig;
-      this.interceptors = {
-        request: new InterceptorManager_1(),
-        response: new InterceptorManager_1()
-      };
-    }
-
-    /**
-     * Dispatch a request
-     *
-     * @param {Object} config The config specific for this request (merged with this.defaults)
-     */
-    Axios.prototype.request = function request(config) {
-      /*eslint no-param-reassign:0*/
-      // Allow for axios('example/url'[, config]) a la fetch API
-      if (typeof config === 'string') {
-        config = arguments[1] || {};
-        config.url = arguments[0];
-      } else {
-        config = config || {};
-      }
-
-      config = mergeConfig(this.defaults, config);
-
-      // Set config.method
-      if (config.method) {
-        config.method = config.method.toLowerCase();
-      } else if (this.defaults.method) {
-        config.method = this.defaults.method.toLowerCase();
-      } else {
-        config.method = 'get';
-      }
-
-      // Hook up interceptors middleware
-      var chain = [dispatchRequest, undefined];
-      var promise = Promise.resolve(config);
-
-      this.interceptors.request.forEach(function unshiftRequestInterceptors(interceptor) {
-        chain.unshift(interceptor.fulfilled, interceptor.rejected);
-      });
-
-      this.interceptors.response.forEach(function pushResponseInterceptors(interceptor) {
-        chain.push(interceptor.fulfilled, interceptor.rejected);
-      });
-
-      while (chain.length) {
-        promise = promise.then(chain.shift(), chain.shift());
-      }
-
-      return promise;
-    };
-
-    Axios.prototype.getUri = function getUri(config) {
-      config = mergeConfig(this.defaults, config);
-      return buildURL(config.url, config.params, config.paramsSerializer).replace(/^\?/, '');
-    };
-
-    // Provide aliases for supported request methods
-    utils.forEach(['delete', 'get', 'head', 'options'], function forEachMethodNoData(method) {
-      /*eslint func-names:0*/
-      Axios.prototype[method] = function(url, config) {
-        return this.request(mergeConfig(config || {}, {
-          method: method,
-          url: url,
-          data: (config || {}).data
-        }));
-      };
-    });
-
-    utils.forEach(['post', 'put', 'patch'], function forEachMethodWithData(method) {
-      /*eslint func-names:0*/
-      Axios.prototype[method] = function(url, data, config) {
-        return this.request(mergeConfig(config || {}, {
-          method: method,
-          url: url,
-          data: data
-        }));
-      };
-    });
-
-    var Axios_1 = Axios;
-
-    /**
-     * A `Cancel` is an object that is thrown when an operation is canceled.
-     *
-     * @class
-     * @param {string=} message The message.
-     */
-    function Cancel(message) {
-      this.message = message;
-    }
-
-    Cancel.prototype.toString = function toString() {
-      return 'Cancel' + (this.message ? ': ' + this.message : '');
-    };
-
-    Cancel.prototype.__CANCEL__ = true;
-
-    var Cancel_1 = Cancel;
-
-    /**
-     * A `CancelToken` is an object that can be used to request cancellation of an operation.
-     *
-     * @class
-     * @param {Function} executor The executor function.
-     */
-    function CancelToken(executor) {
-      if (typeof executor !== 'function') {
-        throw new TypeError('executor must be a function.');
-      }
-
-      var resolvePromise;
-      this.promise = new Promise(function promiseExecutor(resolve) {
-        resolvePromise = resolve;
-      });
-
-      var token = this;
-      executor(function cancel(message) {
-        if (token.reason) {
-          // Cancellation has already been requested
-          return;
-        }
-
-        token.reason = new Cancel_1(message);
-        resolvePromise(token.reason);
-      });
-    }
-
-    /**
-     * Throws a `Cancel` if cancellation has been requested.
-     */
-    CancelToken.prototype.throwIfRequested = function throwIfRequested() {
-      if (this.reason) {
-        throw this.reason;
-      }
-    };
-
-    /**
-     * Returns an object that contains a new `CancelToken` and a function that, when called,
-     * cancels the `CancelToken`.
-     */
-    CancelToken.source = function source() {
-      var cancel;
-      var token = new CancelToken(function executor(c) {
-        cancel = c;
-      });
-      return {
-        token: token,
-        cancel: cancel
-      };
-    };
-
-    var CancelToken_1 = CancelToken;
-
-    /**
-     * Syntactic sugar for invoking a function and expanding an array for arguments.
-     *
-     * Common use case would be to use `Function.prototype.apply`.
-     *
-     *  ```js
-     *  function f(x, y, z) {}
-     *  var args = [1, 2, 3];
-     *  f.apply(null, args);
-     *  ```
-     *
-     * With `spread` this example can be re-written.
-     *
-     *  ```js
-     *  spread(function(x, y, z) {})([1, 2, 3]);
-     *  ```
-     *
-     * @param {Function} callback
-     * @returns {Function}
-     */
-    var spread = function spread(callback) {
-      return function wrap(arr) {
-        return callback.apply(null, arr);
-      };
-    };
-
-    /**
-     * Determines whether the payload is an error thrown by Axios
-     *
-     * @param {*} payload The value to test
-     * @returns {boolean} True if the payload is an error thrown by Axios, otherwise false
-     */
-    var isAxiosError = function isAxiosError(payload) {
-      return (typeof payload === 'object') && (payload.isAxiosError === true);
-    };
-
-    /**
-     * Create an instance of Axios
-     *
-     * @param {Object} defaultConfig The default config for the instance
-     * @return {Axios} A new instance of Axios
-     */
-    function createInstance(defaultConfig) {
-      var context = new Axios_1(defaultConfig);
-      var instance = bind(Axios_1.prototype.request, context);
-
-      // Copy axios.prototype to instance
-      utils.extend(instance, Axios_1.prototype, context);
-
-      // Copy context to instance
-      utils.extend(instance, context);
-
-      return instance;
-    }
-
-    // Create the default instance to be exported
-    var axios$1 = createInstance(defaults_1);
-
-    // Expose Axios class to allow class inheritance
-    axios$1.Axios = Axios_1;
-
-    // Factory for creating new instances
-    axios$1.create = function create(instanceConfig) {
-      return createInstance(mergeConfig(axios$1.defaults, instanceConfig));
-    };
-
-    // Expose Cancel & CancelToken
-    axios$1.Cancel = Cancel_1;
-    axios$1.CancelToken = CancelToken_1;
-    axios$1.isCancel = isCancel;
-
-    // Expose all/spread
-    axios$1.all = function all(promises) {
-      return Promise.all(promises);
-    };
-    axios$1.spread = spread;
-
-    // Expose isAxiosError
-    axios$1.isAxiosError = isAxiosError;
-
-    var axios_1 = axios$1;
-
-    // Allow use of default import syntax in TypeScript
-    var _default = axios$1;
-    axios_1.default = _default;
-
-    var axios = axios_1;
-
-    /**
-     * Checks if cachedData exists and if true returns cached data and expiry status.
-     * @param {string} key localStorage Key that you want to retrieve the value of.
-     */
-    function checkCache(key) {
-      const cacheLife = 86400; // Set cache lifetime to 24 hours in seconds
-      let expired;
-      let cachedData = localStorage.getItem(`${key}`); // Get cached data from local storage
-
-      // If cached data exists then parse the data and check if data is expired
-      if (cachedData) {
-        cachedData = JSON.parse(cachedData);
-        expired = parseInt(Date.now() / 1000) - cachedData.cachetime > cacheLife;
-        console.log(`${key} expired:`, expired);
-      }
-      return {
-        cachedData,
-        expired,
-      };
-    }
-
-    /**
-     *  Takes a key and an object array that will be converted to a JSON string and saves that key: value pair in localStorage.
-     * @param {string} key localStorage key that you want to create.
-     * @param {array} data Array that will be converted to JSON and used as the value for the key you are creating.
-     */
-    function cacheData(key, data) {
-      const cacheData = { data: data, cachetime: parseInt(Date.now() / 1000) };
-      localStorage.setItem(`${key}`, JSON.stringify(cacheData));
-    }
-
-    /* src/Item.svelte generated by Svelte v3.41.0 */
-
-    const { console: console_1$1 } = globals;
-    const file$2 = "src/Item.svelte";
-
-    // (114:0) {#if isActive}
-    function create_if_block$1(ctx) {
-    	let await_block_anchor;
-
-    	let info = {
-    		ctx,
-    		current: null,
-    		token: null,
-    		hasCatch: false,
-    		pending: create_pending_block,
-    		then: create_then_block,
-    		catch: create_catch_block,
-    		value: 6
-    	};
-
-    	handle_promise(/*fetchDetails*/ ctx[5](), info);
+    function create_fragment$5(ctx) {
+    	let div;
+    	let t;
 
     	const block = {
     		c: function create() {
-    			await_block_anchor = empty();
-    			info.block.c();
+    			div = element("div");
+    			t = text(/*rank*/ ctx[0]);
+    			attr_dev(div, "class", "svelte-w1ujin");
+    			add_location(div, file$5, 4, 0, 39);
+    		},
+    		l: function claim(nodes) {
+    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, await_block_anchor, anchor);
-    			info.block.m(target, info.anchor = anchor);
-    			info.mount = () => await_block_anchor.parentNode;
-    			info.anchor = await_block_anchor;
+    			insert_dev(target, div, anchor);
+    			append_dev(div, t);
     		},
-    		p: function update(new_ctx, dirty) {
-    			ctx = new_ctx;
-    			update_await_block_branch(info, ctx, dirty);
+    		p: function update(ctx, [dirty]) {
+    			if (dirty & /*rank*/ 1) set_data_dev(t, /*rank*/ ctx[0]);
+    		},
+    		i: noop$1,
+    		o: noop$1,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_fragment$5.name,
+    		type: "component",
+    		source: "",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function instance$5($$self, $$props, $$invalidate) {
+    	let { $$slots: slots = {}, $$scope } = $$props;
+    	validate_slots('ItemRank', slots, []);
+    	let { rank } = $$props;
+    	const writable_props = ['rank'];
+
+    	Object.keys($$props).forEach(key => {
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<ItemRank> was created with unknown prop '${key}'`);
+    	});
+
+    	$$self.$$set = $$props => {
+    		if ('rank' in $$props) $$invalidate(0, rank = $$props.rank);
+    	};
+
+    	$$self.$capture_state = () => ({ rank });
+
+    	$$self.$inject_state = $$props => {
+    		if ('rank' in $$props) $$invalidate(0, rank = $$props.rank);
+    	};
+
+    	if ($$props && "$$inject" in $$props) {
+    		$$self.$inject_state($$props.$$inject);
+    	}
+
+    	return [rank];
+    }
+
+    class ItemRank extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+    		init(this, options, instance$5, create_fragment$5, safe_not_equal, { rank: 0 });
+
+    		dispatch_dev("SvelteRegisterComponent", {
+    			component: this,
+    			tagName: "ItemRank",
+    			options,
+    			id: create_fragment$5.name
+    		});
+
+    		const { ctx } = this.$$;
+    		const props = options.props || {};
+
+    		if (/*rank*/ ctx[0] === undefined && !('rank' in props)) {
+    			console.warn("<ItemRank> was created without expected prop 'rank'");
+    		}
+    	}
+
+    	get rank() {
+    		throw new Error("<ItemRank>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set rank(value) {
+    		throw new Error("<ItemRank>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+    }
+
+    /* src/components/ItemBanner.svelte generated by Svelte v3.41.0 */
+
+    const file$4 = "src/components/ItemBanner.svelte";
+
+    function create_fragment$4(ctx) {
+    	let div1;
+    	let div0;
+    	let t;
+
+    	const block = {
+    		c: function create() {
+    			div1 = element("div");
+    			div0 = element("div");
+    			t = text(/*title*/ ctx[1]);
+    			attr_dev(div0, "class", "title svelte-1fnl7eo");
+    			add_location(div0, file$4, 9, 2, 181);
+    			attr_dev(div1, "class", "banner svelte-1fnl7eo");
+    			set_style(div1, "background-image", "linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(" + /*banner*/ ctx[0] + ")");
+    			add_location(div1, file$4, 5, 0, 61);
+    		},
+    		l: function claim(nodes) {
+    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div1, anchor);
+    			append_dev(div1, div0);
+    			append_dev(div0, t);
+    		},
+    		p: function update(ctx, [dirty]) {
+    			if (dirty & /*title*/ 2) set_data_dev(t, /*title*/ ctx[1]);
+
+    			if (dirty & /*banner*/ 1) {
+    				set_style(div1, "background-image", "linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(" + /*banner*/ ctx[0] + ")");
+    			}
+    		},
+    		i: noop$1,
+    		o: noop$1,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div1);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_fragment$4.name,
+    		type: "component",
+    		source: "",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function instance$4($$self, $$props, $$invalidate) {
+    	let { $$slots: slots = {}, $$scope } = $$props;
+    	validate_slots('ItemBanner', slots, []);
+    	let { banner } = $$props;
+    	let { title } = $$props;
+    	const writable_props = ['banner', 'title'];
+
+    	Object.keys($$props).forEach(key => {
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<ItemBanner> was created with unknown prop '${key}'`);
+    	});
+
+    	$$self.$$set = $$props => {
+    		if ('banner' in $$props) $$invalidate(0, banner = $$props.banner);
+    		if ('title' in $$props) $$invalidate(1, title = $$props.title);
+    	};
+
+    	$$self.$capture_state = () => ({ banner, title });
+
+    	$$self.$inject_state = $$props => {
+    		if ('banner' in $$props) $$invalidate(0, banner = $$props.banner);
+    		if ('title' in $$props) $$invalidate(1, title = $$props.title);
+    	};
+
+    	if ($$props && "$$inject" in $$props) {
+    		$$self.$inject_state($$props.$$inject);
+    	}
+
+    	return [banner, title];
+    }
+
+    class ItemBanner extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+    		init(this, options, instance$4, create_fragment$4, safe_not_equal, { banner: 0, title: 1 });
+
+    		dispatch_dev("SvelteRegisterComponent", {
+    			component: this,
+    			tagName: "ItemBanner",
+    			options,
+    			id: create_fragment$4.name
+    		});
+
+    		const { ctx } = this.$$;
+    		const props = options.props || {};
+
+    		if (/*banner*/ ctx[0] === undefined && !('banner' in props)) {
+    			console.warn("<ItemBanner> was created without expected prop 'banner'");
+    		}
+
+    		if (/*title*/ ctx[1] === undefined && !('title' in props)) {
+    			console.warn("<ItemBanner> was created without expected prop 'title'");
+    		}
+    	}
+
+    	get banner() {
+    		throw new Error("<ItemBanner>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set banner(value) {
+    		throw new Error("<ItemBanner>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get title() {
+    		throw new Error("<ItemBanner>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set title(value) {
+    		throw new Error("<ItemBanner>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+    }
+
+    /* src/components/ItemDetails.svelte generated by Svelte v3.41.0 */
+    const file$3 = "src/components/ItemDetails.svelte";
+
+    // (54:6) {:else}
+    function create_else_block_2$1(ctx) {
+    	let t;
+
+    	const block = {
+    		c: function create() {
+    			t = text(/*rankProgression*/ ctx[4]);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, t, anchor);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*rankProgression*/ 16) set_data_dev(t, /*rankProgression*/ ctx[4]);
     		},
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(await_block_anchor);
-    			info.block.d(detaching);
-    			info.token = null;
-    			info = null;
+    			if (detaching) detach_dev(t);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_else_block_2$1.name,
+    		type: "else",
+    		source: "(54:6) {:else}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (52:6) {#if rankProgression < 0}
+    function create_if_block_4(ctx) {
+    	let t_value = /*rankProgression*/ ctx[4].toString().replace("-", "") + "";
+    	let t;
+
+    	const block = {
+    		c: function create() {
+    			t = text(t_value);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, t, anchor);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*rankProgression*/ 16 && t_value !== (t_value = /*rankProgression*/ ctx[4].toString().replace("-", "") + "")) set_data_dev(t, t_value);
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(t);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block_4.name,
+    		type: "if",
+    		source: "(52:6) {#if rankProgression < 0}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (62:4) {:else}
+    function create_else_block_1$1(ctx) {
+    	let div;
+    	let t0;
+    	let t1;
+
+    	const block = {
+    		c: function create() {
+    			div = element("div");
+    			t0 = text("FROM RANK ");
+    			t1 = text(/*previousRank*/ ctx[1]);
+    			attr_dev(div, "class", "label svelte-4h068f");
+    			toggle_class(div, "gain", /*rankProgression*/ ctx[4] > 0);
+    			toggle_class(div, "drop", /*rankProgression*/ ctx[4] < 0);
+    			add_location(div, file$3, 62, 6, 1693);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+    			append_dev(div, t0);
+    			append_dev(div, t1);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*previousRank*/ 2) set_data_dev(t1, /*previousRank*/ ctx[1]);
+
+    			if (dirty & /*rankProgression*/ 16) {
+    				toggle_class(div, "gain", /*rankProgression*/ ctx[4] > 0);
+    			}
+
+    			if (dirty & /*rankProgression*/ 16) {
+    				toggle_class(div, "drop", /*rankProgression*/ ctx[4] < 0);
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_else_block_1$1.name,
+    		type: "else",
+    		source: "(62:4) {:else}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (60:35) 
+    function create_if_block_3(ctx) {
+    	let div;
+
+    	const block = {
+    		c: function create() {
+    			div = element("div");
+    			div.textContent = "SAME RANK";
+    			attr_dev(div, "class", "label svelte-4h068f");
+    			toggle_class(div, "neutral", /*previousRank*/ ctx[1] == /*rank*/ ctx[0]);
+    			add_location(div, file$3, 60, 6, 1603);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*previousRank, rank*/ 3) {
+    				toggle_class(div, "neutral", /*previousRank*/ ctx[1] == /*rank*/ ctx[0]);
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block_3.name,
+    		type: "if",
+    		source: "(60:35) ",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (58:4) {#if previousRank == null}
+    function create_if_block_2$2(ctx) {
+    	let div;
+
+    	const block = {
+    		c: function create() {
+    			div = element("div");
+    			div.textContent = "NEW ENTRY";
+    			attr_dev(div, "class", "label svelte-4h068f");
+    			toggle_class(div, "neutral", /*previousRank*/ ctx[1] == null);
+    			add_location(div, file$3, 58, 6, 1489);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*previousRank*/ 2) {
+    				toggle_class(div, "neutral", /*previousRank*/ ctx[1] == null);
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block_2$2.name,
+    		type: "if",
+    		source: "(58:4) {#if previousRank == null}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (90:4) {:else}
+    function create_else_block$1(ctx) {
+    	let div;
+
+    	const block = {
+    		c: function create() {
+    			div = element("div");
+    			div.textContent = "NEW ENTRY";
+    			attr_dev(div, "class", "label border-br svelte-4h068f");
+    			toggle_class(div, "neutral", /*voteDifference*/ ctx[5] == 0);
+    			toggle_class(div, "no-border-br", /*isActive*/ ctx[3]);
+    			add_location(div, file$3, 90, 6, 2392);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*voteDifference*/ 32) {
+    				toggle_class(div, "neutral", /*voteDifference*/ ctx[5] == 0);
+    			}
+
+    			if (dirty & /*isActive*/ 8) {
+    				toggle_class(div, "no-border-br", /*isActive*/ ctx[3]);
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_else_block$1.name,
+    		type: "else",
+    		source: "(90:4) {:else}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (82:33) 
+    function create_if_block_1$2(ctx) {
+    	let div;
+    	let t0;
+    	let t1;
+
+    	const block = {
+    		c: function create() {
+    			div = element("div");
+    			t0 = text(/*voteDifference*/ ctx[5]);
+    			t1 = text("% DROP");
+    			attr_dev(div, "class", "label border-br svelte-4h068f");
+    			toggle_class(div, "drop", /*voteDifference*/ ctx[5] < 0);
+    			toggle_class(div, "no-border-br", /*isActive*/ ctx[3]);
+    			add_location(div, file$3, 82, 6, 2207);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+    			append_dev(div, t0);
+    			append_dev(div, t1);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*voteDifference*/ 32) set_data_dev(t0, /*voteDifference*/ ctx[5]);
+
+    			if (dirty & /*voteDifference*/ 32) {
+    				toggle_class(div, "drop", /*voteDifference*/ ctx[5] < 0);
+    			}
+
+    			if (dirty & /*isActive*/ 8) {
+    				toggle_class(div, "no-border-br", /*isActive*/ ctx[3]);
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block_1$2.name,
+    		type: "if",
+    		source: "(82:33) ",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (74:4) {#if voteDifference > 0}
+    function create_if_block$2(ctx) {
+    	let div;
+    	let t0;
+    	let t1;
+    	let t2;
+
+    	const block = {
+    		c: function create() {
+    			div = element("div");
+    			t0 = text("+");
+    			t1 = text(/*voteDifference*/ ctx[5]);
+    			t2 = text("% GAIN");
+    			attr_dev(div, "class", "label border-br svelte-4h068f");
+    			toggle_class(div, "gain", /*voteDifference*/ ctx[5] > 0);
+    			toggle_class(div, "no-border-br", /*isActive*/ ctx[3]);
+    			add_location(div, file$3, 74, 6, 1999);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+    			append_dev(div, t0);
+    			append_dev(div, t1);
+    			append_dev(div, t2);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*voteDifference*/ 32) set_data_dev(t1, /*voteDifference*/ ctx[5]);
+
+    			if (dirty & /*voteDifference*/ 32) {
+    				toggle_class(div, "gain", /*voteDifference*/ ctx[5] > 0);
+    			}
+
+    			if (dirty & /*isActive*/ 8) {
+    				toggle_class(div, "no-border-br", /*isActive*/ ctx[3]);
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block$2.name,
+    		type: "if",
+    		source: "(74:4) {#if voteDifference > 0}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function create_fragment$3(ctx) {
+    	let div4;
+    	let div1;
+    	let div0;
+    	let t0;
+    	let t1;
+    	let div3;
+    	let div2;
+    	let t2;
+    	let t3;
+    	let t4;
+
+    	function select_block_type(ctx, dirty) {
+    		if (/*rankProgression*/ ctx[4] < 0) return create_if_block_4;
+    		return create_else_block_2$1;
+    	}
+
+    	let current_block_type = select_block_type(ctx);
+    	let if_block0 = current_block_type(ctx);
+
+    	function select_block_type_1(ctx, dirty) {
+    		if (/*previousRank*/ ctx[1] == null) return create_if_block_2$2;
+    		if (/*previousRank*/ ctx[1] == /*rank*/ ctx[0]) return create_if_block_3;
+    		return create_else_block_1$1;
+    	}
+
+    	let current_block_type_1 = select_block_type_1(ctx);
+    	let if_block1 = current_block_type_1(ctx);
+
+    	function select_block_type_2(ctx, dirty) {
+    		if (/*voteDifference*/ ctx[5] > 0) return create_if_block$2;
+    		if (/*voteDifference*/ ctx[5] < 0) return create_if_block_1$2;
+    		return create_else_block$1;
+    	}
+
+    	let current_block_type_2 = select_block_type_2(ctx);
+    	let if_block2 = current_block_type_2(ctx);
+
+    	const block = {
+    		c: function create() {
+    			div4 = element("div");
+    			div1 = element("div");
+    			div0 = element("div");
+    			if_block0.c();
+    			t0 = space();
+    			if_block1.c();
+    			t1 = space();
+    			div3 = element("div");
+    			div2 = element("div");
+    			t2 = text(/*votes*/ ctx[2]);
+    			t3 = text("%");
+    			t4 = space();
+    			if_block2.c();
+    			attr_dev(div0, "class", "figure svelte-4h068f");
+    			toggle_class(div0, "arrow-gain", /*rankProgression*/ ctx[4] > 0);
+    			toggle_class(div0, "arrow-neutral", /*rankProgression*/ ctx[4] == 0);
+    			toggle_class(div0, "arrow-drop", /*rankProgression*/ ctx[4] < 0);
+    			add_location(div0, file$3, 45, 4, 1132);
+    			attr_dev(div1, "class", "sub-container svelte-4h068f");
+    			add_location(div1, file$3, 44, 2, 1100);
+    			attr_dev(div2, "class", "figure border-br svelte-4h068f");
+    			add_location(div2, file$3, 72, 4, 1919);
+    			attr_dev(div3, "class", "sub-container border-br svelte-4h068f");
+    			add_location(div3, file$3, 71, 2, 1877);
+    			attr_dev(div4, "class", "container border-tr border-br svelte-4h068f");
+    			add_location(div4, file$3, 43, 0, 1054);
+    		},
+    		l: function claim(nodes) {
+    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div4, anchor);
+    			append_dev(div4, div1);
+    			append_dev(div1, div0);
+    			if_block0.m(div0, null);
+    			append_dev(div1, t0);
+    			if_block1.m(div1, null);
+    			append_dev(div4, t1);
+    			append_dev(div4, div3);
+    			append_dev(div3, div2);
+    			append_dev(div2, t2);
+    			append_dev(div2, t3);
+    			append_dev(div3, t4);
+    			if_block2.m(div3, null);
+    		},
+    		p: function update(ctx, [dirty]) {
+    			if (current_block_type === (current_block_type = select_block_type(ctx)) && if_block0) {
+    				if_block0.p(ctx, dirty);
+    			} else {
+    				if_block0.d(1);
+    				if_block0 = current_block_type(ctx);
+
+    				if (if_block0) {
+    					if_block0.c();
+    					if_block0.m(div0, null);
+    				}
+    			}
+
+    			if (dirty & /*rankProgression*/ 16) {
+    				toggle_class(div0, "arrow-gain", /*rankProgression*/ ctx[4] > 0);
+    			}
+
+    			if (dirty & /*rankProgression*/ 16) {
+    				toggle_class(div0, "arrow-neutral", /*rankProgression*/ ctx[4] == 0);
+    			}
+
+    			if (dirty & /*rankProgression*/ 16) {
+    				toggle_class(div0, "arrow-drop", /*rankProgression*/ ctx[4] < 0);
+    			}
+
+    			if (current_block_type_1 === (current_block_type_1 = select_block_type_1(ctx)) && if_block1) {
+    				if_block1.p(ctx, dirty);
+    			} else {
+    				if_block1.d(1);
+    				if_block1 = current_block_type_1(ctx);
+
+    				if (if_block1) {
+    					if_block1.c();
+    					if_block1.m(div1, null);
+    				}
+    			}
+
+    			if (dirty & /*votes*/ 4) set_data_dev(t2, /*votes*/ ctx[2]);
+
+    			if (current_block_type_2 === (current_block_type_2 = select_block_type_2(ctx)) && if_block2) {
+    				if_block2.p(ctx, dirty);
+    			} else {
+    				if_block2.d(1);
+    				if_block2 = current_block_type_2(ctx);
+
+    				if (if_block2) {
+    					if_block2.c();
+    					if_block2.m(div3, null);
+    				}
+    			}
+    		},
+    		i: noop$1,
+    		o: noop$1,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div4);
+    			if_block0.d();
+    			if_block1.d();
+    			if_block2.d();
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_fragment$3.name,
+    		type: "component",
+    		source: "",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function calculateRankProgression(currentRank, previousRank) {
+    	if (previousRank == null) {
+    		return 0;
+    	} else if (currentRank < previousRank) {
+    		return previousRank - currentRank;
+    	} else {
+    		if (previousRank == currentRank) {
+    			return 0;
+    		} else {
+    			return previousRank - currentRank;
+    		}
+    	}
+    }
+
+    function calculateVoteDifference(currentVotes, previousVotes) {
+    	if (previousVotes == null) {
+    		return 0;
+    	} else {
+    		let difference = currentVotes - previousVotes;
+
+    		if (difference > 0) {
+    			return difference.toFixed(2);
+    		} else {
+    			return difference.toFixed(2);
+    		}
+    	}
+    }
+
+    function instance$3($$self, $$props, $$invalidate) {
+    	let { $$slots: slots = {}, $$scope } = $$props;
+    	validate_slots('ItemDetails', slots, []);
+    	let { rank } = $$props;
+    	let { previousRank } = $$props;
+    	let { votes } = $$props;
+    	let { previousVotes } = $$props;
+    	let { isActive } = $$props;
+    	let rankProgression;
+    	let voteDifference;
+
+    	afterUpdate(() => {
+    		$$invalidate(4, rankProgression = calculateRankProgression(rank, previousRank));
+    		$$invalidate(5, voteDifference = calculateVoteDifference(votes, previousVotes));
+    	});
+
+    	const writable_props = ['rank', 'previousRank', 'votes', 'previousVotes', 'isActive'];
+
+    	Object.keys($$props).forEach(key => {
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<ItemDetails> was created with unknown prop '${key}'`);
+    	});
+
+    	$$self.$$set = $$props => {
+    		if ('rank' in $$props) $$invalidate(0, rank = $$props.rank);
+    		if ('previousRank' in $$props) $$invalidate(1, previousRank = $$props.previousRank);
+    		if ('votes' in $$props) $$invalidate(2, votes = $$props.votes);
+    		if ('previousVotes' in $$props) $$invalidate(6, previousVotes = $$props.previousVotes);
+    		if ('isActive' in $$props) $$invalidate(3, isActive = $$props.isActive);
+    	};
+
+    	$$self.$capture_state = () => ({
+    		afterUpdate,
+    		rank,
+    		previousRank,
+    		votes,
+    		previousVotes,
+    		isActive,
+    		rankProgression,
+    		voteDifference,
+    		calculateRankProgression,
+    		calculateVoteDifference
+    	});
+
+    	$$self.$inject_state = $$props => {
+    		if ('rank' in $$props) $$invalidate(0, rank = $$props.rank);
+    		if ('previousRank' in $$props) $$invalidate(1, previousRank = $$props.previousRank);
+    		if ('votes' in $$props) $$invalidate(2, votes = $$props.votes);
+    		if ('previousVotes' in $$props) $$invalidate(6, previousVotes = $$props.previousVotes);
+    		if ('isActive' in $$props) $$invalidate(3, isActive = $$props.isActive);
+    		if ('rankProgression' in $$props) $$invalidate(4, rankProgression = $$props.rankProgression);
+    		if ('voteDifference' in $$props) $$invalidate(5, voteDifference = $$props.voteDifference);
+    	};
+
+    	if ($$props && "$$inject" in $$props) {
+    		$$self.$inject_state($$props.$$inject);
+    	}
+
+    	return [
+    		rank,
+    		previousRank,
+    		votes,
+    		isActive,
+    		rankProgression,
+    		voteDifference,
+    		previousVotes
+    	];
+    }
+
+    class ItemDetails extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+
+    		init(this, options, instance$3, create_fragment$3, safe_not_equal, {
+    			rank: 0,
+    			previousRank: 1,
+    			votes: 2,
+    			previousVotes: 6,
+    			isActive: 3
+    		});
+
+    		dispatch_dev("SvelteRegisterComponent", {
+    			component: this,
+    			tagName: "ItemDetails",
+    			options,
+    			id: create_fragment$3.name
+    		});
+
+    		const { ctx } = this.$$;
+    		const props = options.props || {};
+
+    		if (/*rank*/ ctx[0] === undefined && !('rank' in props)) {
+    			console.warn("<ItemDetails> was created without expected prop 'rank'");
+    		}
+
+    		if (/*previousRank*/ ctx[1] === undefined && !('previousRank' in props)) {
+    			console.warn("<ItemDetails> was created without expected prop 'previousRank'");
+    		}
+
+    		if (/*votes*/ ctx[2] === undefined && !('votes' in props)) {
+    			console.warn("<ItemDetails> was created without expected prop 'votes'");
+    		}
+
+    		if (/*previousVotes*/ ctx[6] === undefined && !('previousVotes' in props)) {
+    			console.warn("<ItemDetails> was created without expected prop 'previousVotes'");
+    		}
+
+    		if (/*isActive*/ ctx[3] === undefined && !('isActive' in props)) {
+    			console.warn("<ItemDetails> was created without expected prop 'isActive'");
+    		}
+    	}
+
+    	get rank() {
+    		throw new Error("<ItemDetails>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set rank(value) {
+    		throw new Error("<ItemDetails>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get previousRank() {
+    		throw new Error("<ItemDetails>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set previousRank(value) {
+    		throw new Error("<ItemDetails>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get votes() {
+    		throw new Error("<ItemDetails>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set votes(value) {
+    		throw new Error("<ItemDetails>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get previousVotes() {
+    		throw new Error("<ItemDetails>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set previousVotes(value) {
+    		throw new Error("<ItemDetails>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get isActive() {
+    		throw new Error("<ItemDetails>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set isActive(value) {
+    		throw new Error("<ItemDetails>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+    }
+
+    /* src/components/Item.svelte generated by Svelte v3.41.0 */
+    const file$2 = "src/components/Item.svelte";
+
+    function get_each_context$1(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[11] = list[i];
+    	return child_ctx;
+    }
+
+    function get_each_context_1$1(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[9] = list[i];
+    	return child_ctx;
+    }
+
+    // (28:2) {#if isActive}
+    function create_if_block$1(ctx) {
+    	let div2;
+    	let div0;
+    	let t0;
+    	let div1;
+    	let t1;
+    	let t2;
+    	let html_tag;
+    	let each_value_1 = /*genres*/ ctx[9];
+    	validate_each_argument(each_value_1);
+    	let each_blocks_1 = [];
+
+    	for (let i = 0; i < each_value_1.length; i += 1) {
+    		each_blocks_1[i] = create_each_block_1$1(get_each_context_1$1(ctx, each_value_1, i));
+    	}
+
+    	let each_value = /*externalLinks*/ ctx[8];
+    	validate_each_argument(each_value);
+    	let each_blocks = [];
+
+    	for (let i = 0; i < each_value.length; i += 1) {
+    		each_blocks[i] = create_each_block$1(get_each_context$1(ctx, each_value, i));
+    	}
+
+    	const block = {
+    		c: function create() {
+    			div2 = element("div");
+    			div0 = element("div");
+
+    			for (let i = 0; i < each_blocks_1.length; i += 1) {
+    				each_blocks_1[i].c();
+    			}
+
+    			t0 = space();
+    			div1 = element("div");
+    			t1 = text("Watch on:\n        ");
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			t2 = space();
+    			html_tag = new HtmlTag();
+    			attr_dev(div0, "class", "pills svelte-tf1vsp");
+    			add_location(div0, file$2, 29, 6, 762);
+    			attr_dev(div1, "class", "links svelte-tf1vsp");
+    			add_location(div1, file$2, 34, 6, 893);
+    			html_tag.a = null;
+    			attr_dev(div2, "class", "card-content svelte-tf1vsp");
+    			add_location(div2, file$2, 28, 4, 729);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div2, anchor);
+    			append_dev(div2, div0);
+
+    			for (let i = 0; i < each_blocks_1.length; i += 1) {
+    				each_blocks_1[i].m(div0, null);
+    			}
+
+    			append_dev(div2, t0);
+    			append_dev(div2, div1);
+    			append_dev(div1, t1);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].m(div1, null);
+    			}
+
+    			append_dev(div2, t2);
+    			html_tag.m(/*description*/ ctx[7], div2);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*genres*/ 512) {
+    				each_value_1 = /*genres*/ ctx[9];
+    				validate_each_argument(each_value_1);
+    				let i;
+
+    				for (i = 0; i < each_value_1.length; i += 1) {
+    					const child_ctx = get_each_context_1$1(ctx, each_value_1, i);
+
+    					if (each_blocks_1[i]) {
+    						each_blocks_1[i].p(child_ctx, dirty);
+    					} else {
+    						each_blocks_1[i] = create_each_block_1$1(child_ctx);
+    						each_blocks_1[i].c();
+    						each_blocks_1[i].m(div0, null);
+    					}
+    				}
+
+    				for (; i < each_blocks_1.length; i += 1) {
+    					each_blocks_1[i].d(1);
+    				}
+
+    				each_blocks_1.length = each_value_1.length;
+    			}
+
+    			if (dirty & /*externalLinks*/ 256) {
+    				each_value = /*externalLinks*/ ctx[8];
+    				validate_each_argument(each_value);
+    				let i;
+
+    				for (i = 0; i < each_value.length; i += 1) {
+    					const child_ctx = get_each_context$1(ctx, each_value, i);
+
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(child_ctx, dirty);
+    					} else {
+    						each_blocks[i] = create_each_block$1(child_ctx);
+    						each_blocks[i].c();
+    						each_blocks[i].m(div1, null);
+    					}
+    				}
+
+    				for (; i < each_blocks.length; i += 1) {
+    					each_blocks[i].d(1);
+    				}
+
+    				each_blocks.length = each_value.length;
+    			}
+
+    			if (dirty & /*description*/ 128) html_tag.p(/*description*/ ctx[7]);
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div2);
+    			destroy_each(each_blocks_1, detaching);
+    			destroy_each(each_blocks, detaching);
     		}
     	};
 
@@ -24531,44 +23991,33 @@ var app = (function () {
     		block,
     		id: create_if_block$1.name,
     		type: "if",
-    		source: "(114:0) {#if isActive}",
+    		source: "(28:2) {#if isActive}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (1:0) <script>   import axios from "axios";   import { checkCache, cacheData }
-    function create_catch_block(ctx) {
-    	const block = { c: noop$1, m: noop$1, p: noop$1, d: noop$1 };
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_catch_block.name,
-    		type: "catch",
-    		source: "(1:0) <script>   import axios from \\\"axios\\\";   import { checkCache, cacheData }",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    // (119:2) {:then anime}
-    function create_then_block(ctx) {
+    // (31:8) {#each genres as genres}
+    function create_each_block_1$1(ctx) {
     	let div;
-    	let raw_value = /*anime*/ ctx[6].description + "";
+    	let t_value = /*genres*/ ctx[9] + "";
+    	let t;
 
     	const block = {
     		c: function create() {
     			div = element("div");
-    			attr_dev(div, "class", "card-content");
-    			add_location(div, file$2, 119, 4, 2698);
+    			t = text(t_value);
+    			attr_dev(div, "class", "pill svelte-tf1vsp");
+    			add_location(div, file$2, 31, 10, 825);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
-    			div.innerHTML = raw_value;
+    			append_dev(div, t);
     		},
-    		p: noop$1,
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*genres*/ 512 && t_value !== (t_value = /*genres*/ ctx[9] + "")) set_data_dev(t, t_value);
+    		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(div);
     		}
@@ -24576,44 +24025,157 @@ var app = (function () {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_then_block.name,
-    		type: "then",
-    		source: "(119:2) {:then anime}",
+    		id: create_each_block_1$1.name,
+    		type: "each",
+    		source: "(31:8) {#each genres as genres}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (115:25)      <div class="card-content">       <p>Loading...</p>     </div>   {:then anime}
-    function create_pending_block(ctx) {
-    	let div;
-    	let p;
+    // (42:46) 
+    function create_if_block_2$1(ctx) {
+    	let a;
+    	let img;
+    	let img_src_value;
+    	let t;
+    	let a_href_value;
 
     	const block = {
     		c: function create() {
-    			div = element("div");
-    			p = element("p");
-    			p.textContent = "Loading...";
-    			add_location(p, file$2, 116, 6, 2649);
-    			attr_dev(div, "class", "card-content");
-    			add_location(div, file$2, 115, 4, 2616);
+    			a = element("a");
+    			img = element("img");
+    			t = space();
+    			if (!src_url_equal(img.src, img_src_value = "logos/Funimation.svg")) attr_dev(img, "src", img_src_value);
+    			attr_dev(img, "alt", "");
+    			attr_dev(img, "class", "site funimation svelte-tf1vsp");
+    			add_location(img, file$2, 43, 14, 1269);
+    			attr_dev(a, "href", a_href_value = /*link*/ ctx[11].url);
+    			attr_dev(a, "class", "fun-pill svelte-tf1vsp");
+    			add_location(a, file$2, 42, 12, 1218);
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, div, anchor);
-    			append_dev(div, p);
+    			insert_dev(target, a, anchor);
+    			append_dev(a, img);
+    			append_dev(a, t);
     		},
-    		p: noop$1,
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*externalLinks*/ 256 && a_href_value !== (a_href_value = /*link*/ ctx[11].url)) {
+    				attr_dev(a, "href", a_href_value);
+    			}
+    		},
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(div);
+    			if (detaching) detach_dev(a);
     		}
     	};
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_pending_block.name,
-    		type: "pending",
-    		source: "(115:25)      <div class=\\\"card-content\\\">       <p>Loading...</p>     </div>   {:then anime}",
+    		id: create_if_block_2$1.name,
+    		type: "if",
+    		source: "(42:46) ",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (38:10) {#if link.site == "Crunchyroll"}
+    function create_if_block_1$1(ctx) {
+    	let a;
+    	let img;
+    	let img_src_value;
+    	let t;
+    	let a_href_value;
+
+    	const block = {
+    		c: function create() {
+    			a = element("a");
+    			img = element("img");
+    			t = space();
+    			if (!src_url_equal(img.src, img_src_value = "logos/Crunchyroll.svg")) attr_dev(img, "src", img_src_value);
+    			attr_dev(img, "alt", "");
+    			attr_dev(img, "class", "crunchyroll svelte-tf1vsp");
+    			add_location(img, file$2, 39, 14, 1079);
+    			attr_dev(a, "href", a_href_value = /*link*/ ctx[11].url);
+    			attr_dev(a, "class", "crunchy-pill svelte-tf1vsp");
+    			add_location(a, file$2, 38, 12, 1024);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, a, anchor);
+    			append_dev(a, img);
+    			append_dev(a, t);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*externalLinks*/ 256 && a_href_value !== (a_href_value = /*link*/ ctx[11].url)) {
+    				attr_dev(a, "href", a_href_value);
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(a);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block_1$1.name,
+    		type: "if",
+    		source: "(38:10) {#if link.site == \\\"Crunchyroll\\\"}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (37:8) {#each externalLinks as link}
+    function create_each_block$1(ctx) {
+    	let if_block_anchor;
+
+    	function select_block_type(ctx, dirty) {
+    		if (/*link*/ ctx[11].site == "Crunchyroll") return create_if_block_1$1;
+    		if (/*link*/ ctx[11].site == "Funimation") return create_if_block_2$1;
+    	}
+
+    	let current_block_type = select_block_type(ctx);
+    	let if_block = current_block_type && current_block_type(ctx);
+
+    	const block = {
+    		c: function create() {
+    			if (if_block) if_block.c();
+    			if_block_anchor = empty();
+    		},
+    		m: function mount(target, anchor) {
+    			if (if_block) if_block.m(target, anchor);
+    			insert_dev(target, if_block_anchor, anchor);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (current_block_type === (current_block_type = select_block_type(ctx)) && if_block) {
+    				if_block.p(ctx, dirty);
+    			} else {
+    				if (if_block) if_block.d(1);
+    				if_block = current_block_type && current_block_type(ctx);
+
+    				if (if_block) {
+    					if_block.c();
+    					if_block.m(if_block_anchor.parentNode, if_block_anchor);
+    				}
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (if_block) {
+    				if_block.d(detaching);
+    			}
+
+    			if (detaching) detach_dev(if_block_anchor);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_each_block$1.name,
+    		type: "each",
+    		source: "(37:8) {#each externalLinks as link}",
     		ctx
     	});
 
@@ -24621,73 +24183,100 @@ var app = (function () {
     }
 
     function create_fragment$2(ctx) {
-    	let div3;
-    	let div0;
-    	let t0;
-    	let t1;
     	let div1;
+    	let div0;
+    	let itemrank;
+    	let t0;
+    	let itembanner;
+    	let t1;
+    	let itemdetails;
     	let t2;
-    	let t3;
-    	let div2;
-    	let t4;
-    	let t5;
-    	let t6;
-    	let if_block_anchor;
+    	let current;
     	let mounted;
     	let dispose;
+
+    	itemrank = new ItemRank({
+    			props: { rank: /*rank*/ ctx[1] },
+    			$$inline: true
+    		});
+
+    	itembanner = new ItemBanner({
+    			props: {
+    				banner: /*banner*/ ctx[4],
+    				title: /*title*/ ctx[2]
+    			},
+    			$$inline: true
+    		});
+
+    	itemdetails = new ItemDetails({
+    			props: {
+    				rank: /*rank*/ ctx[1],
+    				previousRank: /*previousRank*/ ctx[5],
+    				votes: /*votes*/ ctx[3],
+    				previousVotes: /*previousVotes*/ ctx[6],
+    				isActive: /*isActive*/ ctx[0]
+    			},
+    			$$inline: true
+    		});
+
     	let if_block = /*isActive*/ ctx[0] && create_if_block$1(ctx);
 
     	const block = {
     		c: function create() {
-    			div3 = element("div");
-    			div0 = element("div");
-    			t0 = text(/*rank*/ ctx[1]);
-    			t1 = space();
     			div1 = element("div");
-    			t2 = text(/*title*/ ctx[2]);
-    			t3 = space();
-    			div2 = element("div");
-    			t4 = text(/*votes*/ ctx[3]);
-    			t5 = text("%");
-    			t6 = space();
+    			div0 = element("div");
+    			create_component(itemrank.$$.fragment);
+    			t0 = space();
+    			create_component(itembanner.$$.fragment);
+    			t1 = space();
+    			create_component(itemdetails.$$.fragment);
+    			t2 = space();
     			if (if_block) if_block.c();
-    			if_block_anchor = empty();
-    			attr_dev(div0, "class", "card--rank");
-    			add_location(div0, file$2, 102, 2, 2419);
-    			attr_dev(div1, "class", "card--title");
-    			add_location(div1, file$2, 105, 2, 2466);
-    			attr_dev(div2, "class", "card--votes");
-    			add_location(div2, file$2, 108, 2, 2515);
-    			attr_dev(div3, "class", "card svelte-ee2ok9");
-    			add_location(div3, file$2, 101, 0, 2374);
+    			attr_dev(div0, "class", "card svelte-tf1vsp");
+    			toggle_class(div0, "straight-bottom-border", /*isActive*/ ctx[0]);
+    			add_location(div0, file$2, 22, 2, 503);
+    			attr_dev(div1, "class", "wrapper svelte-tf1vsp");
+    			add_location(div1, file$2, 21, 0, 455);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, div3, anchor);
-    			append_dev(div3, div0);
+    			insert_dev(target, div1, anchor);
+    			append_dev(div1, div0);
+    			mount_component(itemrank, div0, null);
     			append_dev(div0, t0);
-    			append_dev(div3, t1);
-    			append_dev(div3, div1);
+    			mount_component(itembanner, div0, null);
+    			append_dev(div0, t1);
+    			mount_component(itemdetails, div0, null);
     			append_dev(div1, t2);
-    			append_dev(div3, t3);
-    			append_dev(div3, div2);
-    			append_dev(div2, t4);
-    			append_dev(div2, t5);
-    			insert_dev(target, t6, anchor);
-    			if (if_block) if_block.m(target, anchor);
-    			insert_dev(target, if_block_anchor, anchor);
+    			if (if_block) if_block.m(div1, null);
+    			current = true;
 
     			if (!mounted) {
-    				dispose = listen_dev(div3, "click", /*toggleActive*/ ctx[4], false, false, false);
+    				dispose = listen_dev(div1, "click", /*toggleActive*/ ctx[10], false, false, false);
     				mounted = true;
     			}
     		},
     		p: function update(ctx, [dirty]) {
-    			if (dirty & /*rank*/ 2) set_data_dev(t0, /*rank*/ ctx[1]);
-    			if (dirty & /*title*/ 4) set_data_dev(t2, /*title*/ ctx[2]);
-    			if (dirty & /*votes*/ 8) set_data_dev(t4, /*votes*/ ctx[3]);
+    			const itemrank_changes = {};
+    			if (dirty & /*rank*/ 2) itemrank_changes.rank = /*rank*/ ctx[1];
+    			itemrank.$set(itemrank_changes);
+    			const itembanner_changes = {};
+    			if (dirty & /*banner*/ 16) itembanner_changes.banner = /*banner*/ ctx[4];
+    			if (dirty & /*title*/ 4) itembanner_changes.title = /*title*/ ctx[2];
+    			itembanner.$set(itembanner_changes);
+    			const itemdetails_changes = {};
+    			if (dirty & /*rank*/ 2) itemdetails_changes.rank = /*rank*/ ctx[1];
+    			if (dirty & /*previousRank*/ 32) itemdetails_changes.previousRank = /*previousRank*/ ctx[5];
+    			if (dirty & /*votes*/ 8) itemdetails_changes.votes = /*votes*/ ctx[3];
+    			if (dirty & /*previousVotes*/ 64) itemdetails_changes.previousVotes = /*previousVotes*/ ctx[6];
+    			if (dirty & /*isActive*/ 1) itemdetails_changes.isActive = /*isActive*/ ctx[0];
+    			itemdetails.$set(itemdetails_changes);
+
+    			if (dirty & /*isActive*/ 1) {
+    				toggle_class(div0, "straight-bottom-border", /*isActive*/ ctx[0]);
+    			}
 
     			if (/*isActive*/ ctx[0]) {
     				if (if_block) {
@@ -24695,20 +24284,32 @@ var app = (function () {
     				} else {
     					if_block = create_if_block$1(ctx);
     					if_block.c();
-    					if_block.m(if_block_anchor.parentNode, if_block_anchor);
+    					if_block.m(div1, null);
     				}
     			} else if (if_block) {
     				if_block.d(1);
     				if_block = null;
     			}
     		},
-    		i: noop$1,
-    		o: noop$1,
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(itemrank.$$.fragment, local);
+    			transition_in(itembanner.$$.fragment, local);
+    			transition_in(itemdetails.$$.fragment, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(itemrank.$$.fragment, local);
+    			transition_out(itembanner.$$.fragment, local);
+    			transition_out(itemdetails.$$.fragment, local);
+    			current = false;
+    		},
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(div3);
-    			if (detaching) detach_dev(t6);
-    			if (if_block) if_block.d(detaching);
-    			if (detaching) detach_dev(if_block_anchor);
+    			if (detaching) detach_dev(div1);
+    			destroy_component(itemrank);
+    			destroy_component(itembanner);
+    			destroy_component(itemdetails);
+    			if (if_block) if_block.d();
     			mounted = false;
     			dispose();
     		}
@@ -24731,122 +24332,75 @@ var app = (function () {
     	let { rank } = $$props;
     	let { title } = $$props;
     	let { votes } = $$props;
+    	let { banner } = $$props;
+    	let { previousRank } = $$props;
+    	let { previousVotes } = $$props;
+    	let { description } = $$props;
+    	let { genres } = $$props;
+    	let { externalLinks } = $$props;
     	let { isActive } = $$props;
 
     	function toggleActive() {
     		$$invalidate(0, isActive = !isActive);
     	}
 
-    	const fetchDetails = async () => {
-    		let data;
-    		let key = `${title} Details`;
-    		let cache = checkCache(key);
-
-    		// If cached data exists and is not expired then return data
-    		if (cache.cachedData && !cache.expired) {
-    			return cache.cachedData.data;
-    		} else {
-    			// Otherwise fetch data from Anilist
-    			const query = `
-  query ($title: String){
-    Media (search: $title, type: ANIME) {
-      rankings {
-        allTime
-        rank
-        context
-      }
-      genres
-      description
-      externalLinks {
-        url
-      }
-      coverImage {
-        extraLarge
-      }
-    }
-  } 
-  `;
-
-    			const variables = { title };
-
-    			const headers = {
-    				"Content-Type": "application/json",
-    				Accept: "application/json"
-    			};
-
-    			await axios({
-    				method: "post",
-    				url: "https://graphql.anilist.co/",
-    				headers,
-    				data: JSON.stringify({ query, variables })
-    			}).then(result => data = result.data.data.Media).// if HTTP status = 404, fetch data from Kitsu
-    			catch(async err => {
-    				console.log(err.message);
-    				console.log("Trying Kitsu...");
-
-    				const headers = {
-    					"Content-Type": "application/vnd.api+json",
-    					Accept: "application/vnd.api+json"
-    				};
-
-    				const fetchAnimeKitsu = async () => {
-    					const result = {};
-
-    					const response = await axios({
-    						method: "get",
-    						url: `https://kitsu.io/api/edge/anime?filter[text]=${title}`,
-    						headers
-    					}).catch(err => console.log(err.message));
-
-    					result.description = response.data.data[0].attributes.synopsis.replace(
-    						// Replace \n with <br />
-    						/\n/g,
-    						"<br />"
-    					);
-
-    					return result;
-    				};
-
-    				data = await fetchAnimeKitsu();
-    			});
-
-    			// Save data in local storage
-    			cacheData(key, data);
-
-    			console.log(`${title} details fetched`, data);
-    			return data;
-    		}
-    	};
-
-    	const writable_props = ['rank', 'title', 'votes', 'isActive'];
+    	const writable_props = [
+    		'rank',
+    		'title',
+    		'votes',
+    		'banner',
+    		'previousRank',
+    		'previousVotes',
+    		'description',
+    		'genres',
+    		'externalLinks',
+    		'isActive'
+    	];
 
     	Object.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console_1$1.warn(`<Item> was created with unknown prop '${key}'`);
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<Item> was created with unknown prop '${key}'`);
     	});
 
     	$$self.$$set = $$props => {
     		if ('rank' in $$props) $$invalidate(1, rank = $$props.rank);
     		if ('title' in $$props) $$invalidate(2, title = $$props.title);
     		if ('votes' in $$props) $$invalidate(3, votes = $$props.votes);
+    		if ('banner' in $$props) $$invalidate(4, banner = $$props.banner);
+    		if ('previousRank' in $$props) $$invalidate(5, previousRank = $$props.previousRank);
+    		if ('previousVotes' in $$props) $$invalidate(6, previousVotes = $$props.previousVotes);
+    		if ('description' in $$props) $$invalidate(7, description = $$props.description);
+    		if ('genres' in $$props) $$invalidate(9, genres = $$props.genres);
+    		if ('externalLinks' in $$props) $$invalidate(8, externalLinks = $$props.externalLinks);
     		if ('isActive' in $$props) $$invalidate(0, isActive = $$props.isActive);
     	};
 
     	$$self.$capture_state = () => ({
-    		axios,
-    		checkCache,
-    		cacheData,
+    		ItemRank,
+    		ItemBanner,
+    		ItemDetails,
     		rank,
     		title,
     		votes,
+    		banner,
+    		previousRank,
+    		previousVotes,
+    		description,
+    		genres,
+    		externalLinks,
     		isActive,
-    		toggleActive,
-    		fetchDetails
+    		toggleActive
     	});
 
     	$$self.$inject_state = $$props => {
     		if ('rank' in $$props) $$invalidate(1, rank = $$props.rank);
     		if ('title' in $$props) $$invalidate(2, title = $$props.title);
     		if ('votes' in $$props) $$invalidate(3, votes = $$props.votes);
+    		if ('banner' in $$props) $$invalidate(4, banner = $$props.banner);
+    		if ('previousRank' in $$props) $$invalidate(5, previousRank = $$props.previousRank);
+    		if ('previousVotes' in $$props) $$invalidate(6, previousVotes = $$props.previousVotes);
+    		if ('description' in $$props) $$invalidate(7, description = $$props.description);
+    		if ('genres' in $$props) $$invalidate(9, genres = $$props.genres);
+    		if ('externalLinks' in $$props) $$invalidate(8, externalLinks = $$props.externalLinks);
     		if ('isActive' in $$props) $$invalidate(0, isActive = $$props.isActive);
     	};
 
@@ -24854,13 +24408,37 @@ var app = (function () {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [isActive, rank, title, votes, toggleActive, fetchDetails];
+    	return [
+    		isActive,
+    		rank,
+    		title,
+    		votes,
+    		banner,
+    		previousRank,
+    		previousVotes,
+    		description,
+    		externalLinks,
+    		genres,
+    		toggleActive
+    	];
     }
 
     class Item extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$2, create_fragment$2, safe_not_equal, { rank: 1, title: 2, votes: 3, isActive: 0 });
+
+    		init(this, options, instance$2, create_fragment$2, safe_not_equal, {
+    			rank: 1,
+    			title: 2,
+    			votes: 3,
+    			banner: 4,
+    			previousRank: 5,
+    			previousVotes: 6,
+    			description: 7,
+    			genres: 9,
+    			externalLinks: 8,
+    			isActive: 0
+    		});
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
@@ -24873,19 +24451,43 @@ var app = (function () {
     		const props = options.props || {};
 
     		if (/*rank*/ ctx[1] === undefined && !('rank' in props)) {
-    			console_1$1.warn("<Item> was created without expected prop 'rank'");
+    			console.warn("<Item> was created without expected prop 'rank'");
     		}
 
     		if (/*title*/ ctx[2] === undefined && !('title' in props)) {
-    			console_1$1.warn("<Item> was created without expected prop 'title'");
+    			console.warn("<Item> was created without expected prop 'title'");
     		}
 
     		if (/*votes*/ ctx[3] === undefined && !('votes' in props)) {
-    			console_1$1.warn("<Item> was created without expected prop 'votes'");
+    			console.warn("<Item> was created without expected prop 'votes'");
+    		}
+
+    		if (/*banner*/ ctx[4] === undefined && !('banner' in props)) {
+    			console.warn("<Item> was created without expected prop 'banner'");
+    		}
+
+    		if (/*previousRank*/ ctx[5] === undefined && !('previousRank' in props)) {
+    			console.warn("<Item> was created without expected prop 'previousRank'");
+    		}
+
+    		if (/*previousVotes*/ ctx[6] === undefined && !('previousVotes' in props)) {
+    			console.warn("<Item> was created without expected prop 'previousVotes'");
+    		}
+
+    		if (/*description*/ ctx[7] === undefined && !('description' in props)) {
+    			console.warn("<Item> was created without expected prop 'description'");
+    		}
+
+    		if (/*genres*/ ctx[9] === undefined && !('genres' in props)) {
+    			console.warn("<Item> was created without expected prop 'genres'");
+    		}
+
+    		if (/*externalLinks*/ ctx[8] === undefined && !('externalLinks' in props)) {
+    			console.warn("<Item> was created without expected prop 'externalLinks'");
     		}
 
     		if (/*isActive*/ ctx[0] === undefined && !('isActive' in props)) {
-    			console_1$1.warn("<Item> was created without expected prop 'isActive'");
+    			console.warn("<Item> was created without expected prop 'isActive'");
     		}
     	}
 
@@ -24910,6 +24512,54 @@ var app = (function () {
     	}
 
     	set votes(value) {
+    		throw new Error("<Item>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get banner() {
+    		throw new Error("<Item>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set banner(value) {
+    		throw new Error("<Item>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get previousRank() {
+    		throw new Error("<Item>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set previousRank(value) {
+    		throw new Error("<Item>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get previousVotes() {
+    		throw new Error("<Item>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set previousVotes(value) {
+    		throw new Error("<Item>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get description() {
+    		throw new Error("<Item>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set description(value) {
+    		throw new Error("<Item>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get genres() {
+    		throw new Error("<Item>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set genres(value) {
+    		throw new Error("<Item>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get externalLinks() {
+    		throw new Error("<Item>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set externalLinks(value) {
     		throw new Error("<Item>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
 
@@ -24972,33 +24622,65 @@ var app = (function () {
 
     const year = writable("2021");
     const season = writable("Summer");
-    const week = writable("Week-04");
+    const week = writable("Week-06");
+    const page = writable(1);
     const isActive = writable(false);
 
-    /* src/Leaderboard.svelte generated by Svelte v3.41.0 */
+    /**
+     * Checks if cachedData exists and if true returns cached data and expiry status.
+     * @param {string} key localStorage Key that you want to retrieve the value of.
+     */
+    function checkCache(key) {
+      const cacheLife = 86400; // Set cache lifetime to 24 hours in seconds
+      let expired;
+      let cachedData = localStorage.getItem(`${key}`); // Get cached data from local storage
+
+      // If cached data exists then parse the data and check if data is expired
+      if (cachedData) {
+        cachedData = JSON.parse(cachedData);
+        expired = parseInt(Date.now() / 1000) - cachedData.cachetime > cacheLife;
+        console.log(`${key} expired:`, expired);
+      }
+      return {
+        cachedData,
+        expired,
+      };
+    }
+
+    /**
+     *  Takes a key and an object array that will be converted to a JSON string and saves that key: value pair in localStorage.
+     * @param {string} key localStorage key that you want to create.
+     * @param {array} data Array that will be converted to JSON and used as the value for the key you are creating.
+     */
+    function cacheData(key, data) {
+      const cacheData = { data: data, cachetime: parseInt(Date.now() / 1000) };
+      localStorage.setItem(`${key}`, JSON.stringify(cacheData));
+    }
+
+    /* src/components/Leaderboard.svelte generated by Svelte v3.41.0 */
 
     const { console: console_1 } = globals;
-    const file$1 = "src/Leaderboard.svelte";
+    const file$1 = "src/components/Leaderboard.svelte";
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[16] = list[i];
+    	child_ctx[20] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_1(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[19] = list[i];
+    	child_ctx[23] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_2(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[22] = list[i];
+    	child_ctx[26] = list[i];
     	return child_ctx;
     }
 
-    // (184:0) {:else}
+    // (305:0) {:else}
     function create_else_block_2(ctx) {
     	let select;
     	let mounted;
@@ -25019,8 +24701,8 @@ var app = (function () {
     				each_blocks[i].c();
     			}
 
-    			if (/*$season*/ ctx[4] === void 0) add_render_callback(() => /*select_change_handler*/ ctx[9].call(select));
-    			add_location(select, file$1, 185, 2, 4941);
+    			if (/*$season*/ ctx[4] === void 0) add_render_callback(() => /*select_change_handler*/ ctx[11].call(select));
+    			add_location(select, file$1, 306, 2, 8726);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -25033,7 +24715,7 @@ var app = (function () {
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(select, "change", /*select_change_handler*/ ctx[9]),
+    					listen_dev(select, "change", /*select_change_handler*/ ctx[11]),
     					listen_dev(select, "change", /*updateSeason*/ ctx[7], false, false, false)
     				];
 
@@ -25081,14 +24763,14 @@ var app = (function () {
     		block,
     		id: create_else_block_2.name,
     		type: "else",
-    		source: "(184:0) {:else}",
+    		source: "(305:0) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (180:0) {#if seasons == 0}
+    // (301:0) {#if seasons == 0}
     function create_if_block_2(ctx) {
     	let select;
     	let option;
@@ -25100,8 +24782,8 @@ var app = (function () {
     			option.textContent = "Loading...";
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file$1, 181, 4, 4840);
-    			add_location(select, file$1, 180, 2, 4827);
+    			add_location(option, file$1, 302, 4, 8625);
+    			add_location(select, file$1, 301, 2, 8612);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -25117,17 +24799,17 @@ var app = (function () {
     		block,
     		id: create_if_block_2.name,
     		type: "if",
-    		source: "(180:0) {#if seasons == 0}",
+    		source: "(301:0) {#if seasons == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (187:4) {#each seasons as season}
+    // (308:4) {#each seasons as season}
     function create_each_block_2(ctx) {
     	let option;
-    	let t_value = /*season*/ ctx[22] + "";
+    	let t_value = /*season*/ ctx[26] + "";
     	let t;
     	let option_value_value;
 
@@ -25135,18 +24817,18 @@ var app = (function () {
     		c: function create() {
     			option = element("option");
     			t = text(t_value);
-    			option.__value = option_value_value = /*season*/ ctx[22];
+    			option.__value = option_value_value = /*season*/ ctx[26];
     			option.value = option.__value;
-    			add_location(option, file$1, 187, 6, 5032);
+    			add_location(option, file$1, 308, 6, 8817);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
     			append_dev(option, t);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*seasons*/ 1 && t_value !== (t_value = /*season*/ ctx[22] + "")) set_data_dev(t, t_value);
+    			if (dirty & /*seasons*/ 1 && t_value !== (t_value = /*season*/ ctx[26] + "")) set_data_dev(t, t_value);
 
-    			if (dirty & /*seasons*/ 1 && option_value_value !== (option_value_value = /*season*/ ctx[22])) {
+    			if (dirty & /*seasons*/ 1 && option_value_value !== (option_value_value = /*season*/ ctx[26])) {
     				prop_dev(option, "__value", option_value_value);
     				option.value = option.__value;
     			}
@@ -25160,14 +24842,14 @@ var app = (function () {
     		block,
     		id: create_each_block_2.name,
     		type: "each",
-    		source: "(187:4) {#each seasons as season}",
+    		source: "(308:4) {#each seasons as season}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (197:0) {:else}
+    // (318:0) {:else}
     function create_else_block_1(ctx) {
     	let select;
     	let mounted;
@@ -25188,8 +24870,8 @@ var app = (function () {
     				each_blocks[i].c();
     			}
 
-    			if (/*$week*/ ctx[3] === void 0) add_render_callback(() => /*select_change_handler_1*/ ctx[10].call(select));
-    			add_location(select, file$1, 198, 2, 5244);
+    			if (/*$week*/ ctx[3] === void 0) add_render_callback(() => /*select_change_handler_1*/ ctx[12].call(select));
+    			add_location(select, file$1, 319, 2, 9029);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -25202,7 +24884,7 @@ var app = (function () {
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(select, "change", /*select_change_handler_1*/ ctx[10]),
+    					listen_dev(select, "change", /*select_change_handler_1*/ ctx[12]),
     					listen_dev(select, "change", /*updateItems*/ ctx[8], false, false, false)
     				];
 
@@ -25250,14 +24932,14 @@ var app = (function () {
     		block,
     		id: create_else_block_1.name,
     		type: "else",
-    		source: "(197:0) {:else}",
+    		source: "(318:0) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (193:0) {#if weeks.length == 0}
+    // (314:0) {#if weeks.length == 0}
     function create_if_block_1(ctx) {
     	let select;
     	let option;
@@ -25269,8 +24951,8 @@ var app = (function () {
     			option.textContent = "Loading...";
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file$1, 194, 4, 5143);
-    			add_location(select, file$1, 193, 2, 5130);
+    			add_location(option, file$1, 315, 4, 8928);
+    			add_location(select, file$1, 314, 2, 8915);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -25286,17 +24968,17 @@ var app = (function () {
     		block,
     		id: create_if_block_1.name,
     		type: "if",
-    		source: "(193:0) {#if weeks.length == 0}",
+    		source: "(314:0) {#if weeks.length == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (200:4) {#each weeks as week}
+    // (321:4) {#each weeks as week}
     function create_each_block_1(ctx) {
     	let option;
-    	let t_value = /*week*/ ctx[19].replace("-", " ") + "";
+    	let t_value = /*week*/ ctx[23].replace("-", " ") + "";
     	let t;
     	let option_value_value;
 
@@ -25304,18 +24986,18 @@ var app = (function () {
     		c: function create() {
     			option = element("option");
     			t = text(t_value);
-    			option.__value = option_value_value = /*week*/ ctx[19];
+    			option.__value = option_value_value = /*week*/ ctx[23];
     			option.value = option.__value;
-    			add_location(option, file$1, 200, 6, 5328);
+    			add_location(option, file$1, 321, 6, 9113);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
     			append_dev(option, t);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*weeks*/ 2 && t_value !== (t_value = /*week*/ ctx[19].replace("-", " ") + "")) set_data_dev(t, t_value);
+    			if (dirty & /*weeks*/ 2 && t_value !== (t_value = /*week*/ ctx[23].replace("-", " ") + "")) set_data_dev(t, t_value);
 
-    			if (dirty & /*weeks*/ 2 && option_value_value !== (option_value_value = /*week*/ ctx[19])) {
+    			if (dirty & /*weeks*/ 2 && option_value_value !== (option_value_value = /*week*/ ctx[23])) {
     				prop_dev(option, "__value", option_value_value);
     				option.value = option.__value;
     			}
@@ -25329,14 +25011,14 @@ var app = (function () {
     		block,
     		id: create_each_block_1.name,
     		type: "each",
-    		source: "(200:4) {#each weeks as week}",
+    		source: "(321:4) {#each weeks as week}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (211:2) {:else}
+    // (334:2) {:else}
     function create_else_block(ctx) {
     	let each_1_anchor;
     	let current;
@@ -25425,14 +25107,14 @@ var app = (function () {
     		block,
     		id: create_else_block.name,
     		type: "else",
-    		source: "(211:2) {:else}",
+    		source: "(334:2) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (209:2) {#if items.length == 0}
+    // (332:2) {#if items.length == 0}
     function create_if_block(ctx) {
     	let p;
 
@@ -25440,7 +25122,7 @@ var app = (function () {
     		c: function create() {
     			p = element("p");
     			p.textContent = "Loading...";
-    			add_location(p, file$1, 209, 4, 5499);
+    			add_location(p, file$1, 332, 4, 9339);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, p, anchor);
@@ -25457,18 +25139,18 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(209:2) {#if items.length == 0}",
+    		source: "(332:2) {#if items.length == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (212:4) {#each items as item}
+    // (335:4) {#each items as item}
     function create_each_block(ctx) {
     	let item;
     	let current;
-    	const item_spread_levels = [/*item*/ ctx[16], { isActive: /*$isActive*/ ctx[5] }];
+    	const item_spread_levels = [/*item*/ ctx[20], { isActive: /*$isActive*/ ctx[5] }];
     	let item_props = {};
 
     	for (let i = 0; i < item_spread_levels.length; i += 1) {
@@ -25488,7 +25170,7 @@ var app = (function () {
     		p: function update(ctx, dirty) {
     			const item_changes = (dirty & /*items, $isActive*/ 36)
     			? get_spread_update(item_spread_levels, [
-    					dirty & /*items*/ 4 && get_spread_object(/*item*/ ctx[16]),
+    					dirty & /*items*/ 4 && get_spread_object(/*item*/ ctx[20]),
     					dirty & /*$isActive*/ 32 && { isActive: /*$isActive*/ ctx[5] }
     				])
     			: {};
@@ -25513,7 +25195,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(212:4) {#each items as item}",
+    		source: "(335:4) {#each items as item}",
     		ctx
     	});
 
@@ -25521,19 +25203,23 @@ var app = (function () {
     }
 
     function create_fragment$1(ctx) {
-    	let t0;
+    	let button0;
     	let t1;
-    	let p;
     	let t2;
     	let t3;
-    	let t4;
+    	let button1;
     	let t5;
+    	let p;
     	let t6;
+    	let t7;
+    	let t8;
+    	let t9;
+    	let t10;
     	let div;
     	let current_block_type_index;
     	let if_block2;
-    	let t7;
-    	let button;
+    	let t11;
+    	let button2;
     	let current;
     	let mounted;
     	let dispose;
@@ -25566,50 +25252,71 @@ var app = (function () {
 
     	const block = {
     		c: function create() {
-    			if_block0.c();
-    			t0 = space();
-    			if_block1.c();
+    			button0 = element("button");
+    			button0.textContent = "Previous";
     			t1 = space();
+    			if_block0.c();
+    			t2 = space();
+    			if_block1.c();
+    			t3 = space();
+    			button1 = element("button");
+    			button1.textContent = "Next";
+    			t5 = space();
     			p = element("p");
-    			t2 = text("The current params are ");
-    			t3 = text(/*$season*/ ctx[4]);
-    			t4 = space();
-    			t5 = text(/*$week*/ ctx[3]);
-    			t6 = space();
+    			t6 = text("The current params are ");
+    			t7 = text(/*$season*/ ctx[4]);
+    			t8 = space();
+    			t9 = text(/*$week*/ ctx[3]);
+    			t10 = space();
     			div = element("div");
     			if_block2.c();
-    			t7 = space();
-    			button = element("button");
-    			button.textContent = "Show more rankings";
-    			add_location(p, file$1, 205, 0, 5414);
+    			t11 = space();
+    			button2 = element("button");
+    			button2.textContent = "Show more rankings";
+    			attr_dev(button0, "id", "prev-btn");
+    			attr_dev(button0, "class", "svelte-1hn3a7v");
+    			add_location(button0, file$1, 298, 0, 8532);
+    			attr_dev(button1, "id", "next-btn");
+    			attr_dev(button1, "class", "svelte-1hn3a7v");
+    			add_location(button1, file$1, 326, 0, 9199);
+    			add_location(p, file$1, 328, 0, 9254);
     			attr_dev(div, "class", "svelte-1hn3a7v");
-    			add_location(div, file$1, 207, 0, 5463);
-    			attr_dev(button, "id", "showMore");
-    			attr_dev(button, "class", "svelte-1hn3a7v");
-    			add_location(button, file$1, 217, 0, 5627);
+    			add_location(div, file$1, 330, 0, 9303);
+    			attr_dev(button2, "id", "showMore");
+    			attr_dev(button2, "class", "svelte-1hn3a7v");
+    			add_location(button2, file$1, 340, 0, 9467);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
-    			if_block0.m(target, anchor);
-    			insert_dev(target, t0, anchor);
-    			if_block1.m(target, anchor);
+    			insert_dev(target, button0, anchor);
     			insert_dev(target, t1, anchor);
+    			if_block0.m(target, anchor);
+    			insert_dev(target, t2, anchor);
+    			if_block1.m(target, anchor);
+    			insert_dev(target, t3, anchor);
+    			insert_dev(target, button1, anchor);
+    			insert_dev(target, t5, anchor);
     			insert_dev(target, p, anchor);
-    			append_dev(p, t2);
-    			append_dev(p, t3);
-    			append_dev(p, t4);
-    			append_dev(p, t5);
-    			insert_dev(target, t6, anchor);
+    			append_dev(p, t6);
+    			append_dev(p, t7);
+    			append_dev(p, t8);
+    			append_dev(p, t9);
+    			insert_dev(target, t10, anchor);
     			insert_dev(target, div, anchor);
     			if_blocks[current_block_type_index].m(div, null);
-    			insert_dev(target, t7, anchor);
-    			insert_dev(target, button, anchor);
+    			insert_dev(target, t11, anchor);
+    			insert_dev(target, button2, anchor);
     			current = true;
 
     			if (!mounted) {
-    				dispose = listen_dev(button, "click", /*fetchNextData*/ ctx[6], false, false, false);
+    				dispose = [
+    					listen_dev(button0, "click", /*goPrev*/ ctx[9], false, false, false),
+    					listen_dev(button1, "click", /*goNext*/ ctx[10], false, false, false),
+    					listen_dev(button2, "click", /*fetchNextData*/ ctx[6], false, false, false)
+    				];
+
     				mounted = true;
     			}
     		},
@@ -25622,7 +25329,7 @@ var app = (function () {
 
     				if (if_block0) {
     					if_block0.c();
-    					if_block0.m(t0.parentNode, t0);
+    					if_block0.m(t2.parentNode, t2);
     				}
     			}
 
@@ -25634,12 +25341,12 @@ var app = (function () {
 
     				if (if_block1) {
     					if_block1.c();
-    					if_block1.m(t1.parentNode, t1);
+    					if_block1.m(t3.parentNode, t3);
     				}
     			}
 
-    			if (!current || dirty & /*$season*/ 16) set_data_dev(t3, /*$season*/ ctx[4]);
-    			if (!current || dirty & /*$week*/ 8) set_data_dev(t5, /*$week*/ ctx[3]);
+    			if (!current || dirty & /*$season*/ 16) set_data_dev(t7, /*$season*/ ctx[4]);
+    			if (!current || dirty & /*$week*/ 8) set_data_dev(t9, /*$week*/ ctx[3]);
     			let previous_block_index = current_block_type_index;
     			current_block_type_index = select_block_type_2(ctx);
 
@@ -25676,18 +25383,22 @@ var app = (function () {
     			current = false;
     		},
     		d: function destroy(detaching) {
-    			if_block0.d(detaching);
-    			if (detaching) detach_dev(t0);
-    			if_block1.d(detaching);
+    			if (detaching) detach_dev(button0);
     			if (detaching) detach_dev(t1);
+    			if_block0.d(detaching);
+    			if (detaching) detach_dev(t2);
+    			if_block1.d(detaching);
+    			if (detaching) detach_dev(t3);
+    			if (detaching) detach_dev(button1);
+    			if (detaching) detach_dev(t5);
     			if (detaching) detach_dev(p);
-    			if (detaching) detach_dev(t6);
+    			if (detaching) detach_dev(t10);
     			if (detaching) detach_dev(div);
     			if_blocks[current_block_type_index].d();
-    			if (detaching) detach_dev(t7);
-    			if (detaching) detach_dev(button);
+    			if (detaching) detach_dev(t11);
+    			if (detaching) detach_dev(button2);
     			mounted = false;
-    			dispose();
+    			run_all(dispose);
     		}
     	};
 
@@ -25706,13 +25417,16 @@ var app = (function () {
     	let $week;
     	let $season;
     	let $year;
+    	let $page;
     	let $isActive;
     	validate_store(week, 'week');
     	component_subscribe($$self, week, $$value => $$invalidate(3, $week = $$value));
     	validate_store(season, 'season');
     	component_subscribe($$self, season, $$value => $$invalidate(4, $season = $$value));
     	validate_store(year, 'year');
-    	component_subscribe($$self, year, $$value => $$invalidate(12, $year = $$value));
+    	component_subscribe($$self, year, $$value => $$invalidate(14, $year = $$value));
+    	validate_store(page, 'page');
+    	component_subscribe($$self, page, $$value => $$invalidate(15, $page = $$value));
     	validate_store(isActive, 'isActive');
     	component_subscribe($$self, isActive, $$value => $$invalidate(5, $isActive = $$value));
     	let { $$slots: slots = {}, $$scope } = $$props;
@@ -25726,61 +25440,107 @@ var app = (function () {
     		$$invalidate(2, items = await fetchData());
     		$$invalidate(0, seasons = await fetchSeasons());
     		$$invalidate(1, weeks = await fetchWeeks());
+
+    		// disable next btn as the latest week is always displayed on mount
+    		document.getElementById("next-btn").disabled = true;
     	});
 
     	const fetchData = async () => {
-    		let key = `${$season}-${$week}`;
+    		document.getElementById("prev-btn").disabled = true;
+    		document.getElementById("next-btn").disabled = true;
+    		let key = `${$season}-${$week}-page-${$page}`;
     		let cache = checkCache(key);
 
     		// If cached data exists and is not expired then return data
     		if (cache.cachedData && !cache.expired) {
+    			document.getElementById("prev-btn").disabled = false;
+    			document.getElementById("next-btn").disabled = false;
     			return cache.cachedData.data;
     		} else {
     			// Otherwise fetch data
     			let data = await query.get().// Converts firestore collection into array of documents
     			then(snapshots => snapshots.docs.map(doc => doc.data()));
 
+    			// // fetch banners and append banner property to data object
+    			await fetchBanners(data);
+
     			// Save data in local storage
     			cacheData(key, data);
 
     			console.log("Data fetched:", data);
+    			document.getElementById("prev-btn").disabled = false;
+    			document.getElementById("next-btn").disabled = false;
     			return data;
     		}
     	};
 
     	const fetchNextData = async () => {
-    		let item = [];
+    		set_store_value(page, $page += 1, $page);
+    		let item;
+    		let key = `${$season}-${$week}-page-${$page}`;
+    		let cache = checkCache(key);
 
-    		await query.get().then(snapshots => {
-    			// Get the last visible document
-    			let lastVisible = snapshots.docs[snapshots.docs.length - 1];
+    		if (cache.cachedData && !cache.expired) {
+    			// Update items array with cached documents
+    			let data = cache.cachedData.data;
 
-    			query = db.collection($year).doc($season).collection($week).orderBy("rank", "asc").startAfter(lastVisible).limit(10);
+    			for (let i = 0; i < data.length; i++) {
+    				item = {
+    					rank: data[i].rank,
+    					title: data[i].title,
+    					votes: data[i].votes,
+    					banner: data[i].banner,
+    					previousRank: data[i].previousRank,
+    					previousVotes: data[i].previousVotes,
+    					description: data[i].description,
+    					genres: data[i].genres,
+    					externalLinks: data[i].externalLinks
+    				};
 
-    			query.get().then(snapshots => {
-    				// Converts newly fetched collection into array of documents
-    				let data = snapshots.docs.map(doc => doc.data());
+    				$$invalidate(2, items = [...items, item]);
+    			}
+    		} else {
+    			await query.get().then(snapshots => {
+    				// Get the last visible document
+    				let lastVisible = snapshots.docs[snapshots.docs.length - 1];
 
-    				// Update items array with new documents
-    				for (let i = 0; i < data.length; i++) {
-    					item = {
-    						rank: data[i].rank,
-    						title: data[i].title,
-    						votes: data[i].votes
-    					};
+    				query = db.collection($year).doc($season).collection($week).orderBy("rank", "asc").startAfter(lastVisible).limit(10);
 
-    					$$invalidate(2, items = [...items, item]);
-    				}
+    				query.get().then(async snapshots => {
+    					// Converts newly fetched collection into array of documents
+    					let data = snapshots.docs.map(doc => doc.data());
 
-    				// Disable show more button if there is no more data to be fetched
-    				if (snapshots.size < 10) {
-    					document.getElementById("showMore").disabled = true;
-    					console.log("No more data to be fetched");
-    				} else {
-    					console.log("Next batch of data fetched");
-    				}
+    					await fetchBanners(data);
+
+    					// Update items array with new documents
+    					for (let i = 0; i < data.length; i++) {
+    						item = {
+    							rank: data[i].rank,
+    							title: data[i].title,
+    							votes: data[i].votes,
+    							banner: data[i].banner,
+    							previousRank: data[i].previousRank,
+    							previousVotes: data[i].previousVotes,
+    							description: data[i].description,
+    							genres: data[i].genres,
+    							externalLinks: data[i].externalLinks
+    						};
+
+    						$$invalidate(2, items = [...items, item]);
+    					}
+
+    					cacheData(key, data);
+
+    					// Disable show more button if there is no more data to be fetched
+    					if (snapshots.size < 10) {
+    						document.getElementById("showMore").disabled = true;
+    						console.log("No more data to be fetched");
+    					} else {
+    						console.log("Next batch of data fetched");
+    					}
+    				});
     			});
-    		});
+    		}
     	};
 
     	const fetchSeasons = async () => {
@@ -25788,9 +25548,9 @@ var app = (function () {
     		let cache = checkCache(key);
 
     		if (cache.cachedData && !cache.expired) {
-    			$$invalidate(0, seasons = cache.cachedData.data);
+    			return cache.cachedData.data;
     		} else {
-    			let seasonQuery = db.collection($year);
+    			let seasonQuery = db.collection($year).orderBy("order", "asc");
 
     			await seasonQuery.get().then(snapshot => {
     				snapshot.forEach(doc => {
@@ -25811,6 +25571,7 @@ var app = (function () {
     		if (cache.cachedData && !cache.expired) {
     			$$invalidate(1, weeks.length = 0, weeks);
     			$$invalidate(1, weeks = cache.cachedData.data);
+    			return weeks;
     		} else {
     			$$invalidate(1, weeks.length = 0, weeks);
     			const fetchSubCollections = cf.httpsCallable("fetchSubCollections");
@@ -25826,13 +25587,19 @@ var app = (function () {
     	};
 
     	const updateSeason = async () => {
-    		set_store_value(week, $week = "Week-01", $week); // When changing the season param, reset the week param to the start
+    		// When changing the season param, reset the week param and btn states
+    		set_store_value(week, $week = "Week-01", $week);
+
+    		document.getElementById("prev-btn").disabled = true;
+    		document.getElementById("next-btn").disabled = false;
     		await updateItems();
     		await fetchWeeks();
     	};
 
     	const updateItems = async () => {
-    		let key = `${$season}-${$week}`;
+    		document.getElementById("prev-btn").disabled = true;
+    		document.getElementById("next-btn").disabled = true;
+    		let key = `${$season}-${$week}-page-${$page}`;
     		let cache = checkCache(key);
 
     		// If cached data exists and is not expired then return data
@@ -25847,12 +25614,19 @@ var app = (function () {
     			query = db.collection($year).doc($season).collection($week).orderBy("rank", "asc").limit(10);
 
     			let data = await query.get().then(snapshots => snapshots.docs.map(doc => doc.data()));
+    			await fetchBanners(data);
 
     			for (let i = 0; i < data.length; i++) {
     				item = {
     					rank: data[i].rank,
     					title: data[i].title,
-    					votes: data[i].votes
+    					votes: data[i].votes,
+    					banner: data[i].banner,
+    					previousRank: data[i].previousRank,
+    					previousVotes: data[i].previousVotes,
+    					description: data[i].description,
+    					genres: data[i].genres,
+    					externalLinks: data[i].externalLinks
     				};
 
     				$$invalidate(2, items = [...items, item]);
@@ -25864,9 +25638,67 @@ var app = (function () {
     			console.log("Items array updated. New Items:", items);
     		}
 
+    		document.getElementById("next-btn").disabled = false;
+
+    		if ($week == "Week-01") {
+    			document.getElementById("prev-btn").disabled = true;
+    		} else {
+    			document.getElementById("prev-btn").disabled = false;
+    		}
+
     		// Re-enable button in the case that the user has fetched the entire subcollection and button was disabled
     		document.getElementById("showMore").disabled = false;
     	};
+
+    	const fetchBanners = async data => {
+    		let banner;
+
+    		for (let i = 0; i < data.length; i++) {
+    			banner = await db.collection("banners").doc(data[i].title).get().then(doc => {
+    				return doc.data().banner;
+    			});
+
+    			data[i].banner = banner;
+    		}
+    	};
+
+    	function goPrev() {
+    		let i = weeks.indexOf($week);
+
+    		if (document.getElementById("next-btn").disabled = true) {
+    			document.getElementById("next-btn").disabled = false;
+    		}
+
+    		if (i == 1) {
+    			set_store_value(week, $week = weeks[i - 1], $week);
+    			updateItems();
+    			document.getElementById("prev-btn").disabled = true;
+    		} else {
+    			set_store_value(week, $week = weeks[i - 1], $week);
+    			updateItems();
+    		}
+
+    		console.log("Previous clicked");
+    	}
+
+    	function goNext() {
+    		let i = weeks.indexOf($week);
+
+    		if (document.getElementById("prev-btn").disabled = true) {
+    			document.getElementById("prev-btn").disabled = false;
+    		}
+
+    		if (i + 1 == weeks.length - 1) {
+    			set_store_value(week, $week = weeks[i + 1], $week);
+    			updateItems();
+    			document.getElementById("next-btn").disabled = true;
+    		} else {
+    			set_store_value(week, $week = weeks[i + 1], $week);
+    			updateItems();
+    		}
+
+    		console.log("Next clicked");
+    	}
 
     	const writable_props = [];
 
@@ -25894,6 +25726,7 @@ var app = (function () {
     		year,
     		season,
     		week,
+    		page,
     		isActive,
     		checkCache,
     		cacheData,
@@ -25907,9 +25740,13 @@ var app = (function () {
     		fetchWeeks,
     		updateSeason,
     		updateItems,
+    		fetchBanners,
+    		goPrev,
+    		goNext,
     		$week,
     		$season,
     		$year,
+    		$page,
     		$isActive
     	});
 
@@ -25934,6 +25771,8 @@ var app = (function () {
     		fetchNextData,
     		updateSeason,
     		updateItems,
+    		goPrev,
+    		goNext,
     		select_change_handler,
     		select_change_handler_1
     	];
@@ -25971,10 +25810,10 @@ var app = (function () {
     			h1.textContent = "Anime Corner Rankings";
     			t1 = space();
     			create_component(leaderboard.$$.fragment);
-    			attr_dev(h1, "class", "svelte-11a7f76");
-    			add_location(h1, file, 5, 2, 79);
-    			attr_dev(main, "class", "svelte-11a7f76");
-    			add_location(main, file, 4, 0, 70);
+    			attr_dev(h1, "class", "svelte-ihkqe0");
+    			add_location(h1, file, 5, 2, 90);
+    			attr_dev(main, "class", "svelte-ihkqe0");
+    			add_location(main, file, 4, 0, 81);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
