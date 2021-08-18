@@ -1,5 +1,4 @@
 <script>
-  import axios from "axios";
   import { onMount } from "svelte";
   import { db, cf } from "../firebase";
   import Item from "./Item.svelte";
@@ -43,9 +42,8 @@
         // Converts firestore collection into array of documents
         .then((snapshots) => snapshots.docs.map((doc) => doc.data()));
 
-      // fetch banners and append banner property to data object
+      // // fetch banners and append banner property to data object
       await fetchBanners(data);
-      await fetchPreviousStandings(data);
 
       // Save data in local storage
       cacheData(key, data);
@@ -76,6 +74,9 @@
           banner: data[i].banner,
           previousRank: data[i].previousRank,
           previousVotes: data[i].previousVotes,
+          description: data[i].description,
+          genres: data[i].genres,
+          externalLinks: data[i].externalLinks,
         };
         items = [...items, item];
       }
@@ -97,7 +98,6 @@
           let data = snapshots.docs.map((doc) => doc.data());
 
           await fetchBanners(data);
-          await fetchPreviousStandings(data);
 
           // Update items array with new documents
           for (let i = 0; i < data.length; i++) {
@@ -108,6 +108,9 @@
               banner: data[i].banner,
               previousRank: data[i].previousRank,
               previousVotes: data[i].previousVotes,
+              description: data[i].description,
+              genres: data[i].genres,
+              externalLinks: data[i].externalLinks,
             };
             items = [...items, item];
           }
@@ -210,7 +213,6 @@
         .then((snapshots) => snapshots.docs.map((doc) => doc.data()));
 
       await fetchBanners(data);
-      await fetchPreviousStandings(data);
 
       for (let i = 0; i < data.length; i++) {
         item = {
@@ -220,6 +222,9 @@
           banner: data[i].banner,
           previousRank: data[i].previousRank,
           previousVotes: data[i].previousVotes,
+          description: data[i].description,
+          genres: data[i].genres,
+          externalLinks: data[i].externalLinks,
         };
         items = [...items, item];
       }
@@ -240,142 +245,17 @@
   };
 
   const fetchBanners = async (data) => {
-    let title;
-
-    for (let i = 0; i < data.length; i++) {
-      let banner;
-      title = data[i].title;
-
-      const query = `
-  query ($title: String){
-    Media (search: $title, type: ANIME) {
-      bannerImage
-    }
-  }
-  `;
-
-      const variables = {
-        title: title,
-      };
-
-      const headers = {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      };
-
-      await axios({
-        method: "post",
-        url: "https://graphql.anilist.co/",
-        headers,
-        data: JSON.stringify({
-          query: query,
-          variables: variables,
-        }),
-      })
-        .then(async (result) => {
-          banner = result.data.data.Media.bannerImage;
-
-          if (banner === null) {
-            banner = await fetchKitsuBanner(title);
-          }
-        })
-        .catch(async (err) => {
-          console.log(err.message);
-          banner = await fetchKitsuBanner(title);
-        });
-      data[i].banner = banner;
-    }
-  };
-
-  const fetchKitsuBanner = async (title) => {
     let banner;
 
-    const query = `
-  query ($title: String!){
-    searchAnimeByTitle (first: 1, title: $title) {
-      nodes {
-        bannerImage {
-          original {
-            url
-          }
-        }
-      }
-    }
-  }
-  `;
-
-    const variables = {
-      title: title,
-    };
-
-    const headers = {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    };
-
-    await axios({
-      method: "post",
-      url: "https://kitsu.io/api/graphql",
-      headers,
-      data: JSON.stringify({
-        query: query,
-        variables: variables,
-      }),
-    })
-      .then(async (result) => {
-        if (
-          result.data.data.searchAnimeByTitle.nodes[0].bannerImage.original
-            .url == "/cover_images/original/missing.png"
-        ) {
-          banner =
-            "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
-        } else {
-          banner =
-            result.data.data.searchAnimeByTitle.nodes[0].bannerImage.original
-              .url;
-        }
-      })
-      .catch((err) => {
-        banner =
-          "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
-        console.log(err.message);
-      });
-    return banner;
-  };
-
-  const fetchPreviousStandings = async (data) => {
-    let previousWeek;
-    let query;
-    let n = parseInt($week.split("-")[1]);
-    n -= 1;
-    if (n > 10) {
-      previousWeek = "Week-" + n.toString();
-    } else {
-      previousWeek = "Week-0" + n.toString();
-    }
-
-    query = db.collection($year).doc($season).collection(previousWeek);
-
-    if (previousWeek == "Week-00") {
-      for (let i = 0; i < data.length; i++) {
-        data[i].previousRank = null;
-        data[i].previousVotes = null;
-      }
-    } else {
-      for (let i = 0; i < data.length; i++) {
-        let previousData = await query
-          .where("title", "==", data[i].title)
-          .get()
-          .then((snapshots) => snapshots.docs.map((doc) => doc.data()));
-
-        if (previousData[0] == undefined) {
-          data[i].previousRank = null;
-          data[i].previousVotes = null;
-        } else {
-          data[i].previousRank = previousData[0].rank;
-          data[i].previousVotes = previousData[0].votes;
-        }
-      }
+    for (let i = 0; i < data.length; i++) {
+      banner = await db
+        .collection("banners")
+        .doc(data[i].title)
+        .get()
+        .then((doc) => {
+          return doc.data().banner;
+        });
+      data[i].banner = banner;
     }
   };
 
