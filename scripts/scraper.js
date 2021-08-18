@@ -298,7 +298,7 @@ const fetchPreviousRankings = async (data) => {
   let previousWeek;
   let n = parseInt(data.week.split("-")[1]);
   n -= 1;
-  if (n > 10) {
+  if (n >= 10) {
     previousWeek = "Week-" + n.toString();
   } else {
     previousWeek = "Week-0" + n.toString();
