@@ -10,71 +10,104 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-const baseURL =
-  "https://animecorner.me/category/anime-corner/rankings/anime-of-the-week/";
+// Main script logic
+const main = async () => {
+  console.log("Start");
+  const page = await getRankingsPage();
+  let data = await scrapePage(page);
+  await writeDataToFirestore(data);
+  console.log("Done");
+};
 
-axios
-  .get(baseURL)
-  .then((res) => {
-    let $ = cheerio.load(res.data);
+// Returns latest ranking url anime-of-the-week post list
+const getRankingsPage = async () => {
+  const baseURL =
+    "https://animecorner.me/category/anime-corner/rankings/anime-of-the-week/";
 
-    // Get latest ranking page url which contains our table data
-    let page = $(".penci-wrapper-data")
-      .children()
-      .first()
-      .children()
-      .first()
-      .children()
-      .last()
-      .children()
-      .first()
-      .find("h2")
-      .find("a")
-      .attr("href");
-
-    axios
-      .get(page)
-      .then((res) => {
-        $ = cheerio.load(res.data);
-
-        let rankings = [];
-
-        // Select tbody element and iterate through each table row to push each table cell to rankings array
-        $("tbody tr").each((tr_index, tr) => {
-          rankings[tr_index] = {
-            rank: parseInt($(tr).children().first().text()),
-            title: $(tr).children().first().next().text(),
-            votes: parseFloat($(tr).children().last().text()),
-          };
-        });
-
-        let data = {};
-        // Expected format: {season} {year} Top Anime Rankings – Week {week}
-        let title = $("h1.post-title").text().split(" ");
-
-        data.year = title[1];
-        data.season = title[0];
-        data.week = "Week-" + title.pop();
-        data.rankings = rankings;
-
-        const doc = db
-          .collection(data.year)
-          .doc(data.season)
-          .collection(data.week);
-
-        for (rank in data.rankings) {
-          doc.add(data.rankings[rank]).catch((err) => {
-            console.error("Error adding document: ", err);
-          });
-        }
-        console.log(
-          $("h1.post-title").text() + " successfully written to database"
-        );
-      })
-      .catch((err) => {
-        console.error("Error fetching page: ", err);
-      });
+  // Get page that contains the latest rankings
+  const page = await axios({
+    method: "get",
+    url: baseURL,
   })
-  .catch((err) => {
-    console.error("Error fetching baseUrl: ", err);
-  });
+    .then((res) => {
+      let $ = cheerio.load(res.data);
+
+      // Get latest ranking page url which contains our table data
+      let page = $(".penci-wrapper-data")
+        .children()
+        .first()
+        .children()
+        .first()
+        .children()
+        .last()
+        .children()
+        .first()
+        .find("h2")
+        .find("a")
+        .attr("href");
+
+      return page;
+    })
+    .catch((err) =>
+      console.log(`Axios: Error fetching ${baseUrl}:`, err.message)
+    );
+  return page;
+};
+
+// Scrapes table, parses data and returns data object
+const scrapePage = async (page) => {
+  console.log(`Scraping ${page}...`);
+  let data = await axios({
+    method: "get",
+    url: page,
+  })
+    .then((res) => {
+      let $ = cheerio.load(res.data);
+
+      let data;
+      let rankings = [];
+
+      // Expected format: {season} {year} Top Anime Rankings – Week {week}
+      let title = $("h1.post-title").text().split(" ");
+
+      // Select tbody element and iterate through each table row to push each table cell to rankings array
+      $("tbody tr").each((tr_index, tr) => {
+        rankings[tr_index] = {
+          rank: parseInt($(tr).children().first().text()),
+          title: $(tr).children().first().next().text(),
+          votes: parseFloat($(tr).children().last().text()),
+        };
+      });
+
+      data = {
+        year: title[1],
+        season: title[0],
+        week: "Week-" + title.pop(),
+        rankings: rankings,
+      };
+
+      return data;
+    })
+    .catch((err) => console.log(`Axios: Error fetching ${page}`, err.message));
+  return data;
+};
+
+// Takes data object as argument and writes to firestore
+const writeDataToFirestore = async (data) => {
+  console.log("Writing to firestore...");
+  const doc = db.collection(data.year).doc(data.season).collection(data.week);
+
+  for (anime in data.rankings) {
+    await doc
+      .add(data.rankings[anime])
+      .catch((err) => console.log("Error adding document: ", err));
+    console.log(`${data.rankings[anime].title} added`);
+  }
+
+  console.log(
+    `${data.year} ${data.season} Top Anime Rankings - ${data.week} successfully added to database`
+  );
+};
+
+// Execute main script
+main();
