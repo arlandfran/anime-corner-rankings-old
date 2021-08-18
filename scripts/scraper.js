@@ -24,6 +24,9 @@ const main = async () => {
   }
   await fetchPreviousRankings(data);
   await writeDataToFirestore(data);
+  let animeTitles = extractTitles();
+  let newBanners = await fetchAnilistBanners(animeTitles);
+  await writeBannersToFirestore(newBanners);
   console.log("Done");
 };
 
@@ -328,6 +331,154 @@ const fetchPreviousRankings = async (data) => {
       console.log(`${data.rankings[anime].title}: Previous data fetched`);
     }
   }
+};
+
+// Return array that contains anime titles in the weekly ranking
+function extractTitles(data) {
+  let titles = [];
+  for (anime in data.rankings) {
+    titles.push(data.rankings[anime].title);
+  }
+  return titles;
+}
+
+// Fetch banner images using Anilist API and returns banner array
+const fetchAnilistBanners = async (titles) => {
+  let title;
+  let banner;
+  let banners = [];
+
+  // Make an API call for every anime object in data
+  for (let i = 0; i < titles.length; i++) {
+    title = titles[i];
+
+    const query = `
+  query ($title: String){
+    Media (search: $title, type: ANIME) {
+      bannerImage
+    }
+  }
+  `;
+
+    const variables = {
+      title: title,
+    };
+
+    const headers = {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    };
+
+    // Fetch banner from Anilist
+    await axios({
+      method: "post",
+      url: "https://graphql.anilist.co/",
+      headers,
+      data: JSON.stringify({
+        query: query,
+        variables: variables,
+      }),
+    })
+      // Assign response to banner variable
+      .then(async (res) => {
+        banner = res.data.data.Media.bannerImage;
+        console.log(`${title} - Banner found`);
+
+        // Sometimes Anilist will return null with status code 200
+        if (banner === null) {
+          console.log("No Anilist Banner Found, trying Kitsu...");
+          banner = await fetchKitsuBanners(title);
+        }
+      })
+      // Fetch banner from Kitsu if status code 404
+      .catch(async (err) => {
+        console.log(
+          "Error fetching Anilist Banners, trying Kitsu...",
+          err.message
+        );
+        banner = await fetchKitsuBanners(title);
+      });
+
+    banners.push({ title: title, banner: banner });
+  }
+  return banners;
+};
+
+// Fallback API call for banner and returns single banner response
+const fetchKitsuBanners = async (title) => {
+  let banner;
+
+  const query = `
+query ($title: String!){
+  searchAnimeByTitle (first: 1, title: $title) {
+    nodes {
+      bannerImage {
+        original {
+          url
+        }
+      }
+    }
+  }
+}
+`;
+
+  const variables = {
+    title: title,
+  };
+
+  const headers = {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  };
+
+  await axios({
+    method: "post",
+    url: "https://kitsu.io/api/graphql",
+    headers,
+    data: JSON.stringify({
+      query: query,
+      variables: variables,
+    }),
+  })
+    .then(async (res) => {
+      // Return 404 banner if Kitsu.io's hardcoded url is returned
+      if (
+        res.data.data.searchAnimeByTitle.nodes[0].bannerImage.original.url ==
+        "/cover_images/original/missing.png"
+      ) {
+        console.log("No Kitsu Banner Found, returning 404 Banner");
+        banner =
+          "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
+      } else {
+        // Otherwise assign response to banner variable
+        banner =
+          res.data.data.searchAnimeByTitle.nodes[0].bannerImage.original.url;
+        console.log(`${title} - Banner found`);
+      }
+    })
+    .catch((err) => {
+      console.log(
+        "Error fetching Kitsu Banner, returning 404 Banner:",
+        err.message
+      );
+      banner =
+        "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/404-banner.jpg";
+    });
+  return banner;
+};
+
+// Takes banner array and writes to firestore
+const writeBannersToFirestore = async (banners) => {
+  const doc = db.collection("banners");
+
+  for (let i = 0; i < banners.length; i++) {
+    doc
+      .doc(banners[i].title)
+      .set({ banner: banners[i].banner })
+      .catch((err) => console.log("Error adding banner:", err.message));
+  }
+
+  console.log("Banners successfully added to database");
 };
 
 main(); // Execute main script
