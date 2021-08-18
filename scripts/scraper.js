@@ -24,7 +24,7 @@ const main = async () => {
   }
   await fetchPreviousRankings(data);
   await writeDataToFirestore(data);
-  let titles = extractTitles();
+  let titles = extractTitles(data);
   let existingBanners = await fetchExistingBanners();
   let bannersToFetch = await checkForExistingEntries(existingBanners, titles);
   let newBanners = await fetchAnilistBanners(bannersToFetch);
