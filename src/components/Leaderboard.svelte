@@ -2,14 +2,28 @@
   import { onMount } from "svelte";
   import { db, cf } from "../firebase";
   import Item from "./Item.svelte";
-  import { year, season, week, page, isActive } from "../stores";
+  import {
+    year,
+    season,
+    week,
+    page,
+    isActive,
+    nextButtonState,
+    prevButtonState,
+  } from "../stores";
+
   import { checkCache, cacheData } from "../cache";
 
   let seasons = [];
   let weeks = [];
   let items = [];
-  let prevDisabled;
-  let nextDisabled;
+  let weekDisabled = false;
+
+  // initialize page btn states
+  const nextState = nextButtonState(false);
+  const prevState = prevButtonState(false);
+  const { next, enableNext, disableNext } = nextState;
+  const { prev, enablePrev, disablePrev } = prevState;
 
   let query = db
     .collection($year)
@@ -19,21 +33,20 @@
     .limit(10);
 
   onMount(async () => {
+    // disable page btns on initial page load
+    disablePrev();
+    disableNext();
+
     items = await fetchData();
     seasons = await fetchSeasons();
     weeks = await fetchWeeks();
+
     // disable next btn as the latest week is always displayed on mount
-    document.getElementById("next-btn").disabled = true;
-    prevDisabled = false;
-    nextDisabled = true;
+    enablePrev();
+    disableNext();
   });
 
   const fetchData = async () => {
-    document.getElementById("prev-btn").disabled = true;
-    document.getElementById("next-btn").disabled = true;
-    prevDisabled = true;
-    nextDisabled = true;
-
     let key = `${$season}-${$week}-page-${$page}`;
     let cache = checkCache(key);
 
@@ -57,11 +70,7 @@
 
       console.log("Data fetched:", data);
 
-      document.getElementById("prev-btn").disabled = false;
-      document.getElementById("next-btn").disabled = false;
-      prevDisabled = false;
-      nextDisabled = false;
-      console.log(prevDisabled);
+      // enablePrev();
       return data;
     }
   };
@@ -161,12 +170,16 @@
   };
 
   const fetchWeeks = async () => {
+    disablePrev();
+    disableNext();
     let key = `${$season}-Weeks`;
     let cache = checkCache(key);
 
     if (cache.cachedData && !cache.expired) {
       weeks.length = 0;
       weeks = cache.cachedData.data;
+      enablePrev();
+      enableNext();
       return weeks;
     } else {
       weeks.length = 0;
@@ -180,23 +193,26 @@
       cacheData(key, weeks);
 
       console.log("Weeks fetched:", weeks);
+      enablePrev();
+      enableNext();
       return weeks;
     }
   };
 
   const updateSeason = async () => {
+    weekDisabled = true;
+    await updateItems();
+    weeks = await fetchWeeks();
+
     // When changing the season param, reset the week param and btn states
     $week = "Week-01";
-    document.getElementById("prev-btn").disabled = true;
-    document.getElementById("next-btn").disabled = false;
-
-    await updateItems();
-    await fetchWeeks();
+    weekDisabled = false;
+    disablePrev();
   };
 
   const updateItems = async () => {
-    document.getElementById("prev-btn").disabled = true;
-    document.getElementById("next-btn").disabled = true;
+    disablePrev();
+    disableNext();
 
     let key = `${$season}-${$week}-page-${$page}`;
     let cache = checkCache(key);
@@ -242,14 +258,15 @@
       console.log("Items array updated. New Items:", items);
     }
 
-    document.getElementById("next-btn").disabled = false;
-    nextDisabled = false;
     if ($week == "Week-01") {
-      document.getElementById("prev-btn").disabled = true;
-      prevDisabled = true;
+      disablePrev();
+      enableNext();
+    } else if ($week == "Week-12") {
+      enablePrev();
+      disableNext();
     } else {
-      document.getElementById("prev-btn").disabled = false;
-      prevDisabled = false;
+      enablePrev();
+      enableNext();
     }
 
     // Re-enable button in the case that the user has fetched the entire subcollection and button was disabled
@@ -274,16 +291,14 @@
   function goPrev() {
     let i = weeks.indexOf($week);
 
-    if ((document.getElementById("next-btn").disabled = true)) {
-      document.getElementById("next-btn").disabled = false;
-      nextDisabled = false;
+    if ($next) {
+      enableNext();
     }
 
     if (i == 1) {
       $week = weeks[i - 1];
       updateItems();
-      document.getElementById("prev-btn").disabled = true;
-      prevDisabled = true;
+      disablePrev();
     } else {
       $week = weeks[i - 1];
       updateItems();
@@ -294,16 +309,14 @@
   function goNext() {
     let i = weeks.indexOf($week);
 
-    if ((document.getElementById("prev-btn").disabled = true)) {
-      document.getElementById("prev-btn").disabled = false;
-      prevDisabled = false;
+    if ($prev) {
+      enablePrev();
     }
 
     if (i + 1 == weeks.length - 1) {
       $week = weeks[i + 1];
       updateItems();
-      document.getElementById("next-btn").disabled = true;
-      nextDisabled = true;
+      disableNext();
     } else {
       $week = weeks[i + 1];
       updateItems();
@@ -315,8 +328,8 @@
 <div class="filters">
   <button on:click={goPrev} class="arrow" id="prev-btn">
     <svg
-      class:active={prevDisabled === false}
-      class:disabled={prevDisabled === true}
+      class:active={!$prev}
+      class:disabled={$prev}
       xmlns="http://www.w3.org/2000/svg"
       width="16"
       height="16"
@@ -341,7 +354,7 @@
     </select>
   {/if}
 
-  {#if weeks.length == 0}
+  {#if weeks.length == 0 || weekDisabled}
     <select>
       <option value="">Loading...</option>
     </select>
@@ -358,8 +371,8 @@
 
   <button on:click={goNext} class="arrow" id="next-btn"
     ><svg
-      class:active={nextDisabled === false}
-      class:disabled={nextDisabled === true}
+      class:active={!$next}
+      class:disabled={$next}
       xmlns="http://www.w3.org/2000/svg"
       width="16"
       height="16"
