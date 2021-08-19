@@ -8,6 +8,8 @@
   let seasons = [];
   let weeks = [];
   let items = [];
+  let prevDisabled;
+  let nextDisabled;
 
   let query = db
     .collection($year)
@@ -22,11 +24,16 @@
     weeks = await fetchWeeks();
     // disable next btn as the latest week is always displayed on mount
     document.getElementById("next-btn").disabled = true;
+    prevDisabled = false;
+    nextDisabled = true;
   });
 
   const fetchData = async () => {
     document.getElementById("prev-btn").disabled = true;
     document.getElementById("next-btn").disabled = true;
+    prevDisabled = true;
+    nextDisabled = true;
+
     let key = `${$season}-${$week}-page-${$page}`;
     let cache = checkCache(key);
 
@@ -52,7 +59,9 @@
 
       document.getElementById("prev-btn").disabled = false;
       document.getElementById("next-btn").disabled = false;
-
+      prevDisabled = false;
+      nextDisabled = false;
+      console.log(prevDisabled);
       return data;
     }
   };
@@ -234,10 +243,13 @@
     }
 
     document.getElementById("next-btn").disabled = false;
+    nextDisabled = false;
     if ($week == "Week-01") {
       document.getElementById("prev-btn").disabled = true;
+      prevDisabled = true;
     } else {
       document.getElementById("prev-btn").disabled = false;
+      prevDisabled = false;
     }
 
     // Re-enable button in the case that the user has fetched the entire subcollection and button was disabled
@@ -264,12 +276,14 @@
 
     if ((document.getElementById("next-btn").disabled = true)) {
       document.getElementById("next-btn").disabled = false;
+      nextDisabled = false;
     }
 
     if (i == 1) {
       $week = weeks[i - 1];
       updateItems();
       document.getElementById("prev-btn").disabled = true;
+      prevDisabled = true;
     } else {
       $week = weeks[i - 1];
       updateItems();
@@ -282,12 +296,14 @@
 
     if ((document.getElementById("prev-btn").disabled = true)) {
       document.getElementById("prev-btn").disabled = false;
+      prevDisabled = false;
     }
 
     if (i + 1 == weeks.length - 1) {
       $week = weeks[i + 1];
       updateItems();
       document.getElementById("next-btn").disabled = true;
+      nextDisabled = true;
     } else {
       $week = weeks[i + 1];
       updateItems();
@@ -296,61 +312,67 @@
   }
 </script>
 
-<button on:click={goPrev} id="prev-btn">
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="#fff"
-    ><path
-      d="M24 20.205L21.005 23.185L9.873 12L21.005 0.813972L24 3.79497L15.833 12L24 20.205V20.205ZM5.96 12L14.127 3.79497L11.132 0.814974L0 12L11.132 23.186L14.127 20.206L5.96 12V12Z"
-    /></svg
+<div class="filters">
+  <button on:click={goPrev} class="arrow" id="prev-btn">
+    <svg
+      class:active={prevDisabled === false}
+      class:disabled={prevDisabled === true}
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="#fff"
+      ><path
+        d="M24 20.205L21.005 23.185L9.873 12L21.005 0.813972L24 3.79497L15.833 12L24 20.205V20.205ZM5.96 12L14.127 3.79497L11.132 0.814974L0 12L11.132 23.186L14.127 20.206L5.96 12V12Z"
+      /></svg
+    >
+  </button>
+
+  {#if seasons == 0}
+    <select>
+      <option value="">Loading...</option>
+    </select>
+  {:else}
+    <!-- svelte-ignore a11y-no-onchange -->
+    <select bind:value={$season} on:change={updateSeason}>
+      {#each seasons as season}
+        <option class="dropdown-item" value={season}>{season}</option>
+      {/each}
+    </select>
+  {/if}
+
+  {#if weeks.length == 0}
+    <select>
+      <option value="">Loading...</option>
+    </select>
+  {:else}
+    <!-- svelte-ignore a11y-no-onchange -->
+    <select bind:value={$week} on:change={updateItems}>
+      {#each weeks as week}
+        <option class="dropdown-item" value={week}
+          >Week {parseInt(week.split("-")[1])}</option
+        >
+      {/each}
+    </select>
+  {/if}
+
+  <button on:click={goNext} class="arrow" id="next-btn"
+    ><svg
+      class:active={nextDisabled === false}
+      class:disabled={nextDisabled === true}
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="#fff"
+      ><path
+        d="M0 3.795l2.995-2.98 11.132 11.185-11.132 11.186-2.995-2.981 8.167-8.205-8.167-8.205zm18.04 8.205l-8.167 8.205 2.995 2.98 11.132-11.185-11.132-11.186-2.995 2.98 8.167 8.206z"
+      /></svg
+    ></button
   >
-</button>
+</div>
 
-{#if seasons == 0}
-  <select>
-    <option value="">Loading...</option>
-  </select>
-{:else}
-  <!-- svelte-ignore a11y-no-onchange -->
-  <select bind:value={$season} on:change={updateSeason}>
-    {#each seasons as season}
-      <option value={season}>{season}</option>
-    {/each}
-  </select>
-{/if}
-
-{#if weeks.length == 0}
-  <select>
-    <option value="">Loading...</option>
-  </select>
-{:else}
-  <!-- svelte-ignore a11y-no-onchange -->
-  <select bind:value={$week} on:change={updateItems}>
-    {#each weeks as week}
-      <option value={week}>{week.replace("-", " ")}</option>
-    {/each}
-  </select>
-{/if}
-
-<button on:click={goNext} id="next-btn"
-  ><svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="#fff"
-    ><path
-      d="M0 3.795l2.995-2.98 11.132 11.185-11.132 11.186-2.995-2.981 8.167-8.205-8.167-8.205zm18.04 8.205l-8.167 8.205 2.995 2.98 11.132-11.185-11.132-11.186-2.995 2.98 8.167 8.206z"
-    /></svg
-  ></button
->
-
-<p>The current params are {$season} {$week}</p>
-
-<div>
+<div class="rankings">
   {#if items.length == 0}
     <p>Loading...</p>
   {:else}
@@ -363,11 +385,36 @@
 <button on:click={fetchNextData} id="showMore">Show more rankings</button>
 
 <style>
-  div {
+  .filters {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .dropdown-item {
+    font-weight: inherit;
+  }
+
+  .rankings {
     text-align: left;
     display: flex;
     flex-direction: column;
     gap: 1rem;
+  }
+
+  .arrow {
+    width: 32px;
+    height: 32px;
+    align-self: flex-end;
+  }
+
+  .disabled {
+    fill: var(--surface);
+  }
+
+  .active:hover {
+    fill: var(--primary-color);
   }
 
   @media screen and (min-width: 425px) {
