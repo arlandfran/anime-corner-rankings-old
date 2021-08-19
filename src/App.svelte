@@ -1,12 +1,11 @@
 <script>
   import Leaderboard from "./components/Leaderboard.svelte";
   import Modal from "./components/Modal.svelte";
-  import { isOpen } from "./stores";
 </script>
 
 <main>
   <h1>Anime Corner Rankings</h1>
-  <Modal isOpen={$isOpen} />
+  <Modal />
   <Leaderboard />
 </main>
 
