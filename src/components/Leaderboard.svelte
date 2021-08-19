@@ -68,9 +68,8 @@
       // Save data in local storage
       cacheData(key, data);
 
-      console.log("Data fetched:", data);
+      console.log(`${$year} ${$season} ${$week} fetched:`, data);
 
-      // enablePrev();
       return data;
     }
   };
@@ -200,12 +199,13 @@
   };
 
   const updateSeason = async () => {
-    weekDisabled = true;
-    await updateItems();
-    weeks = await fetchWeeks();
-
     // When changing the season param, reset the week param and btn states
+    weekDisabled = true;
     $week = "Week-01";
+
+    await updateItems();
+    await fetchWeeks();
+
     weekDisabled = false;
     disablePrev();
   };
@@ -255,7 +255,10 @@
       }
       // Save data in local storage
       cacheData(key, data);
-      console.log("Items array updated. New Items:", items);
+      console.log(
+        `Items array updated with ${$year} ${$season} ${$week}:`,
+        items
+      );
     }
 
     if ($week == "Week-01") {
