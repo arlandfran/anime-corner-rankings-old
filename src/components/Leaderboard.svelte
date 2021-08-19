@@ -296,7 +296,18 @@
   }
 </script>
 
-<button on:click={goPrev} id="prev-btn">Previous</button>
+<button on:click={goPrev} id="prev-btn">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="#fff"
+    ><path
+      d="M24 20.205L21.005 23.185L9.873 12L21.005 0.813972L24 3.79497L15.833 12L24 20.205V20.205ZM5.96 12L14.127 3.79497L11.132 0.814974L0 12L11.132 23.186L14.127 20.206L5.96 12V12Z"
+    /></svg
+  >
+</button>
 
 {#if seasons == 0}
   <select>
@@ -324,7 +335,18 @@
   </select>
 {/if}
 
-<button on:click={goNext} id="next-btn">Next</button>
+<button on:click={goNext} id="next-btn"
+  ><svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="#fff"
+    ><path
+      d="M0 3.795l2.995-2.98 11.132 11.185-11.132 11.186-2.995-2.981 8.167-8.205-8.167-8.205zm18.04 8.205l-8.167 8.205 2.995 2.98 11.132-11.185-11.132-11.186-2.995 2.98 8.167 8.206z"
+    /></svg
+  ></button
+>
 
 <p>The current params are {$season} {$week}</p>
 
@@ -346,10 +368,6 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
-  }
-
-  button {
-    margin-top: 1rem;
   }
 
   @media screen and (min-width: 425px) {
