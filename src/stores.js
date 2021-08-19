@@ -5,3 +5,4 @@ export const season = writable("Summer");
 export const week = writable("Week-06");
 export const page = writable(1);
 export const isActive = writable(false);
+export const isOpen = writable(false);
