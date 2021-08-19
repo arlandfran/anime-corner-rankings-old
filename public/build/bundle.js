@@ -24020,12 +24020,12 @@ var app = (function () {
 
     			t2 = space();
     			html_tag = new HtmlTag();
-    			attr_dev(div0, "class", "pills svelte-z8dsa4");
+    			attr_dev(div0, "class", "pills svelte-qbzanb");
     			add_location(div0, file$2, 75, 6, 1878);
-    			attr_dev(div1, "class", "links svelte-z8dsa4");
+    			attr_dev(div1, "class", "links svelte-qbzanb");
     			add_location(div1, file$2, 80, 6, 2014);
     			html_tag.a = null;
-    			attr_dev(div2, "class", "card-content svelte-z8dsa4");
+    			attr_dev(div2, "class", "card-content svelte-qbzanb");
     			add_location(div2, file$2, 74, 4, 1844);
     		},
     		m: function mount(target, anchor) {
@@ -24126,7 +24126,7 @@ var app = (function () {
     		c: function create() {
     			div = element("div");
     			t = text(t_value);
-    			attr_dev(div, "class", "pill svelte-z8dsa4");
+    			attr_dev(div, "class", "pill svelte-qbzanb");
     			add_location(div, file$2, 77, 10, 1943);
     		},
     		m: function mount(target, anchor) {
@@ -24284,11 +24284,11 @@ var app = (function () {
     			t = space();
     			if (!src_url_equal(img.src, img_src_value = /*logo*/ ctx[16])) attr_dev(img, "src", img_src_value);
     			attr_dev(img, "alt", "");
-    			attr_dev(img, "class", "funimation svelte-z8dsa4");
-    			add_location(img, file$2, 96, 16, 2607);
+    			attr_dev(img, "class", "funimation svelte-qbzanb");
+    			add_location(img, file$2, 96, 16, 2595);
     			attr_dev(a, "href", a_href_value = /*link*/ ctx[13].url);
-    			attr_dev(a, "class", "fun-pill svelte-z8dsa4");
-    			add_location(a, file$2, 95, 14, 2553);
+    			attr_dev(a, "class", "link svelte-qbzanb");
+    			add_location(a, file$2, 95, 14, 2545);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, a, anchor);
@@ -24375,10 +24375,10 @@ var app = (function () {
     			t = space();
     			if (!src_url_equal(img.src, img_src_value = /*logo*/ ctx[16])) attr_dev(img, "src", img_src_value);
     			attr_dev(img, "alt", "");
-    			attr_dev(img, "class", "crunchyroll svelte-z8dsa4");
-    			add_location(img, file$2, 88, 16, 2306);
+    			attr_dev(img, "class", "crunchyroll svelte-qbzanb");
+    			add_location(img, file$2, 88, 16, 2298);
     			attr_dev(a, "href", a_href_value = /*link*/ ctx[13].url);
-    			attr_dev(a, "class", "crunchy-pill svelte-z8dsa4");
+    			attr_dev(a, "class", "link svelte-qbzanb");
     			add_location(a, file$2, 87, 14, 2248);
     		},
     		m: function mount(target, anchor) {
@@ -24540,10 +24540,10 @@ var app = (function () {
     			create_component(itemdetails.$$.fragment);
     			t2 = space();
     			if (if_block) if_block.c();
-    			attr_dev(div0, "class", "card svelte-z8dsa4");
+    			attr_dev(div0, "class", "card svelte-qbzanb");
     			toggle_class(div0, "straight-bottom-border", /*isActive*/ ctx[0]);
     			add_location(div0, file$2, 68, 2, 1612);
-    			attr_dev(div1, "class", "wrapper svelte-z8dsa4");
+    			attr_dev(div1, "class", "wrapper svelte-qbzanb");
     			add_location(div1, file$2, 67, 0, 1563);
     		},
     		l: function claim(nodes) {

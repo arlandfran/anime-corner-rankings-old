@@ -85,7 +85,7 @@
             {#await fetchCrunchyrollLogo()}
               Loading...
             {:then logo}
-              <a href={link.url} class="crunchy-pill">
+              <a href={link.url} class="link">
                 <img src={logo} alt="" class="crunchyroll" />
               </a>
             {/await}
@@ -93,7 +93,7 @@
             {#await fetchFunimationLogo()}
               Loading...
             {:then logo}
-              <a href={link.url} class="fun-pill">
+              <a href={link.url} class="link">
                 <img src={logo} alt="" class="funimation" />
               </a>
             {/await}
@@ -157,30 +157,23 @@
     font-weight: bold;
   }
 
-  .crunchyroll {
-    height: 1.6rem;
-  }
-
-  .crunchy-pill {
+  .link {
     display: flex;
     align-items: center;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
-    padding-top: 0.2rem;
-    padding-bottom: 0.2rem;
     border-radius: 6px;
+  }
+
+  .crunchyroll {
+    height: 1.6rem;
+    padding: 0.2rem 0.5rem;
     background-color: #f47521;
+    border-radius: inherit;
   }
 
   .funimation {
     height: 1rem;
-  }
-
-  .fun-pill {
-    display: flex;
-    align-items: center;
     padding: 0.5rem;
-    border-radius: 6px;
     background-color: #472d8e;
+    border-radius: inherit;
   }
 </style>
