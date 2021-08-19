@@ -29,7 +29,6 @@
         .doc("crunchyroll")
         .get()
         .then((doc) => {
-          console.log(doc.data());
           return doc.data().url;
         });
 
@@ -51,7 +50,6 @@
         .doc("funimation")
         .get()
         .then((doc) => {
-          console.log(doc.data());
           return doc.data().url;
         });
 
