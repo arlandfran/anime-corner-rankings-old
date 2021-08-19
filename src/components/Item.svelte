@@ -1,4 +1,7 @@
 <script>
+  import { onMount } from "svelte";
+  import axios from "axios";
+  import { checkCache, cacheData } from "../cache";
   import ItemRank from "./ItemRank.svelte";
   import ItemBanner from "./ItemBanner.svelte";
   import ItemDetails from "./ItemDetails.svelte";
@@ -13,6 +16,39 @@
   export let genres;
   export let externalLinks;
   export let isActive;
+
+  let crunchyrollLogo;
+  let funimationLogo;
+
+  onMount(async () => {
+    await fetchLogos();
+  });
+
+  const fetchLogos = async () => {
+    let key = "logos";
+    let cache = checkCache(key);
+
+    if (cache.cachedData && !cache.expired) {
+      crunchyrollLogo = cache.cachedData.crunchyroll;
+      funimationLogo = cache.cachedData.funimation;
+    } else {
+      crunchyrollLogo = await axios.get(
+        "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/logos/Crunchyroll.svg"
+      );
+      funimationLogo = await axios.get(
+        "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/logos/Funimation.svg"
+      );
+
+      let data = [
+        {
+          crunchyroll: crunchyrollLogo,
+          funimation: funimationLogo,
+        },
+      ];
+
+      cacheData(key, data);
+    }
+  };
 
   function toggleActive() {
     isActive = !isActive;
@@ -36,10 +72,21 @@
         Watch on:
         {#each externalLinks as link}
           {#if link.site == "Crunchyroll"}
-            <a href={link.url} class="crunchy-pill">
-              <img src="logos/Crunchyroll.svg" alt="" class="crunchyroll" />
-            </a>
+            {#await crunchyrollLogo}
+              Loading...
+            {:then crunchyrollLogo}
+              <a href={link.url} class="crunchy-pill">
+                <img src={crunchyrollLogo} alt="" class="crunchyroll" />
+              </a>
+            {/await}
           {:else if link.site == "Funimation"}
+            {#await funimationLogo}
+              Loading...
+            {:then funimationLogo}
+              <a href={link.url} class="crunchy-pill">
+                <img src={funimationLogo} alt="" class="crunchyroll" />
+              </a>
+            {/await}
             <a href={link.url} class="fun-pill">
               <img src="logos/Funimation.svg" alt="" class="site funimation" />
             </a>
