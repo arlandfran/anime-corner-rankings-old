@@ -27,6 +27,7 @@
     font-weight: bold;
     text-transform: uppercase;
     text-shadow: 0px 2px 2px rgba(0, 0, 0, 0.6);
+    user-select: none;
   }
 
   @media screen and (min-width: 426px) {

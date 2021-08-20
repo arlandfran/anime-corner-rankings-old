@@ -64,14 +64,17 @@
   }
 </script>
 
-<div class="wrapper" on:click={toggleActive}>
-  <div class="card">
+<div class="wrapper">
+  <div class="card" on:click={toggleActive}>
     <ItemRank {rank} />
     <ItemBanner {banner} {title} />
     <ItemDetails {rank} {previousRank} {votes} {previousVotes} {isActive} />
   </div>
   {#if isActive}
     <div class="card-content">
+      <div>
+        <h2 class="title">{title}</h2>
+      </div>
       <div class="pills">
         {#each genres as genres}
           <div class="pill">{genres}</div>
@@ -126,6 +129,11 @@
     background-color: #383838;
     border-bottom-left-radius: 6px;
     border-bottom-right-radius: 6px;
+  }
+
+  .title {
+    margin-block-start: 0;
+    margin-block-end: 0;
   }
 
   .pills {
