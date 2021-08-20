@@ -53,9 +53,13 @@ textarea {
   box-sizing: border-box;
   color: white;
   border: transparent;
-  border-radius: 2px;
+  border-radius: 6px;
   background-color: transparent;
   cursor: pointer;
+}
+
+button:hover {
+  color: var(--primary-color);
 }
 
 button:disabled {

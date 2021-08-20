@@ -90,3 +90,14 @@ export function prevButtonState(initialState) {
     },
   };
 }
+
+export function showMoreButtonState(initialState) {
+  const loading = writable(initialState);
+  const { set } = loading;
+
+  return {
+    loading,
+    fetching: () => set(true),
+    fetched: () => set(false),
+  };
+}

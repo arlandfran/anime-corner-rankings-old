@@ -1,6 +1,5 @@
 <script>
   import Leaderboard from "./components/Leaderboard.svelte";
-  import Modal from "./components/Modal.svelte";
 </script>
 
 <main>
