@@ -1,8 +1,41 @@
 <script>
   import { modalState } from "../stores";
+  import Accordion from "./Accordion.svelte";
 
   const state = modalState(false);
   const { isOpen, open, close } = state;
+
+  const content = [
+    {
+      question: "What is Anime Corner Rankings?",
+      answer:
+        "This site tracks the weekly rankings released by Anime Corner, an online community that provides news, highlights and articles on the anime industry. In particular the site displays their list in an interactive leaderboard that can expand to show you more information about a show if it catches your interest.",
+    },
+    {
+      question: "Where does the data come from?",
+      answer:
+        "The poll data is collected by Anime Corner and published on their website in the Rankings category. If you want to learn more about how the data is collected and calculated here.<br /><br />The all time ratings, genre tags, streaming platform(s) and overview are all provided by Anilist.co.",
+    },
+    {
+      question: "How often are the rankings updated?",
+      answer:
+        "The rankings are updated every Friday at approximately 13:00pm UTC.",
+    },
+    {
+      question: "How can I vote?",
+      answer: "You can cast your vote over at polls.animecorner.me",
+    },
+    {
+      question: "Are there similar rankings out there?",
+      answer:
+        "Yes this site was actually inspired by some of these sites here:<br /><ul><li>animekarmalist.com</li><li>animekarmawatch.com</li><li>animetrics.co</li><li>anitrendz.net</li></ul>",
+    },
+    {
+      question: "How can I contact you?",
+      answer:
+        "If you have any have questions, feedback or suggestions about the site, please feel free and create an issue on the project repository or even better make a PR yourself!",
+    },
+  ];
 </script>
 
 <div>
@@ -37,7 +70,7 @@
 
         <h2>Legend</h2>
         <ul>
-          <li>⮅ Rank Progression</li>
+          <li><span id="green">⮅</span> Rank Progression</li>
           <li>% Vote Percentage</li>
         </ul>
         <h2>FAQ</h2>
@@ -46,58 +79,9 @@
           |
           <button>Collapse All</button>
         </div>
-        <div class="accordion">
-          <h3>What is Anime Corner Rankings?</h3>
-          <div class="panel">
-            This site tracks the weekly rankings released by Anime Corner, an
-            online community that provides news, highlights and articles on the
-            anime industry. In particular the site displays their list in an
-            interactive leaderboard that can expand to show you more information
-            about a show if it catches your interest.
-          </div>
-        </div>
-        <div class="accordion">
-          <h3>Where does the data come from?</h3>
-          <div class="panel">
-            The poll data is collected by Anime Corner and published on their
-            website in the Rankings category. If you want to learn more about
-            how the data is collected and calculated here.<br /><br /> The all time
-            ratings, genre tags, streaming platform(s) and overview are all provided
-            by Anilist.co.
-          </div>
-        </div>
-        <div class="accordion">
-          <h3>How often are the rankings updated?</h3>
-          <div class="panel">
-            The rankings are updated every Friday at approximately 13:00pm UTC.
-          </div>
-        </div>
-        <div class="accordion">
-          <h3>How can I vote?</h3>
-          <div class="panel">
-            You can cast your vote over at polls.animecorner.me
-          </div>
-        </div>
-        <div class="accordion">
-          <h3>Are there similar rankings out there?</h3>
-          <div class="panel">
-            Yes this site was actually inspired by some of these sites here:
-            <ul>
-              <li>animekarmalist.com</li>
-              <li>animekarmawatch.com</li>
-              <li>animetrics.co</li>
-              <li>anitrendz.net</li>
-            </ul>
-          </div>
-        </div>
-        <div class="accordion">
-          <h3>How can I contact you?</h3>
-          <div class="panel">
-            If you have any have questions, feedback or suggestions about the
-            site, please feel free and create an issue on the project repository
-            or even better make a PR yourself!
-          </div>
-        </div>
+        {#each content as content}
+          <Accordion {...content} />
+        {/each}
       </div>
     </div>
   </div>
@@ -159,6 +143,13 @@
   h1 {
     margin-block-start: 0;
     margin-block-end: 0;
+  }
+
+  h1 {
     text-transform: uppercase;
+  }
+
+  #green {
+    color: #36c120;
   }
 </style>
