@@ -27925,10 +27925,7 @@ var app = (function () {
     }
 
     const app = new App({
-    	target: document.body,
-    	props: {
-    		name: 'world'
-    	}
+      target: document.body,
     });
 
     return app;
