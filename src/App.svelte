@@ -1,11 +1,14 @@
 <script>
   import Leaderboard from "./components/Leaderboard.svelte";
+  import Footer from "./components/Footer.svelte";
 </script>
 
 <main>
   <h1>Anime Corner Rankings</h1>
   <Leaderboard />
 </main>
+
+<Footer />
 
 <style>
   main {
