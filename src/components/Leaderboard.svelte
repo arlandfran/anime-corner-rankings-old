@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { db, cf } from "../firebase";
   import Item from "./Item.svelte";
+  import Modal from "./Modal.svelte";
   import {
     year,
     season,
@@ -11,7 +12,6 @@
     nextButtonState,
     prevButtonState,
   } from "../stores";
-
   import { checkCache, cacheData } from "../cache";
 
   let seasons = [];
@@ -386,6 +386,8 @@
       /></svg
     ></button
   >
+
+  <Modal />
 </div>
 
 <div class="rankings">
@@ -398,7 +400,9 @@
   {/if}
 </div>
 
-<button on:click={fetchNextData} id="showMore">Show more rankings</button>
+<div>
+  <button on:click={fetchNextData} id="showMore">Show more rankings</button>
+</div>
 
 <style>
   .filters {

@@ -5,7 +5,6 @@
 
 <main>
   <h1>Anime Corner Rankings</h1>
-  <Modal />
   <Leaderboard />
 </main>
 
