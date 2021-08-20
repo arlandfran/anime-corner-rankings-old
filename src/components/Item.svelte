@@ -78,26 +78,30 @@
         {/each}
       </div>
       <div class="links">
-        Watch on:
-        {#each externalLinks as link}
-          {#if link.site == "Crunchyroll"}
-            {#await fetchCrunchyrollLogo()}
-              <Circle size="32" unit="px" color="#65b893" />
-            {:then logo}
-              <a href={link.url} class="link" target="_blank">
-                <img src={logo} alt="" class="crunchyroll" />
-              </a>
-            {/await}
-          {:else if link.site == "Funimation"}
-            {#await fetchFunimationLogo()}
-              <Circle size="32" unit="px" color="#65b893" />
-            {:then logo}
-              <a href={link.url} class="link" target="_blank">
-                <img src={logo} alt="" class="funimation" />
-              </a>
-            {/await}
-          {/if}
-        {/each}
+        {#if externalLinks.length == 0}
+          Could not find on Crunchyroll or Funimation 😢
+        {:else}
+          Watch on:
+          {#each externalLinks as link}
+            {#if link.site == "Crunchyroll"}
+              {#await fetchCrunchyrollLogo()}
+                <Circle size="32" unit="px" color="#65b893" />
+              {:then logo}
+                <a href={link.url} class="link" target="_blank">
+                  <img src={logo} alt="" class="crunchyroll" />
+                </a>
+              {/await}
+            {:else if link.site == "Funimation"}
+              {#await fetchFunimationLogo()}
+                <Circle size="32" unit="px" color="#65b893" />
+              {:then logo}
+                <a href={link.url} class="link" target="_blank">
+                  <img src={logo} alt="" class="funimation" />
+                </a>
+              {/await}
+            {/if}
+          {/each}
+        {/if}
       </div>
       {@html description}
     </div>

@@ -23519,7 +23519,7 @@ var app = (function () {
     }
 
     // (60:35) 
-    function create_if_block_3$1(ctx) {
+    function create_if_block_3$2(ctx) {
     	let div;
 
     	const block = {
@@ -23545,7 +23545,7 @@ var app = (function () {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_if_block_3$1.name,
+    		id: create_if_block_3$2.name,
     		type: "if",
     		source: "(60:35) ",
     		ctx
@@ -23591,7 +23591,7 @@ var app = (function () {
     }
 
     // (90:4) {:else}
-    function create_else_block$1(ctx) {
+    function create_else_block$2(ctx) {
     	let div;
 
     	const block = {
@@ -23622,7 +23622,7 @@ var app = (function () {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_else_block$1.name,
+    		id: create_else_block$2.name,
     		type: "else",
     		source: "(90:4) {:else}",
     		ctx
@@ -23752,7 +23752,7 @@ var app = (function () {
 
     	function select_block_type_1(ctx, dirty) {
     		if (/*previousRank*/ ctx[1] == null) return create_if_block_2$2;
-    		if (/*previousRank*/ ctx[1] == /*rank*/ ctx[0]) return create_if_block_3$1;
+    		if (/*previousRank*/ ctx[1] == /*rank*/ ctx[0]) return create_if_block_3$2;
     		return create_else_block_1$1;
     	}
 
@@ -23762,7 +23762,7 @@ var app = (function () {
     	function select_block_type_2(ctx, dirty) {
     		if (/*voteDifference*/ ctx[5] > 0) return create_if_block$4;
     		if (/*voteDifference*/ ctx[5] < 0) return create_if_block_1$2;
-    		return create_else_block$1;
+    		return create_else_block$2;
     	}
 
     	let current_block_type_2 = select_block_type_2(ctx);
@@ -24119,48 +24119,43 @@ var app = (function () {
     	let div0;
     	let t0;
     	let div1;
+    	let current_block_type_index;
+    	let if_block;
     	let t1;
-    	let t2;
     	let html_tag;
     	let current;
     	let each_value_1 = /*genres*/ ctx[9];
     	validate_each_argument(each_value_1);
-    	let each_blocks_1 = [];
-
-    	for (let i = 0; i < each_value_1.length; i += 1) {
-    		each_blocks_1[i] = create_each_block_1$1(get_each_context_1$1(ctx, each_value_1, i));
-    	}
-
-    	let each_value = /*externalLinks*/ ctx[8];
-    	validate_each_argument(each_value);
     	let each_blocks = [];
 
-    	for (let i = 0; i < each_value.length; i += 1) {
-    		each_blocks[i] = create_each_block$2(get_each_context$2(ctx, each_value, i));
+    	for (let i = 0; i < each_value_1.length; i += 1) {
+    		each_blocks[i] = create_each_block_1$1(get_each_context_1$1(ctx, each_value_1, i));
     	}
 
-    	const out = i => transition_out(each_blocks[i], 1, 1, () => {
-    		each_blocks[i] = null;
-    	});
+    	const if_block_creators = [create_if_block_1$1, create_else_block$1];
+    	const if_blocks = [];
+
+    	function select_block_type(ctx, dirty) {
+    		if (/*externalLinks*/ ctx[8].length == 0) return 0;
+    		return 1;
+    	}
+
+    	current_block_type_index = select_block_type(ctx);
+    	if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
 
     	const block = {
     		c: function create() {
     			div2 = element("div");
     			div0 = element("div");
 
-    			for (let i = 0; i < each_blocks_1.length; i += 1) {
-    				each_blocks_1[i].c();
-    			}
-
-    			t0 = space();
-    			div1 = element("div");
-    			t1 = text("Watch on:\n        ");
-
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].c();
     			}
 
-    			t2 = space();
+    			t0 = space();
+    			div1 = element("div");
+    			if_block.c();
+    			t1 = space();
     			html_tag = new HtmlTag();
     			attr_dev(div0, "class", "pills svelte-1yjw8kx");
     			add_location(div0, file$4, 74, 6, 1745);
@@ -24174,19 +24169,14 @@ var app = (function () {
     			insert_dev(target, div2, anchor);
     			append_dev(div2, div0);
 
-    			for (let i = 0; i < each_blocks_1.length; i += 1) {
-    				each_blocks_1[i].m(div0, null);
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].m(div0, null);
     			}
 
     			append_dev(div2, t0);
     			append_dev(div2, div1);
-    			append_dev(div1, t1);
-
-    			for (let i = 0; i < each_blocks.length; i += 1) {
-    				each_blocks[i].m(div1, null);
-    			}
-
-    			append_dev(div2, t2);
+    			if_blocks[current_block_type_index].m(div1, null);
+    			append_dev(div2, t1);
     			html_tag.m(/*description*/ ctx[7], div2);
     			current = true;
     		},
@@ -24199,74 +24189,63 @@ var app = (function () {
     				for (i = 0; i < each_value_1.length; i += 1) {
     					const child_ctx = get_each_context_1$1(ctx, each_value_1, i);
 
-    					if (each_blocks_1[i]) {
-    						each_blocks_1[i].p(child_ctx, dirty);
-    					} else {
-    						each_blocks_1[i] = create_each_block_1$1(child_ctx);
-    						each_blocks_1[i].c();
-    						each_blocks_1[i].m(div0, null);
-    					}
-    				}
-
-    				for (; i < each_blocks_1.length; i += 1) {
-    					each_blocks_1[i].d(1);
-    				}
-
-    				each_blocks_1.length = each_value_1.length;
-    			}
-
-    			if (dirty & /*fetchCrunchyrollLogo, externalLinks, fetchFunimationLogo*/ 3328) {
-    				each_value = /*externalLinks*/ ctx[8];
-    				validate_each_argument(each_value);
-    				let i;
-
-    				for (i = 0; i < each_value.length; i += 1) {
-    					const child_ctx = get_each_context$2(ctx, each_value, i);
-
     					if (each_blocks[i]) {
     						each_blocks[i].p(child_ctx, dirty);
-    						transition_in(each_blocks[i], 1);
     					} else {
-    						each_blocks[i] = create_each_block$2(child_ctx);
+    						each_blocks[i] = create_each_block_1$1(child_ctx);
     						each_blocks[i].c();
-    						transition_in(each_blocks[i], 1);
-    						each_blocks[i].m(div1, null);
+    						each_blocks[i].m(div0, null);
     					}
     				}
 
-    				group_outros();
-
-    				for (i = each_value.length; i < each_blocks.length; i += 1) {
-    					out(i);
+    				for (; i < each_blocks.length; i += 1) {
+    					each_blocks[i].d(1);
     				}
 
+    				each_blocks.length = each_value_1.length;
+    			}
+
+    			let previous_block_index = current_block_type_index;
+    			current_block_type_index = select_block_type(ctx);
+
+    			if (current_block_type_index === previous_block_index) {
+    				if_blocks[current_block_type_index].p(ctx, dirty);
+    			} else {
+    				group_outros();
+
+    				transition_out(if_blocks[previous_block_index], 1, 1, () => {
+    					if_blocks[previous_block_index] = null;
+    				});
+
     				check_outros();
+    				if_block = if_blocks[current_block_type_index];
+
+    				if (!if_block) {
+    					if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
+    					if_block.c();
+    				} else {
+    					if_block.p(ctx, dirty);
+    				}
+
+    				transition_in(if_block, 1);
+    				if_block.m(div1, null);
     			}
 
     			if (!current || dirty & /*description*/ 128) html_tag.p(/*description*/ ctx[7]);
     		},
     		i: function intro(local) {
     			if (current) return;
-
-    			for (let i = 0; i < each_value.length; i += 1) {
-    				transition_in(each_blocks[i]);
-    			}
-
+    			transition_in(if_block);
     			current = true;
     		},
     		o: function outro(local) {
-    			each_blocks = each_blocks.filter(Boolean);
-
-    			for (let i = 0; i < each_blocks.length; i += 1) {
-    				transition_out(each_blocks[i]);
-    			}
-
+    			transition_out(if_block);
     			current = false;
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(div2);
-    			destroy_each(each_blocks_1, detaching);
     			destroy_each(each_blocks, detaching);
+    			if_blocks[current_block_type_index].d();
     		}
     	};
 
@@ -24317,8 +24296,140 @@ var app = (function () {
     	return block;
     }
 
-    // (91:46) 
-    function create_if_block_2$1(ctx) {
+    // (83:8) {:else}
+    function create_else_block$1(ctx) {
+    	let t;
+    	let each_1_anchor;
+    	let current;
+    	let each_value = /*externalLinks*/ ctx[8];
+    	validate_each_argument(each_value);
+    	let each_blocks = [];
+
+    	for (let i = 0; i < each_value.length; i += 1) {
+    		each_blocks[i] = create_each_block$2(get_each_context$2(ctx, each_value, i));
+    	}
+
+    	const out = i => transition_out(each_blocks[i], 1, 1, () => {
+    		each_blocks[i] = null;
+    	});
+
+    	const block = {
+    		c: function create() {
+    			t = text("Watch on:\n          ");
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			each_1_anchor = empty();
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, t, anchor);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].m(target, anchor);
+    			}
+
+    			insert_dev(target, each_1_anchor, anchor);
+    			current = true;
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*fetchCrunchyrollLogo, externalLinks, fetchFunimationLogo*/ 3328) {
+    				each_value = /*externalLinks*/ ctx[8];
+    				validate_each_argument(each_value);
+    				let i;
+
+    				for (i = 0; i < each_value.length; i += 1) {
+    					const child_ctx = get_each_context$2(ctx, each_value, i);
+
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(child_ctx, dirty);
+    						transition_in(each_blocks[i], 1);
+    					} else {
+    						each_blocks[i] = create_each_block$2(child_ctx);
+    						each_blocks[i].c();
+    						transition_in(each_blocks[i], 1);
+    						each_blocks[i].m(each_1_anchor.parentNode, each_1_anchor);
+    					}
+    				}
+
+    				group_outros();
+
+    				for (i = each_value.length; i < each_blocks.length; i += 1) {
+    					out(i);
+    				}
+
+    				check_outros();
+    			}
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+
+    			for (let i = 0; i < each_value.length; i += 1) {
+    				transition_in(each_blocks[i]);
+    			}
+
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			each_blocks = each_blocks.filter(Boolean);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				transition_out(each_blocks[i]);
+    			}
+
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(t);
+    			destroy_each(each_blocks, detaching);
+    			if (detaching) detach_dev(each_1_anchor);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_else_block$1.name,
+    		type: "else",
+    		source: "(83:8) {:else}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (81:8) {#if externalLinks.length == 0}
+    function create_if_block_1$1(ctx) {
+    	let t;
+
+    	const block = {
+    		c: function create() {
+    			t = text("Could not find on Crunchyroll or Funimation 😢");
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, t, anchor);
+    		},
+    		p: noop$1,
+    		i: noop$1,
+    		o: noop$1,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(t);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block_1$1.name,
+    		type: "if",
+    		source: "(81:8) {#if externalLinks.length == 0}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (94:48) 
+    function create_if_block_3$1(ctx) {
     	let await_block_anchor;
     	let current;
 
@@ -24375,17 +24486,17 @@ var app = (function () {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_if_block_2$1.name,
+    		id: create_if_block_3$1.name,
     		type: "if",
-    		source: "(91:46) ",
+    		source: "(94:48) ",
     		ctx
     	});
 
     	return block;
     }
 
-    // (83:10) {#if link.site == "Crunchyroll"}
-    function create_if_block_1$1(ctx) {
+    // (86:12) {#if link.site == "Crunchyroll"}
+    function create_if_block_2$1(ctx) {
     	let await_block_anchor;
     	let current;
 
@@ -24442,9 +24553,9 @@ var app = (function () {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_if_block_1$1.name,
+    		id: create_if_block_2$1.name,
     		type: "if",
-    		source: "(83:10) {#if link.site == \\\"Crunchyroll\\\"}",
+    		source: "(86:12) {#if link.site == \\\"Crunchyroll\\\"}",
     		ctx
     	});
 
@@ -24473,7 +24584,7 @@ var app = (function () {
     	return block;
     }
 
-    // (94:12) {:then logo}
+    // (97:14) {:then logo}
     function create_then_block_1(ctx) {
     	let a;
     	let img;
@@ -24489,11 +24600,11 @@ var app = (function () {
     			if (!src_url_equal(img.src, img_src_value = /*logo*/ ctx[16])) attr_dev(img, "src", img_src_value);
     			attr_dev(img, "alt", "");
     			attr_dev(img, "class", "funimation svelte-1yjw8kx");
-    			add_location(img, file$4, 95, 16, 2545);
+    			add_location(img, file$4, 98, 18, 2690);
     			attr_dev(a, "href", a_href_value = /*link*/ ctx[13].url);
     			attr_dev(a, "class", "link svelte-1yjw8kx");
     			attr_dev(a, "target", "_blank");
-    			add_location(a, file$4, 94, 14, 2480);
+    			add_location(a, file$4, 97, 16, 2623);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, a, anchor);
@@ -24517,14 +24628,14 @@ var app = (function () {
     		block,
     		id: create_then_block_1.name,
     		type: "then",
-    		source: "(94:12) {:then logo}",
+    		source: "(97:14) {:then logo}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (92:42)                <Circle size="32" unit="px" color="#65b893" />             {:then logo}
+    // (95:44)                  <Circle size="32" unit="px" color="#65b893" />               {:then logo}
     function create_pending_block_1(ctx) {
     	let circle;
     	let t;
@@ -24565,7 +24676,7 @@ var app = (function () {
     		block,
     		id: create_pending_block_1.name,
     		type: "pending",
-    		source: "(92:42)                <Circle size=\\\"32\\\" unit=\\\"px\\\" color=\\\"#65b893\\\" />             {:then logo}",
+    		source: "(95:44)                  <Circle size=\\\"32\\\" unit=\\\"px\\\" color=\\\"#65b893\\\" />               {:then logo}",
     		ctx
     	});
 
@@ -24594,7 +24705,7 @@ var app = (function () {
     	return block;
     }
 
-    // (86:12) {:then logo}
+    // (89:14) {:then logo}
     function create_then_block(ctx) {
     	let a;
     	let img;
@@ -24610,11 +24721,11 @@ var app = (function () {
     			if (!src_url_equal(img.src, img_src_value = /*logo*/ ctx[16])) attr_dev(img, "src", img_src_value);
     			attr_dev(img, "alt", "");
     			attr_dev(img, "class", "crunchyroll svelte-1yjw8kx");
-    			add_location(img, file$4, 87, 16, 2204);
+    			add_location(img, file$4, 90, 18, 2333);
     			attr_dev(a, "href", a_href_value = /*link*/ ctx[13].url);
     			attr_dev(a, "class", "link svelte-1yjw8kx");
     			attr_dev(a, "target", "_blank");
-    			add_location(a, file$4, 86, 14, 2139);
+    			add_location(a, file$4, 89, 16, 2266);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, a, anchor);
@@ -24638,14 +24749,14 @@ var app = (function () {
     		block,
     		id: create_then_block.name,
     		type: "then",
-    		source: "(86:12) {:then logo}",
+    		source: "(89:14) {:then logo}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (84:43)                <Circle size="32" unit="px" color="#65b893" />             {:then logo}
+    // (87:45)                  <Circle size="32" unit="px" color="#65b893" />               {:then logo}
     function create_pending_block(ctx) {
     	let circle;
     	let t;
@@ -24686,29 +24797,29 @@ var app = (function () {
     		block,
     		id: create_pending_block.name,
     		type: "pending",
-    		source: "(84:43)                <Circle size=\\\"32\\\" unit=\\\"px\\\" color=\\\"#65b893\\\" />             {:then logo}",
+    		source: "(87:45)                  <Circle size=\\\"32\\\" unit=\\\"px\\\" color=\\\"#65b893\\\" />               {:then logo}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (82:8) {#each externalLinks as link}
+    // (85:10) {#each externalLinks as link}
     function create_each_block$2(ctx) {
     	let current_block_type_index;
     	let if_block;
     	let if_block_anchor;
     	let current;
-    	const if_block_creators = [create_if_block_1$1, create_if_block_2$1];
+    	const if_block_creators = [create_if_block_2$1, create_if_block_3$1];
     	const if_blocks = [];
 
-    	function select_block_type(ctx, dirty) {
+    	function select_block_type_1(ctx, dirty) {
     		if (/*link*/ ctx[13].site == "Crunchyroll") return 0;
     		if (/*link*/ ctx[13].site == "Funimation") return 1;
     		return -1;
     	}
 
-    	if (~(current_block_type_index = select_block_type(ctx))) {
+    	if (~(current_block_type_index = select_block_type_1(ctx))) {
     		if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
     	}
 
@@ -24727,7 +24838,7 @@ var app = (function () {
     		},
     		p: function update(ctx, dirty) {
     			let previous_block_index = current_block_type_index;
-    			current_block_type_index = select_block_type(ctx);
+    			current_block_type_index = select_block_type_1(ctx);
 
     			if (current_block_type_index === previous_block_index) {
     				if (~current_block_type_index) {
@@ -24783,7 +24894,7 @@ var app = (function () {
     		block,
     		id: create_each_block$2.name,
     		type: "each",
-    		source: "(82:8) {#each externalLinks as link}",
+    		source: "(85:10) {#each externalLinks as link}",
     		ctx
     	});
 
