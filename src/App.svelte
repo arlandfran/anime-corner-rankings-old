@@ -1,5 +1,6 @@
 <script>
   import Leaderboard from "./components/Leaderboard.svelte";
+  import Modal from "./components/Modal.svelte";
 </script>
 
 <main>
@@ -16,6 +17,7 @@
   }
 
   h1 {
+    margin-block-end: 0;
     color: var(--primary-color);
     text-transform: uppercase;
     font-size: 2em;
