@@ -24489,10 +24489,11 @@ var app = (function () {
     			if (!src_url_equal(img.src, img_src_value = /*logo*/ ctx[16])) attr_dev(img, "src", img_src_value);
     			attr_dev(img, "alt", "");
     			attr_dev(img, "class", "funimation svelte-1yjw8kx");
-    			add_location(img, file$4, 95, 16, 2513);
+    			add_location(img, file$4, 95, 16, 2545);
     			attr_dev(a, "href", a_href_value = /*link*/ ctx[13].url);
     			attr_dev(a, "class", "link svelte-1yjw8kx");
-    			add_location(a, file$4, 94, 14, 2464);
+    			attr_dev(a, "target", "_blank");
+    			add_location(a, file$4, 94, 14, 2480);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, a, anchor);
@@ -24609,9 +24610,10 @@ var app = (function () {
     			if (!src_url_equal(img.src, img_src_value = /*logo*/ ctx[16])) attr_dev(img, "src", img_src_value);
     			attr_dev(img, "alt", "");
     			attr_dev(img, "class", "crunchyroll svelte-1yjw8kx");
-    			add_location(img, file$4, 87, 16, 2188);
+    			add_location(img, file$4, 87, 16, 2204);
     			attr_dev(a, "href", a_href_value = /*link*/ ctx[13].url);
     			attr_dev(a, "class", "link svelte-1yjw8kx");
+    			attr_dev(a, "target", "_blank");
     			add_location(a, file$4, 86, 14, 2139);
     		},
     		m: function mount(target, anchor) {
@@ -25291,7 +25293,7 @@ var app = (function () {
       {
         question: "Where does the data come from?",
         answer:
-          "The poll data is collected by Anime Corner and published on their <a href='https://animecorner.me/category/anime-corner/rankings/anime-of-the-week/'>website</a>. If you're curious about how the data is collected and calculated you can learn more about it <a href='https://animecorner.me/polls/'>here</a>.<br /><br />Data about each anime is provided by <a href='https://anilist.co/'>Anilist</a> & <a href='https://kitsu.io/'>Kitsu</a>.",
+          "The poll data is collected by Anime Corner and published on their <a href='https://animecorner.me/category/anime-corner/rankings/anime-of-the-week/' target='_blank'>website</a>. If you're curious about how the data is collected and calculated you can learn more about it <a href='https://animecorner.me/polls/' target='_blank'>here</a>.<br /><br />Data about each anime is provided by <a href='https://anilist.co/' target='_blank'>Anilist</a> & <a href='https://kitsu.io/' target='_blank'>Kitsu</a>.",
       },
       {
         question: "How often are the rankings updated?",
@@ -25301,12 +25303,12 @@ var app = (function () {
       {
         question: "How can I vote?",
         answer:
-          "You can cast your vote over at <a href='polls.animecorner.me'>polls.animecorner.me</a>",
+          "You can cast your vote over at <a href='https://animecorner.me/polls/' target='_blank'>polls.animecorner.me</a>",
       },
       {
         question: "Are there similar rankings out there?",
         answer:
-          "Yes this site was actually inspired by some of these sites here:<br /><ul><li><a href='https://animekarmalist.com/'>animekarmalist.com</a></li><li><a href='https://animekarmawatch.com/'>animekarmawatch.com</a></li><li><a href='https://animetrics.co/'>animetrics.co</a></li><li><a href='https://anitrendz.net/'>anitrendz.net</a></li></ul>",
+          "Yes this site was actually inspired by some of these sites here:<br /><ul><li><a href='https://animekarmalist.com/' target='_blank'>animekarmalist.com</a></li><li><a href='https://animekarmawatch.com/' target='_blank'>animekarmawatch.com</a></li><li><a href='https://animetrics.co/' target='_blank'>animetrics.co</a></li><li><a href='https://anitrendz.net/' target='_blank'>anitrendz.net</a></li></ul>",
       },
       {
         question: "How can I contact you?",
@@ -27550,9 +27552,9 @@ var app = (function () {
     			h1.textContent = "Anime Corner Rankings";
     			t1 = space();
     			create_component(leaderboard.$$.fragment);
-    			attr_dev(h1, "class", "svelte-cd5pkr");
+    			attr_dev(h1, "class", "svelte-1guux1p");
     			add_location(h1, file, 5, 2, 90);
-    			attr_dev(main, "class", "svelte-cd5pkr");
+    			attr_dev(main, "class", "svelte-1guux1p");
     			add_location(main, file, 4, 0, 81);
     		},
     		l: function claim(nodes) {

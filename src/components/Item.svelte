@@ -84,7 +84,7 @@
             {#await fetchCrunchyrollLogo()}
               <Circle size="32" unit="px" color="#65b893" />
             {:then logo}
-              <a href={link.url} class="link">
+              <a href={link.url} class="link" target="_blank">
                 <img src={logo} alt="" class="crunchyroll" />
               </a>
             {/await}
@@ -92,7 +92,7 @@
             {#await fetchFunimationLogo()}
               <Circle size="32" unit="px" color="#65b893" />
             {:then logo}
-              <a href={link.url} class="link">
+              <a href={link.url} class="link" target="_blank">
                 <img src={logo} alt="" class="funimation" />
               </a>
             {/await}

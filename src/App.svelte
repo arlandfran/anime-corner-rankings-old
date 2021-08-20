@@ -20,5 +20,7 @@
     text-transform: uppercase;
     font-size: 2em;
     font-weight: bold;
+    text-decoration: underline;
+    text-decoration-color: var(--primary-color);
   }
 </style>

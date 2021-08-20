@@ -22,7 +22,7 @@ export const faq = writable([
   {
     question: "Where does the data come from?",
     answer:
-      "The poll data is collected by Anime Corner and published on their <a href='https://animecorner.me/category/anime-corner/rankings/anime-of-the-week/'>website</a>. If you're curious about how the data is collected and calculated you can learn more about it <a href='https://animecorner.me/polls/'>here</a>.<br /><br />Data about each anime is provided by <a href='https://anilist.co/'>Anilist</a> & <a href='https://kitsu.io/'>Kitsu</a>.",
+      "The poll data is collected by Anime Corner and published on their <a href='https://animecorner.me/category/anime-corner/rankings/anime-of-the-week/' target='_blank'>website</a>. If you're curious about how the data is collected and calculated you can learn more about it <a href='https://animecorner.me/polls/' target='_blank'>here</a>.<br /><br />Data about each anime is provided by <a href='https://anilist.co/' target='_blank'>Anilist</a> & <a href='https://kitsu.io/' target='_blank'>Kitsu</a>.",
   },
   {
     question: "How often are the rankings updated?",
@@ -32,12 +32,12 @@ export const faq = writable([
   {
     question: "How can I vote?",
     answer:
-      "You can cast your vote over at <a href='polls.animecorner.me'>polls.animecorner.me</a>",
+      "You can cast your vote over at <a href='https://animecorner.me/polls/' target='_blank'>polls.animecorner.me</a>",
   },
   {
     question: "Are there similar rankings out there?",
     answer:
-      "Yes this site was actually inspired by some of these sites here:<br /><ul><li><a href='https://animekarmalist.com/'>animekarmalist.com</a></li><li><a href='https://animekarmawatch.com/'>animekarmawatch.com</a></li><li><a href='https://animetrics.co/'>animetrics.co</a></li><li><a href='https://anitrendz.net/'>anitrendz.net</a></li></ul>",
+      "Yes this site was actually inspired by some of these sites here:<br /><ul><li><a href='https://animekarmalist.com/' target='_blank'>animekarmalist.com</a></li><li><a href='https://animekarmawatch.com/' target='_blank'>animekarmawatch.com</a></li><li><a href='https://animetrics.co/' target='_blank'>animetrics.co</a></li><li><a href='https://anitrendz.net/' target='_blank'>anitrendz.net</a></li></ul>",
   },
   {
     question: "How can I contact you?",
