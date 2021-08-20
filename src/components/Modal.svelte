@@ -49,7 +49,20 @@
 </script>
 
 <div>
-  <button on:click={open}>About</button>
+  <button on:click={open}>
+    <svg
+      id="svg-info"
+      width="24"
+      height="24"
+      xmlns="http://www.w3.org/2000/svg"
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      fill="#fff"
+      ><path
+        d="M24 17.981h-13l-7 5.02v-5.02h-4v-16.981h24v16.981zm-11-9.98h-2v6h2v-6zm-1-1.5c.69 0 1.25-.56 1.25-1.25s-.56-1.25-1.25-1.25-1.25.56-1.25 1.25.56 1.25 1.25 1.25z"
+      /></svg
+    >
+  </button>
 </div>
 
 {#if $isOpen}
@@ -143,7 +156,7 @@
   .close {
     z-index: 2;
     position: absolute;
-    top: -0.2rem;
+    top: 1.15rem;
     right: 1.4rem;
   }
 
@@ -162,17 +175,25 @@
     overflow: auto;
   }
 
-  h1 {
-    margin-block-start: 0;
-    margin-block-end: 0;
+  h1,
+  h2 {
+    text-decoration: underline;
+    text-decoration-color: var(--primary-color);
+    text-underline-offset: 2px;
   }
 
   h1 {
+    margin-block-start: 0;
+    margin-block-end: 0;
     text-transform: uppercase;
   }
 
   #green {
     color: #36c120;
+  }
+
+  #svg-info:hover {
+    fill: var(--primary-color);
   }
 
   .active {
