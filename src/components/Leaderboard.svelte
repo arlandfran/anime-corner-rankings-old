@@ -314,6 +314,7 @@
       $week = weeks[i - 1];
       updateItems();
     }
+    document.getElementById("show-more").disabled = false;
     console.log("Previous clicked");
   }
 
@@ -332,6 +333,7 @@
       $week = weeks[i + 1];
       updateItems();
     }
+    document.getElementById("show-more").disabled = false;
     console.log("Next clicked");
   }
 </script>

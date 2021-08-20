@@ -26293,7 +26293,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (359:2) {:else}
+    // (361:2) {:else}
     function create_else_block_3(ctx) {
     	let select;
     	let mounted;
@@ -26315,7 +26315,7 @@ var app = (function () {
     			}
 
     			if (/*$season*/ ctx[7] === void 0) add_render_callback(() => /*select_change_handler*/ ctx[18].call(select));
-    			add_location(select, file$2, 360, 4, 9393);
+    			add_location(select, file$2, 362, 4, 9511);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -26376,14 +26376,14 @@ var app = (function () {
     		block,
     		id: create_else_block_3.name,
     		type: "else",
-    		source: "(359:2) {:else}",
+    		source: "(361:2) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (355:2) {#if seasons == 0}
+    // (357:2) {#if seasons == 0}
     function create_if_block_3(ctx) {
     	let select;
     	let option;
@@ -26395,8 +26395,8 @@ var app = (function () {
     			option.textContent = "Loading...";
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file$2, 356, 6, 9284);
-    			add_location(select, file$2, 355, 4, 9269);
+    			add_location(option, file$2, 358, 6, 9402);
+    			add_location(select, file$2, 357, 4, 9387);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -26412,14 +26412,14 @@ var app = (function () {
     		block,
     		id: create_if_block_3.name,
     		type: "if",
-    		source: "(355:2) {#if seasons == 0}",
+    		source: "(357:2) {#if seasons == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (362:6) {#each seasons as season}
+    // (364:6) {#each seasons as season}
     function create_each_block_2(ctx) {
     	let option;
     	let t_value = /*season*/ ctx[42] + "";
@@ -26433,7 +26433,7 @@ var app = (function () {
     			attr_dev(option, "class", "dropdown-item svelte-rwzfad");
     			option.__value = option_value_value = /*season*/ ctx[42];
     			option.value = option.__value;
-    			add_location(option, file$2, 362, 8, 9488);
+    			add_location(option, file$2, 364, 8, 9606);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
@@ -26456,14 +26456,14 @@ var app = (function () {
     		block,
     		id: create_each_block_2.name,
     		type: "each",
-    		source: "(362:6) {#each seasons as season}",
+    		source: "(364:6) {#each seasons as season}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (372:2) {:else}
+    // (374:2) {:else}
     function create_else_block_2(ctx) {
     	let select;
     	let mounted;
@@ -26485,7 +26485,7 @@ var app = (function () {
     			}
 
     			if (/*$week*/ ctx[4] === void 0) add_render_callback(() => /*select_change_handler_1*/ ctx[19].call(select));
-    			add_location(select, file$2, 373, 4, 9758);
+    			add_location(select, file$2, 375, 4, 9876);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -26546,14 +26546,14 @@ var app = (function () {
     		block,
     		id: create_else_block_2.name,
     		type: "else",
-    		source: "(372:2) {:else}",
+    		source: "(374:2) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (368:2) {#if weeks.length == 0 || weekDisabled}
+    // (370:2) {#if weeks.length == 0 || weekDisabled}
     function create_if_block_2(ctx) {
     	let select;
     	let option;
@@ -26565,8 +26565,8 @@ var app = (function () {
     			option.textContent = "Loading...";
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file$2, 369, 6, 9649);
-    			add_location(select, file$2, 368, 4, 9634);
+    			add_location(option, file$2, 371, 6, 9767);
+    			add_location(select, file$2, 370, 4, 9752);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -26582,14 +26582,14 @@ var app = (function () {
     		block,
     		id: create_if_block_2.name,
     		type: "if",
-    		source: "(368:2) {#if weeks.length == 0 || weekDisabled}",
+    		source: "(370:2) {#if weeks.length == 0 || weekDisabled}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (375:6) {#each weeks as week}
+    // (377:6) {#each weeks as week}
     function create_each_block_1(ctx) {
     	let option;
     	let t0;
@@ -26605,7 +26605,7 @@ var app = (function () {
     			attr_dev(option, "class", "dropdown-item svelte-rwzfad");
     			option.__value = option_value_value = /*week*/ ctx[39];
     			option.value = option.__value;
-    			add_location(option, file$2, 375, 8, 9846);
+    			add_location(option, file$2, 377, 8, 9964);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
@@ -26629,14 +26629,14 @@ var app = (function () {
     		block,
     		id: create_each_block_1.name,
     		type: "each",
-    		source: "(375:6) {#each weeks as week}",
+    		source: "(377:6) {#each weeks as week}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (406:2) {:else}
+    // (408:2) {:else}
     function create_else_block(ctx) {
     	let t;
     	let div;
@@ -26681,9 +26681,9 @@ var app = (function () {
     			if_block.c();
     			attr_dev(button, "id", "show-more");
     			attr_dev(button, "class", "svelte-rwzfad");
-    			add_location(button, file$2, 410, 6, 10752);
+    			add_location(button, file$2, 412, 6, 10870);
     			attr_dev(div, "class", "show-more svelte-rwzfad");
-    			add_location(div, file$2, 409, 4, 10722);
+    			add_location(div, file$2, 411, 4, 10840);
     		},
     		m: function mount(target, anchor) {
     			for (let i = 0; i < each_blocks.length; i += 1) {
@@ -26786,14 +26786,14 @@ var app = (function () {
     		block,
     		id: create_else_block.name,
     		type: "else",
-    		source: "(406:2) {:else}",
+    		source: "(408:2) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (402:2) {#if items.length == 0}
+    // (404:2) {#if items.length == 0}
     function create_if_block(ctx) {
     	let div;
     	let circle;
@@ -26809,7 +26809,7 @@ var app = (function () {
     			div = element("div");
     			create_component(circle.$$.fragment);
     			attr_dev(div, "class", "loading svelte-rwzfad");
-    			add_location(div, file$2, 402, 4, 10538);
+    			add_location(div, file$2, 404, 4, 10656);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -26836,14 +26836,14 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(402:2) {#if items.length == 0}",
+    		source: "(404:2) {#if items.length == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (407:4) {#each items as item}
+    // (409:4) {#each items as item}
     function create_each_block(ctx) {
     	let item;
     	let current;
@@ -26892,14 +26892,14 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(407:4) {#each items as item}",
+    		source: "(409:4) {#each items as item}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (414:8) {:else}
+    // (416:8) {:else}
     function create_else_block_1(ctx) {
     	let t;
 
@@ -26921,14 +26921,14 @@ var app = (function () {
     		block,
     		id: create_else_block_1.name,
     		type: "else",
-    		source: "(414:8) {:else}",
+    		source: "(416:8) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (412:8) {#if $loading}
+    // (414:8) {#if $loading}
     function create_if_block_1(ctx) {
     	let circle;
     	let current;
@@ -26964,7 +26964,7 @@ var app = (function () {
     		block,
     		id: create_if_block_1.name,
     		type: "if",
-    		source: "(412:8) {#if $loading}",
+    		source: "(414:8) {#if $loading}",
     		ctx
     	});
 
@@ -27039,7 +27039,7 @@ var app = (function () {
     			div1 = element("div");
     			if_block2.c();
     			attr_dev(path0, "d", "M24 20.205L21.005 23.185L9.873 12L21.005 0.813972L24 3.79497L15.833 12L24 20.205V20.205ZM5.96 12L14.127 3.79497L11.132 0.814974L0 12L11.132 23.186L14.127 20.206L5.96 12V12Z");
-    			add_location(path0, file$2, 348, 7, 9020);
+    			add_location(path0, file$2, 350, 7, 9138);
     			attr_dev(svg0, "xmlns", "http://www.w3.org/2000/svg");
     			attr_dev(svg0, "width", "16");
     			attr_dev(svg0, "height", "16");
@@ -27048,12 +27048,12 @@ var app = (function () {
     			attr_dev(svg0, "class", "svelte-rwzfad");
     			toggle_class(svg0, "active", !/*$prev*/ ctx[5]);
     			toggle_class(svg0, "disabled", /*$prev*/ ctx[5]);
-    			add_location(svg0, file$2, 340, 4, 8831);
+    			add_location(svg0, file$2, 342, 4, 8949);
     			attr_dev(button0, "class", "arrow svelte-rwzfad");
     			attr_dev(button0, "id", "prev-btn");
-    			add_location(button0, file$2, 339, 2, 8772);
+    			add_location(button0, file$2, 341, 2, 8890);
     			attr_dev(path1, "d", "M0 3.795l2.995-2.98 11.132 11.185-11.132 11.186-2.995-2.981 8.167-8.205-8.167-8.205zm18.04 8.205l-8.167 8.205 2.995 2.98 11.132-11.185-11.132-11.186-2.995 2.98 8.167 8.206z");
-    			add_location(path1, file$2, 391, 7, 10241);
+    			add_location(path1, file$2, 393, 7, 10359);
     			attr_dev(svg1, "xmlns", "http://www.w3.org/2000/svg");
     			attr_dev(svg1, "width", "16");
     			attr_dev(svg1, "height", "16");
@@ -27062,14 +27062,14 @@ var app = (function () {
     			attr_dev(svg1, "class", "svelte-rwzfad");
     			toggle_class(svg1, "active", !/*$next*/ ctx[6]);
     			toggle_class(svg1, "disabled", /*$next*/ ctx[6]);
-    			add_location(svg1, file$2, 383, 5, 10052);
+    			add_location(svg1, file$2, 385, 5, 10170);
     			attr_dev(button1, "class", "arrow svelte-rwzfad");
     			attr_dev(button1, "id", "next-btn");
-    			add_location(button1, file$2, 382, 2, 9993);
+    			add_location(button1, file$2, 384, 2, 10111);
     			attr_dev(div0, "class", "filters svelte-rwzfad");
-    			add_location(div0, file$2, 338, 0, 8748);
+    			add_location(div0, file$2, 340, 0, 8866);
     			attr_dev(div1, "class", "rankings svelte-rwzfad");
-    			add_location(div1, file$2, 400, 0, 10485);
+    			add_location(div1, file$2, 402, 0, 10603);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -27508,6 +27508,7 @@ var app = (function () {
     			updateItems();
     		}
 
+    		document.getElementById("show-more").disabled = false;
     		console.log("Previous clicked");
     	}
 
@@ -27527,6 +27528,7 @@ var app = (function () {
     			updateItems();
     		}
 
+    		document.getElementById("show-more").disabled = false;
     		console.log("Next clicked");
     	}
 
