@@ -1,5 +1,5 @@
 <script>
-  import { modalState } from "../stores";
+  import { faq, modalState } from "../stores";
   import Accordion from "./Accordion.svelte";
 
   const state = modalState(false);
@@ -17,38 +17,6 @@
     showAll = false;
     showDropdown = false;
   }
-
-  const content = [
-    {
-      question: "What is Anime Corner Rankings?",
-      answer:
-        "This site tracks the weekly rankings released by Anime Corner, an online community that provides news, highlights and articles on the anime industry. In particular the site displays their list in an interactive leaderboard that can expand to show you more information about a show if it catches your interest.",
-    },
-    {
-      question: "Where does the data come from?",
-      answer:
-        "The poll data is collected by Anime Corner and published on their website in the Rankings category. If you want to learn more about how the data is collected and calculated here.<br /><br />The all time ratings, genre tags, streaming platform(s) and overview are all provided by Anilist.co.",
-    },
-    {
-      question: "How often are the rankings updated?",
-      answer:
-        "The rankings are updated every Friday at approximately 13:00pm UTC.",
-    },
-    {
-      question: "How can I vote?",
-      answer: "You can cast your vote over at polls.animecorner.me",
-    },
-    {
-      question: "Are there similar rankings out there?",
-      answer:
-        "Yes this site was actually inspired by some of these sites here:<br /><ul><li>animekarmalist.com</li><li>animekarmawatch.com</li><li>animetrics.co</li><li>anitrendz.net</li></ul>",
-    },
-    {
-      question: "How can I contact you?",
-      answer:
-        "If you have any have questions, feedback or suggestions about the site, please feel free and create an issue on the project repository or even better make a PR yourself!",
-    },
-  ];
 </script>
 
 <div>
@@ -117,7 +85,7 @@
             on:click={collapseAll}>Collapse All</button
           >
         </div>
-        {#each content as content}
+        {#each $faq as content}
           <Accordion {...content} {showAll} {showDropdown} />
         {/each}
       </div>
@@ -152,12 +120,20 @@
   .content-wrapper {
     position: fixed;
     z-index: 1;
-    width: 75%;
+    width: 90%;
     max-height: 80%;
-    border-radius: 0.3rem;
+    max-width: 1024px;
+    padding-bottom: 3rem;
+    border-radius: 6px;
     background-color: black;
     border: 2px solid white;
     overflow: hidden;
+  }
+
+  @media screen and (min-width: 769px) {
+    .content-wrapper {
+      width: 75%;
+    }
   }
 
   .close {
