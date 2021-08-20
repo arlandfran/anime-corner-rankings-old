@@ -5,6 +5,16 @@
   const state = modalState(false);
   const { isOpen, open, close } = state;
 
+  let showAll = false;
+
+  function expandAll() {
+    showAll = true;
+  }
+
+  function collapseAll() {
+    showAll = false;
+  }
+
   const content = [
     {
       question: "What is Anime Corner Rankings?",
@@ -75,12 +85,24 @@
         </ul>
         <h2>FAQ</h2>
         <div class="expand-toggles">
-          <button>Expand All</button>
+          <button
+            class:active={!showAll}
+            class:disabled={showAll}
+            id="expand"
+            disabled={showAll}
+            on:click={expandAll}>Expand All</button
+          >
           |
-          <button>Collapse All</button>
+          <button
+            class:active={showAll}
+            class:disabled={!showAll}
+            id="collapse"
+            disabled={!showAll}
+            on:click={collapseAll}>Collapse All</button
+          >
         </div>
         {#each content as content}
-          <Accordion {...content} />
+          <Accordion {...content} {showAll} />
         {/each}
       </div>
     </div>
@@ -151,5 +173,14 @@
 
   #green {
     color: #36c120;
+  }
+
+  .active {
+    color: var(--primary-color);
+  }
+
+  .disabled {
+    color: var(--surface);
+    cursor: default;
   }
 </style>

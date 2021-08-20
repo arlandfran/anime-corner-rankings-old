@@ -1,18 +1,24 @@
 <script>
   export let question;
   export let answer;
+  export let showAll;
 
   let showDropdown = false;
 
   function toggleDropdown() {
-    showDropdown = !showDropdown;
+    if (showAll) {
+      showAll = false;
+      showDropdown = false;
+    } else {
+      showDropdown = !showDropdown;
+    }
   }
 </script>
 
 <div class="accordion" class:active={showDropdown} on:click={toggleDropdown}>
   <h3>{question}</h3>
 </div>
-{#if showDropdown}
+{#if showDropdown || showAll}
   <div class="panel">
     {@html answer}
   </div>
