@@ -278,9 +278,6 @@
       enablePrev();
       enableNext();
     }
-
-    // Re-enable button in the case that the user has fetched the entire subcollection and button was disabled
-    document.getElementById("show-more").disabled = false;
   };
 
   const fetchBanners = async (data) => {
@@ -406,17 +403,16 @@
     {#each items as item}
       <Item {...item} isActive={$isActive} />
     {/each}
+    <div class="show-more">
+      <button on:click={fetchNextData} id="show-more">
+        {#if $loading}
+          <Circle size="32" unit="px" color="#f3667b" />
+        {:else}
+          Show more rankings
+        {/if}
+      </button>
+    </div>
   {/if}
-</div>
-
-<div class="show-more">
-  <button on:click={fetchNextData} id="show-more">
-    {#if $loading}
-      <Circle size="32" unit="px" color="#f3667b" />
-    {:else}
-      Show more rankings
-    {/if}
-  </button>
 </div>
 
 <style>
@@ -453,7 +449,7 @@
   }
 
   .show-more {
-    margin: 0.5rem;
+    text-align: center;
   }
 
   #show-more {
