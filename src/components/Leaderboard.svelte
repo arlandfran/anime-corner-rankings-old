@@ -101,6 +101,10 @@
           externalLinks: data[i].externalLinks,
         };
         items = [...items, item];
+        if (data.length < 10) {
+          document.getElementById("show-more").disabled = true;
+          console.log("No more data to be fetched");
+        }
         fetched();
       }
     } else {
@@ -221,7 +225,7 @@
     disablePrev();
     disableNext();
 
-    let key = `${$season}-${$week}-page-${$page}`;
+    let key = `${$season}-${$week}-page-1`;
     let cache = checkCache(key);
 
     // If cached data exists and is not expired then return data
