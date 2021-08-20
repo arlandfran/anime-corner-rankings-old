@@ -1,10 +1,10 @@
 <script>
-  import { onMount } from "svelte";
-  import axios from "axios";
-  import { checkCache, cacheData } from "../cache";
   import ItemRank from "./ItemRank.svelte";
   import ItemBanner from "./ItemBanner.svelte";
   import ItemDetails from "./ItemDetails.svelte";
+  import { Circle } from "svelte-loading-spinners";
+  import { db } from "../firebase";
+  import { checkCache, cacheData } from "../cache";
 
   export let rank;
   export let title;
@@ -17,37 +17,46 @@
   export let externalLinks;
   export let isActive;
 
-  let crunchyrollLogo;
-  let funimationLogo;
-
-  onMount(async () => {
-    await fetchLogos();
-  });
-
-  const fetchLogos = async () => {
-    let key = "logos";
-    let cache = checkCache(key);
+  const fetchCrunchyrollLogo = async () => {
+    const key = "crunchyroll";
+    const cache = checkCache(key);
+    let logo;
 
     if (cache.cachedData && !cache.expired) {
-      crunchyrollLogo = cache.cachedData.crunchyroll;
-      funimationLogo = cache.cachedData.funimation;
+      logo = cache.cachedData.data;
     } else {
-      crunchyrollLogo = await axios.get(
-        "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/logos/Crunchyroll.svg"
-      );
-      funimationLogo = await axios.get(
-        "https://raw.githubusercontent.com/arlandfran/anime-corner-rankings/main/assets/img/logos/Funimation.svg"
-      );
+      logo = await db
+        .collection("logos")
+        .doc("crunchyroll")
+        .get()
+        .then((doc) => {
+          return doc.data().url;
+        });
 
-      let data = [
-        {
-          crunchyroll: crunchyrollLogo,
-          funimation: funimationLogo,
-        },
-      ];
-
-      cacheData(key, data);
+      cacheData(key, logo);
     }
+    return logo;
+  };
+
+  const fetchFunimationLogo = async () => {
+    const key = "funimation";
+    const cache = checkCache(key);
+    let logo;
+
+    if (cache.cachedData && !cache.expired) {
+      logo = cache.cachedData.data;
+    } else {
+      logo = await db
+        .collection("logos")
+        .doc("funimation")
+        .get()
+        .then((doc) => {
+          return doc.data().url;
+        });
+
+      cacheData(key, logo);
+    }
+    return logo;
   };
 
   function toggleActive() {
@@ -56,7 +65,7 @@
 </script>
 
 <div class="wrapper" on:click={toggleActive}>
-  <div class="card" class:straight-bottom-border={isActive}>
+  <div class="card">
     <ItemRank {rank} />
     <ItemBanner {banner} {title} />
     <ItemDetails {rank} {previousRank} {votes} {previousVotes} {isActive} />
@@ -69,29 +78,30 @@
         {/each}
       </div>
       <div class="links">
-        Watch on:
-        {#each externalLinks as link}
-          {#if link.site == "Crunchyroll"}
-            {#await crunchyrollLogo}
-              Loading...
-            {:then crunchyrollLogo}
-              <a href={link.url} class="crunchy-pill">
-                <img src={crunchyrollLogo} alt="" class="crunchyroll" />
-              </a>
-            {/await}
-          {:else if link.site == "Funimation"}
-            {#await funimationLogo}
-              Loading...
-            {:then funimationLogo}
-              <a href={link.url} class="crunchy-pill">
-                <img src={funimationLogo} alt="" class="crunchyroll" />
-              </a>
-            {/await}
-            <a href={link.url} class="fun-pill">
-              <img src="logos/Funimation.svg" alt="" class="site funimation" />
-            </a>
-          {/if}
-        {/each}
+        {#if externalLinks.length == 0}
+          Could not find on Crunchyroll or Funimation 😢
+        {:else}
+          Watch on:
+          {#each externalLinks as link}
+            {#if link.site == "Crunchyroll"}
+              {#await fetchCrunchyrollLogo()}
+                <Circle size="32" unit="px" color="#65b893" />
+              {:then logo}
+                <a href={link.url} class="link" target="_blank">
+                  <img src={logo} alt="" class="crunchyroll" />
+                </a>
+              {/await}
+            {:else if link.site == "Funimation"}
+              {#await fetchFunimationLogo()}
+                <Circle size="32" unit="px" color="#65b893" />
+              {:then logo}
+                <a href={link.url} class="link" target="_blank">
+                  <img src={logo} alt="" class="funimation" />
+                </a>
+              {/await}
+            {/if}
+          {/each}
+        {/if}
       </div>
       {@html description}
     </div>
@@ -107,14 +117,8 @@
     display: flex;
     align-items: center;
     height: 6rem;
-    background-color: var(--primary-color);
-    border-radius: 6px;
+    background-color: var(--surface);
     cursor: pointer;
-  }
-
-  .straight-bottom-border {
-    border-bottom-left-radius: 0px;
-    border-bottom-right-radius: 0px;
   }
 
   .card-content {
@@ -136,7 +140,7 @@
 
   .pill {
     padding: 0.5rem;
-    background-color: var(--primary-color);
+    background-color: var(--gain-color);
     border-radius: 12px;
   }
 
@@ -150,34 +154,23 @@
     font-weight: bold;
   }
 
-  .site {
-    height: 1.1rem;
+  .link {
+    display: flex;
+    align-items: center;
+    border-radius: 6px;
   }
 
   .crunchyroll {
     height: 1.6rem;
-  }
-
-  .crunchy-pill {
-    display: flex;
-    align-items: center;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
-    padding-top: 0.2rem;
-    padding-bottom: 0.2rem;
-    border-radius: 6px;
+    padding: 0.2rem 0.5rem;
     background-color: #f47521;
+    border-radius: inherit;
   }
 
   .funimation {
     height: 1rem;
-  }
-
-  .fun-pill {
-    display: flex;
-    align-items: center;
     padding: 0.5rem;
-    border-radius: 6px;
     background-color: #472d8e;
+    border-radius: inherit;
   }
 </style>

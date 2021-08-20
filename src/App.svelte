@@ -16,9 +16,11 @@
   }
 
   h1 {
-    color: var(--primary-color);
+    margin-block-end: 0;
     text-transform: uppercase;
     font-size: 2em;
     font-weight: bold;
+    text-decoration: underline;
+    text-decoration-color: var(--primary-color);
   }
 </style>
