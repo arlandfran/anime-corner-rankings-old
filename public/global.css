@@ -50,7 +50,6 @@ textarea {
   font-family: inherit;
   font-size: inherit;
   font-weight: bold;
-  -webkit-padding: 0.4em 0;
   padding: 0.2em;
   margin: 0.5rem 0;
   box-sizing: border-box;
@@ -91,4 +90,8 @@ select:focus {
 
 option {
   color: white;
+}
+
+::selection {
+  background: var(--primary-color);
 }

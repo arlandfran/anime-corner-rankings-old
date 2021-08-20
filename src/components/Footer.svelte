@@ -92,6 +92,7 @@
 
   .follow {
     display: flex;
+    align-items: center;
     gap: 0.5rem;
   }
 
@@ -101,7 +102,7 @@
 
   @media screen and (min-width: 426px) {
     .svg-icon {
-      padding-left: 0.5rem;
+      padding: 0.4rem;
     }
   }
 </style>

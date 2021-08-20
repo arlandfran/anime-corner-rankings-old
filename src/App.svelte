@@ -20,7 +20,6 @@
 
   h1 {
     margin-block-end: 0;
-    text-transform: uppercase;
     font-size: 2em;
     font-weight: bold;
     text-decoration: underline;
