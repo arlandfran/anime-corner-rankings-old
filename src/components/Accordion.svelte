@@ -2,8 +2,7 @@
   export let question;
   export let answer;
   export let showAll;
-
-  let showDropdown = false;
+  export let showDropdown;
 
   function toggleDropdown() {
     if (showAll) {

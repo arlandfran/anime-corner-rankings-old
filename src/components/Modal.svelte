@@ -6,13 +6,16 @@
   const { isOpen, open, close } = state;
 
   let showAll = false;
+  let showDropdown = false;
 
   function expandAll() {
     showAll = true;
+    showDropdown = true;
   }
 
   function collapseAll() {
     showAll = false;
+    showDropdown = false;
   }
 
   const content = [
@@ -49,7 +52,7 @@
 </script>
 
 <div>
-  <button on:click={open}>
+  <button class="about" on:click={open}>
     <svg
       id="svg-info"
       width="24"
@@ -115,7 +118,7 @@
           >
         </div>
         {#each content as content}
-          <Accordion {...content} {showAll} />
+          <Accordion {...content} {showAll} {showDropdown} />
         {/each}
       </div>
     </div>
@@ -123,6 +126,10 @@
 {/if}
 
 <style>
+  .about {
+    width: 48px;
+  }
+
   .modal {
     position: fixed;
     top: 0;
