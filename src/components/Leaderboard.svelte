@@ -1,5 +1,6 @@
 <script>
   import { onMount } from "svelte";
+  import { Circle } from "svelte-loading-spinners";
   import { db, cf } from "../firebase";
   import Item from "./Item.svelte";
   import Modal from "./Modal.svelte";
@@ -11,6 +12,7 @@
     isActive,
     nextButtonState,
     prevButtonState,
+    showMoreButtonState,
   } from "../stores";
   import { checkCache, cacheData } from "../cache";
 
@@ -22,8 +24,10 @@
   // initialize page btn states
   const nextState = nextButtonState(false);
   const prevState = prevButtonState(false);
+  const showMoreState = showMoreButtonState(false);
   const { next, enableNext, disableNext } = nextState;
   const { prev, enablePrev, disablePrev } = prevState;
+  const { loading, fetching, fetched } = showMoreState;
 
   let query = db
     .collection($year)
@@ -75,6 +79,7 @@
   };
 
   const fetchNextData = async () => {
+    fetching();
     $page += 1;
     let item;
     let key = `${$season}-${$week}-page-${$page}`;
@@ -96,6 +101,7 @@
           externalLinks: data[i].externalLinks,
         };
         items = [...items, item];
+        fetched();
       }
     } else {
       await query.get().then((snapshots) => {
@@ -136,11 +142,12 @@
 
           // Disable show more button if there is no more data to be fetched
           if (snapshots.size < 10) {
-            document.getElementById("showMore").disabled = true;
+            document.getElementById("show-more").disabled = true;
             console.log("No more data to be fetched");
           } else {
             console.log("Next batch of data fetched");
           }
+          fetched();
         });
       });
     }
@@ -273,7 +280,7 @@
     }
 
     // Re-enable button in the case that the user has fetched the entire subcollection and button was disabled
-    document.getElementById("showMore").disabled = false;
+    document.getElementById("show-more").disabled = false;
   };
 
   const fetchBanners = async (data) => {
@@ -392,7 +399,9 @@
 
 <div class="rankings">
   {#if items.length == 0}
-    <p>Loading...</p>
+    <div class="loading">
+      <Circle size="64" unit="px" color="#f3667b" />
+    </div>
   {:else}
     {#each items as item}
       <Item {...item} isActive={$isActive} />
@@ -400,11 +409,24 @@
   {/if}
 </div>
 
-<div>
-  <button on:click={fetchNextData} id="showMore">Show more rankings</button>
+<div class="show-more">
+  <button on:click={fetchNextData} id="show-more">
+    {#if $loading}
+      <Circle size="32" unit="px" color="#f3667b" />
+    {:else}
+      Show more rankings
+    {/if}
+  </button>
 </div>
 
 <style>
+  .loading {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
   .filters {
     display: flex;
     justify-content: center;
@@ -423,6 +445,33 @@
     gap: 1rem;
   }
 
+  @media screen and (min-width: 425px) {
+    .rankings {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+  }
+
+  .show-more {
+    margin: 0.5rem;
+  }
+
+  #show-more {
+    padding: 0.5rem;
+    font-size: 1.2rem;
+    text-decoration: underline;
+    text-decoration-color: var(--primary-color);
+  }
+
+  #show-more:hover {
+    text-decoration-color: #e57f10;
+  }
+
+  #show-more:disabled {
+    color: var(--surface);
+    text-decoration: none;
+  }
+
   .arrow {
     width: 32px;
     height: 32px;
@@ -435,12 +484,5 @@
 
   .active:hover {
     fill: var(--primary-color);
-  }
-
-  @media screen and (min-width: 425px) {
-    div {
-      padding-left: 1rem;
-      padding-right: 1rem;
-    }
   }
 </style>
