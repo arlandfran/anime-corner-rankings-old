@@ -17,6 +17,7 @@
   }
 
   h1 {
+    margin-block-end: 0;
     color: var(--primary-color);
     text-transform: uppercase;
     font-size: 2em;
