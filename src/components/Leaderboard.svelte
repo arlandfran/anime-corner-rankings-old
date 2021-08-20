@@ -397,7 +397,7 @@
 <div class="rankings">
   {#if items.length == 0}
     <div class="loading">
-      <Circle size="64" unit="px" color="#f3667b" />
+      <Circle size="64" unit="px" color="#65b893" />
     </div>
   {:else}
     {#each items as item}
@@ -406,7 +406,7 @@
     <div class="show-more">
       <button on:click={fetchNextData} id="show-more">
         {#if $loading}
-          <Circle size="32" unit="px" color="#f3667b" />
+          <Circle size="32" unit="px" color="#65b893" />
         {:else}
           Show more rankings
         {/if}
@@ -457,10 +457,6 @@
     font-size: 1.2rem;
     text-decoration: underline;
     text-decoration-color: var(--primary-color);
-  }
-
-  #show-more:hover {
-    text-decoration-color: #e57f10;
   }
 
   #show-more:disabled {

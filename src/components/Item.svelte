@@ -2,6 +2,7 @@
   import ItemRank from "./ItemRank.svelte";
   import ItemBanner from "./ItemBanner.svelte";
   import ItemDetails from "./ItemDetails.svelte";
+  import { Circle } from "svelte-loading-spinners";
   import { db } from "../firebase";
   import { checkCache, cacheData } from "../cache";
 
@@ -64,7 +65,7 @@
 </script>
 
 <div class="wrapper" on:click={toggleActive}>
-  <div class="card" class:straight-bottom-border={isActive}>
+  <div class="card">
     <ItemRank {rank} />
     <ItemBanner {banner} {title} />
     <ItemDetails {rank} {previousRank} {votes} {previousVotes} {isActive} />
@@ -81,7 +82,7 @@
         {#each externalLinks as link}
           {#if link.site == "Crunchyroll"}
             {#await fetchCrunchyrollLogo()}
-              Loading...
+              <Circle size="32" unit="px" color="#65b893" />
             {:then logo}
               <a href={link.url} class="link">
                 <img src={logo} alt="" class="crunchyroll" />
@@ -89,7 +90,7 @@
             {/await}
           {:else if link.site == "Funimation"}
             {#await fetchFunimationLogo()}
-              Loading...
+              <Circle size="32" unit="px" color="#65b893" />
             {:then logo}
               <a href={link.url} class="link">
                 <img src={logo} alt="" class="funimation" />
@@ -112,14 +113,8 @@
     display: flex;
     align-items: center;
     height: 6rem;
-    background-color: var(--primary-color);
-    border-radius: 6px;
+    background-color: var(--surface);
     cursor: pointer;
-  }
-
-  .straight-bottom-border {
-    border-bottom-left-radius: 0px;
-    border-bottom-right-radius: 0px;
   }
 
   .card-content {
@@ -141,7 +136,7 @@
 
   .pill {
     padding: 0.5rem;
-    background-color: var(--primary-color);
+    background-color: var(--gain-color);
     border-radius: 12px;
   }
 

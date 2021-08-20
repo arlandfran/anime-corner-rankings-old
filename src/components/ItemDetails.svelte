@@ -157,45 +157,32 @@
     }
   }
 
-  .border-tr {
-    border-top-right-radius: 6px;
-  }
-
-  .border-br {
-    border-bottom-right-radius: 6px;
-  }
-
-  .no-border-br {
-    border-bottom-right-radius: 0px;
-  }
-
   .arrow-gain::before {
-    color: #36c120;
+    color: var(--gain-color);
     content: "⮅";
   }
 
   .arrow-neutral::before {
-    color: #ffaf18;
+    color: var(--neutral-color);
     content: "⮂";
   }
 
   .arrow-drop::before {
-    color: #dd0000;
+    color: var(--drop-color);
     content: "⮇";
   }
 
   .gain {
     color: black;
-    background-color: #36c120;
-    /* border-bottom-right-radius: 4px; */
+    background-color: var(--gain-color);
   }
 
   .neutral {
     color: black;
-    background-color: #ffaf18;
+    background-color: var(--neutral-color);
   }
 
   .drop {
-    background-color: #dd0000;
+    background-color: var(--drop-color);
   }
 </style>
