@@ -1,6 +1,8 @@
 /* CSS Custom Props */
 :root {
   --primary-color: #f3667b;
+  --bg-color: #121212;
+  --surface: #323232;
 }
 
 html,
@@ -21,16 +23,17 @@ body {
 }
 
 a {
-  color: rgb(0, 100, 200);
-  text-decoration: none;
+  color: var(--primary-color);
+  text-decoration: underline;
+  font-weight: bold;
 }
 
 a:hover {
-  text-decoration: underline;
+  color: #ffaf18;
 }
 
 a:visited {
-  color: rgb(0, 80, 160);
+  color: #e57f10;
 }
 
 label {
@@ -43,32 +46,46 @@ select,
 textarea {
   font-family: inherit;
   font-size: inherit;
+  font-weight: bold;
   -webkit-padding: 0.4em 0;
-  padding: 0.4em;
-  margin: 0 0 0.5em 0;
+  padding: 0.2em;
+  margin: 0.5rem 0;
   box-sizing: border-box;
-  border: 1px solid #ccc;
-  border-radius: 2px;
+  color: white;
+  border: transparent;
+  border-radius: 6px;
+  background-color: transparent;
+  cursor: pointer;
 }
 
-input:disabled {
-  color: #ccc;
-}
-
-button {
-  color: #333;
-  background-color: #f4f4f4;
-  outline: none;
+button:hover {
+  color: var(--primary-color);
 }
 
 button:disabled {
-  color: #999;
+  cursor: default;
 }
 
 button:not(:disabled):active {
-  background-color: #ddd;
+  background-color: var(--surface);
 }
 
 button:focus {
   border-color: #666;
+}
+
+select {
+  background-color: var(--bg-color);
+}
+
+select:hover {
+  color: var(--primary-color);
+}
+
+select:focus {
+  color: var(--primary-color);
+}
+
+option {
+  color: white;
 }
