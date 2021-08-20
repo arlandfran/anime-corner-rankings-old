@@ -32,7 +32,7 @@ export const faq = writable([
   {
     question: "How can I vote?",
     answer:
-      "You can cast your vote over at <a href='https://animecorner.me/polls/' target='_blank'>polls.animecorner.me</a>",
+      "You can cast your vote over at <a href='https://polls.animecorner.me/' target='_blank'>polls.animecorner.me</a>",
   },
   {
     question: "Are there similar rankings out there?",
