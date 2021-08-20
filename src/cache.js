@@ -11,7 +11,6 @@ export function checkCache(key) {
   if (cachedData) {
     cachedData = JSON.parse(cachedData);
     expired = parseInt(Date.now() / 1000) - cachedData.cachetime > cacheLife;
-    console.log(`${key} expired:`, expired);
   }
   return {
     cachedData,

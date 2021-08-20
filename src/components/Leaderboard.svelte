@@ -72,8 +72,6 @@
       // Save data in local storage
       cacheData(key, data);
 
-      console.log(`${$year} ${$season} ${$week} fetched:`, data);
-
       return data;
     }
   };
@@ -103,7 +101,6 @@
         items = [...items, item];
         if (data.length < 10) {
           document.getElementById("show-more").disabled = true;
-          console.log("No more data to be fetched");
         }
         fetched();
       }
@@ -147,9 +144,7 @@
           // Disable show more button if there is no more data to be fetched
           if (snapshots.size < 10) {
             document.getElementById("show-more").disabled = true;
-            console.log("No more data to be fetched");
           } else {
-            console.log("Next batch of data fetched");
           }
           fetched();
         });
@@ -174,7 +169,6 @@
 
       cacheData(key, seasons);
 
-      console.log("Seasons fetched:", seasons);
       return seasons;
     }
   };
@@ -202,7 +196,6 @@
 
       cacheData(key, weeks);
 
-      console.log("Weeks fetched:", weeks);
       enablePrev();
       enableNext();
       return weeks;
@@ -266,10 +259,6 @@
       }
       // Save data in local storage
       cacheData(key, data);
-      console.log(
-        `Items array updated with ${$year} ${$season} ${$week}:`,
-        items
-      );
     }
 
     if ($week == "Week-01") {
@@ -315,7 +304,6 @@
       updateItems();
     }
     document.getElementById("show-more").disabled = false;
-    console.log("Previous clicked");
   }
 
   function goNext() {
@@ -334,7 +322,6 @@
       updateItems();
     }
     document.getElementById("show-more").disabled = false;
-    console.log("Next clicked");
   }
 </script>
 
@@ -459,7 +446,7 @@
   }
 
   #show-more {
-    padding: 0.5rem;
+    /* padding: 0.5rem; */
     font-size: 1.2rem;
     text-decoration: underline;
     text-decoration-color: var(--primary-color);

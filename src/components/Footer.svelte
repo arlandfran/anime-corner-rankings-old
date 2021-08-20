@@ -76,6 +76,7 @@
 <style>
   footer {
     height: 6rem;
+    margin: 1rem 0;
   }
 
   .footer {
