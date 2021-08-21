@@ -96,7 +96,7 @@
                 <Circle size="32" unit="px" color="#65b893" />
               {:then logo}
                 <a href={link.url} class="link" target="_blank">
-                  <img src={logo} alt="" class="crunchyroll" />
+                  <img src={logo} alt="Crunchyroll Logo" class="crunchyroll" />
                 </a>
               {/await}
             {:else if link.site == "Funimation"}
@@ -104,7 +104,7 @@
                 <Circle size="32" unit="px" color="#65b893" />
               {:then logo}
                 <a href={link.url} class="link" target="_blank">
-                  <img src={logo} alt="" class="funimation" />
+                  <img src={logo} alt="Funimation Logo" class="funimation" />
                 </a>
               {/await}
             {/if}

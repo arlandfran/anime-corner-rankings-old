@@ -24684,13 +24684,13 @@ var app = (function () {
     			img = element("img");
     			t = space();
     			if (!src_url_equal(img.src, img_src_value = /*logo*/ ctx[16])) attr_dev(img, "src", img_src_value);
-    			attr_dev(img, "alt", "");
+    			attr_dev(img, "alt", "Funimation Logo");
     			attr_dev(img, "class", "funimation svelte-7u2qz9");
-    			add_location(img, file$5, 106, 18, 2813);
+    			add_location(img, file$5, 106, 18, 2829);
     			attr_dev(a, "href", a_href_value = /*link*/ ctx[13].url);
     			attr_dev(a, "class", "link svelte-7u2qz9");
     			attr_dev(a, "target", "_blank");
-    			add_location(a, file$5, 105, 16, 2746);
+    			add_location(a, file$5, 105, 16, 2762);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, a, anchor);
@@ -24805,7 +24805,7 @@ var app = (function () {
     			img = element("img");
     			t = space();
     			if (!src_url_equal(img.src, img_src_value = /*logo*/ ctx[16])) attr_dev(img, "src", img_src_value);
-    			attr_dev(img, "alt", "");
+    			attr_dev(img, "alt", "Crunchyroll Logo");
     			attr_dev(img, "class", "crunchyroll svelte-7u2qz9");
     			add_location(img, file$5, 98, 18, 2456);
     			attr_dev(a, "href", a_href_value = /*link*/ ctx[13].url);
