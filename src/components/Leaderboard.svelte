@@ -219,8 +219,9 @@
   const updateItems = async () => {
     disablePrev();
     disableNext();
+    $page = 1;
 
-    let key = `${$season}-${$week}-page-1`;
+    let key = `${$season}-${$week}-page-${$page}`;
     let cache = checkCache(key);
 
     // If cached data exists and is not expired then return data
