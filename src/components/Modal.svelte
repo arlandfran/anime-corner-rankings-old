@@ -221,17 +221,15 @@
     overflow: auto;
   }
 
-  h1,
-  h2 {
-    text-decoration: underline;
-    text-decoration-color: var(--primary-color);
-    text-underline-offset: 2px;
-  }
-
   h1 {
     margin-block-start: 0;
     margin-block-end: 0;
     text-transform: uppercase;
+  }
+
+  h2 {
+    text-decoration: underline;
+    text-decoration-color: var(--primary-color);
   }
 
   .arrow-gain {

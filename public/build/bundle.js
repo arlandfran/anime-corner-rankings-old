@@ -24684,13 +24684,13 @@ var app = (function () {
     			img = element("img");
     			t = space();
     			if (!src_url_equal(img.src, img_src_value = /*logo*/ ctx[16])) attr_dev(img, "src", img_src_value);
-    			attr_dev(img, "alt", "");
+    			attr_dev(img, "alt", "Funimation Logo");
     			attr_dev(img, "class", "funimation svelte-7u2qz9");
-    			add_location(img, file$5, 106, 18, 2813);
+    			add_location(img, file$5, 106, 18, 2829);
     			attr_dev(a, "href", a_href_value = /*link*/ ctx[13].url);
     			attr_dev(a, "class", "link svelte-7u2qz9");
     			attr_dev(a, "target", "_blank");
-    			add_location(a, file$5, 105, 16, 2746);
+    			add_location(a, file$5, 105, 16, 2762);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, a, anchor);
@@ -24805,7 +24805,7 @@ var app = (function () {
     			img = element("img");
     			t = space();
     			if (!src_url_equal(img.src, img_src_value = /*logo*/ ctx[16])) attr_dev(img, "src", img_src_value);
-    			attr_dev(img, "alt", "");
+    			attr_dev(img, "alt", "Crunchyroll Logo");
     			attr_dev(img, "class", "crunchyroll svelte-7u2qz9");
     			add_location(img, file$5, 98, 18, 2456);
     			attr_dev(a, "href", a_href_value = /*link*/ ctx[13].url);
@@ -25936,7 +25936,7 @@ var app = (function () {
     				each_blocks[i].c();
     			}
 
-    			attr_dev(div0, "class", "backdrop svelte-1xxgf1p");
+    			attr_dev(div0, "class", "backdrop svelte-xpnv2t");
     			add_location(div0, file$3, 75, 4, 2022);
     			attr_dev(path0, "d", "M24 20.188l-8.315-8.209 8.2-8.282-3.697-3.697-8.212 8.318-8.31-8.203-3.666 3.666 8.321 8.24-8.206 8.313 3.666 3.666 8.237-8.318 8.285 8.203z");
     			add_location(path0, file$3, 87, 13, 2418);
@@ -25947,21 +25947,21 @@ var app = (function () {
     			attr_dev(svg0, "viewBox", "0 0 24 24");
     			attr_dev(svg0, "fill", "#fff");
     			attr_dev(svg0, "preserveAspectRatio", "xMidYMid meet");
-    			attr_dev(svg0, "class", "svelte-1xxgf1p");
+    			attr_dev(svg0, "class", "svelte-xpnv2t");
     			add_location(svg0, file$3, 79, 10, 2175);
     			attr_dev(button0, "aria-label", "Open About");
     			add_location(button0, file$3, 78, 8, 2115);
-    			attr_dev(div1, "class", "close svelte-1xxgf1p");
+    			attr_dev(div1, "class", "close svelte-xpnv2t");
     			add_location(div1, file$3, 77, 6, 2087);
-    			attr_dev(h1, "class", "svelte-1xxgf1p");
+    			attr_dev(h1, "class", "svelte-xpnv2t");
     			add_location(h1, file$3, 96, 10, 2713);
-    			attr_dev(div2, "class", "title svelte-1xxgf1p");
+    			attr_dev(div2, "class", "title svelte-xpnv2t");
     			add_location(div2, file$3, 95, 8, 2683);
-    			attr_dev(h20, "class", "svelte-1xxgf1p");
+    			attr_dev(h20, "class", "svelte-xpnv2t");
     			add_location(h20, file$3, 99, 8, 2752);
     			attr_dev(path1, "d", "M24 22h-24l12-20z");
     			add_location(path1, file$3, 107, 34, 2980);
-    			attr_dev(svg1, "class", "arrow-gain svelte-1xxgf1p");
+    			attr_dev(svg1, "class", "arrow-gain svelte-xpnv2t");
     			attr_dev(svg1, "xmlns", "http://www.w3.org/2000/svg");
     			attr_dev(svg1, "width", "16");
     			attr_dev(svg1, "height", "16");
@@ -25969,7 +25969,7 @@ var app = (function () {
     			add_location(svg1, file$3, 102, 12, 2808);
     			attr_dev(path2, "d", "M12 21l-12-18h24z");
     			add_location(path2, file$3, 114, 34, 3214);
-    			attr_dev(svg2, "class", "arrow-drop svelte-1xxgf1p");
+    			attr_dev(svg2, "class", "arrow-drop svelte-xpnv2t");
     			attr_dev(svg2, "xmlns", "http://www.w3.org/2000/svg");
     			attr_dev(svg2, "width", "16");
     			attr_dev(svg2, "height", "16");
@@ -25977,7 +25977,7 @@ var app = (function () {
     			add_location(svg2, file$3, 109, 12, 3042);
     			attr_dev(path3, "d", "M0 9h24v6h-24z");
     			add_location(path3, file$3, 121, 34, 3451);
-    			attr_dev(svg3, "class", "arrow-neutral svelte-1xxgf1p");
+    			attr_dev(svg3, "class", "arrow-neutral svelte-xpnv2t");
     			attr_dev(svg3, "xmlns", "http://www.w3.org/2000/svg");
     			attr_dev(svg3, "width", "16");
     			attr_dev(svg3, "height", "16");
@@ -25986,27 +25986,27 @@ var app = (function () {
     			add_location(li0, file$3, 101, 10, 2791);
     			add_location(li1, file$3, 125, 10, 3553);
     			add_location(ul, file$3, 100, 8, 2776);
-    			attr_dev(h21, "class", "svelte-1xxgf1p");
+    			attr_dev(h21, "class", "svelte-xpnv2t");
     			add_location(h21, file$3, 127, 8, 3602);
     			attr_dev(button1, "id", "expand");
     			button1.disabled = /*showAll*/ ctx[0];
-    			attr_dev(button1, "class", "svelte-1xxgf1p");
+    			attr_dev(button1, "class", "svelte-xpnv2t");
     			toggle_class(button1, "active", !/*showAll*/ ctx[0]);
     			toggle_class(button1, "disabled", /*showAll*/ ctx[0]);
     			add_location(button1, file$3, 129, 10, 3662);
     			attr_dev(button2, "id", "collapse");
     			button2.disabled = button2_disabled_value = !/*showAll*/ ctx[0];
-    			attr_dev(button2, "class", "svelte-1xxgf1p");
+    			attr_dev(button2, "class", "svelte-xpnv2t");
     			toggle_class(button2, "active", /*showAll*/ ctx[0]);
     			toggle_class(button2, "disabled", !/*showAll*/ ctx[0]);
     			add_location(button2, file$3, 137, 10, 3884);
     			attr_dev(div3, "class", "expand-toggles");
     			add_location(div3, file$3, 128, 8, 3623);
-    			attr_dev(div4, "class", "content svelte-1xxgf1p");
+    			attr_dev(div4, "class", "content svelte-xpnv2t");
     			add_location(div4, file$3, 94, 6, 2653);
-    			attr_dev(div5, "class", "content-wrapper svelte-1xxgf1p");
+    			attr_dev(div5, "class", "content-wrapper svelte-xpnv2t");
     			add_location(div5, file$3, 76, 4, 2051);
-    			attr_dev(div6, "class", "modal svelte-1xxgf1p");
+    			attr_dev(div6, "class", "modal svelte-xpnv2t");
     			attr_dev(div6, "tabindex", "0");
     			add_location(div6, file$3, 74, 2, 1969);
     		},
@@ -26249,9 +26249,9 @@ var app = (function () {
     			attr_dev(svg, "xmlns", "http://www.w3.org/2000/svg");
     			attr_dev(svg, "fill-rule", "evenodd");
     			attr_dev(svg, "clip-rule", "evenodd");
-    			attr_dev(svg, "class", "svelte-1xxgf1p");
+    			attr_dev(svg, "class", "svelte-xpnv2t");
     			add_location(svg, file$3, 59, 4, 1575);
-    			attr_dev(button, "class", "about svelte-1xxgf1p");
+    			attr_dev(button, "class", "about svelte-xpnv2t");
     			add_location(button, file$3, 58, 2, 1532);
     			add_location(div, file$3, 57, 0, 1524);
     		},
@@ -26614,7 +26614,7 @@ var app = (function () {
     		c: function create() {
     			option = element("option");
     			t = text(t_value);
-    			attr_dev(option, "class", "dropdown-item svelte-17mnt76");
+    			attr_dev(option, "class", "dropdown-item svelte-1g6kmqe");
     			option.__value = option_value_value = /*season*/ ctx[42];
     			option.value = option.__value;
     			add_location(option, file$2, 361, 8, 9239);
@@ -26788,7 +26788,7 @@ var app = (function () {
     			option = element("option");
     			t0 = text("Week ");
     			t1 = text(t1_value);
-    			attr_dev(option, "class", "dropdown-item svelte-17mnt76");
+    			attr_dev(option, "class", "dropdown-item svelte-1g6kmqe");
     			option.__value = option_value_value = /*week*/ ctx[39];
     			option.value = option.__value;
     			add_location(option, file$2, 374, 8, 9647);
@@ -26866,9 +26866,9 @@ var app = (function () {
     			button = element("button");
     			if_block.c();
     			attr_dev(button, "id", "show-more");
-    			attr_dev(button, "class", "svelte-17mnt76");
+    			attr_dev(button, "class", "svelte-1g6kmqe");
     			add_location(button, file$2, 408, 6, 10550);
-    			attr_dev(div, "class", "show-more svelte-17mnt76");
+    			attr_dev(div, "class", "show-more svelte-1g6kmqe");
     			add_location(div, file$2, 407, 4, 10520);
     		},
     		m: function mount(target, anchor) {
@@ -26998,7 +26998,7 @@ var app = (function () {
     		c: function create() {
     			div = element("div");
     			create_component(circle.$$.fragment);
-    			attr_dev(div, "class", "loading svelte-17mnt76");
+    			attr_dev(div, "class", "loading svelte-1g6kmqe");
     			add_location(div, file$2, 400, 4, 10344);
     		},
     		m: function mount(target, anchor) {
@@ -27236,11 +27236,11 @@ var app = (function () {
     			attr_dev(svg0, "width", "16");
     			attr_dev(svg0, "height", "16");
     			attr_dev(svg0, "viewBox", "0 0 24 24");
-    			attr_dev(svg0, "class", "svelte-17mnt76");
+    			attr_dev(svg0, "class", "svelte-1g6kmqe");
     			toggle_class(svg0, "active", !/*$prev*/ ctx[5]);
     			toggle_class(svg0, "disabled", /*$prev*/ ctx[5]);
     			add_location(svg0, file$2, 336, 4, 8523);
-    			attr_dev(button0, "class", "arrow svelte-17mnt76");
+    			attr_dev(button0, "class", "arrow svelte-1g6kmqe");
     			attr_dev(button0, "id", "prev-btn");
     			attr_dev(button0, "aria-label", "Previous Page");
     			add_location(button0, file$2, 330, 2, 8418);
@@ -27250,17 +27250,17 @@ var app = (function () {
     			attr_dev(svg1, "width", "16");
     			attr_dev(svg1, "height", "16");
     			attr_dev(svg1, "viewBox", "0 0 24 24");
-    			attr_dev(svg1, "class", "svelte-17mnt76");
+    			attr_dev(svg1, "class", "svelte-1g6kmqe");
     			toggle_class(svg1, "active", !/*$next*/ ctx[6]);
     			toggle_class(svg1, "disabled", /*$next*/ ctx[6]);
     			add_location(svg1, file$2, 382, 5, 9876);
-    			attr_dev(button1, "class", "arrow svelte-17mnt76");
+    			attr_dev(button1, "class", "arrow svelte-1g6kmqe");
     			attr_dev(button1, "id", "next-btn");
     			attr_dev(button1, "aria-label", "Next Page");
     			add_location(button1, file$2, 381, 2, 9794);
-    			attr_dev(div0, "class", "filters svelte-17mnt76");
+    			attr_dev(div0, "class", "filters svelte-1g6kmqe");
     			add_location(div0, file$2, 329, 0, 8394);
-    			attr_dev(div1, "class", "rankings svelte-17mnt76");
+    			attr_dev(div1, "class", "rankings svelte-1g6kmqe");
     			add_location(div1, file$2, 398, 0, 10291);
     		},
     		l: function claim(nodes) {
@@ -28046,8 +28046,14 @@ var app = (function () {
     	let t3;
     	let leaderboard;
     	let t4;
+    	let button;
+    	let svg;
+    	let path;
+    	let t5;
     	let footer;
     	let current;
+    	let mounted;
+    	let dispose;
     	leaderboard = new Leaderboard({ $$inline: true });
     	footer = new Footer({ $$inline: true });
 
@@ -28063,16 +28069,31 @@ var app = (function () {
     			t3 = space();
     			create_component(leaderboard.$$.fragment);
     			t4 = space();
+    			button = element("button");
+    			svg = svg_element("svg");
+    			path = svg_element("path");
+    			t5 = space();
     			create_component(footer.$$.fragment);
     			attr_dev(a, "href", "https://animecorner.me/");
     			attr_dev(a, "target", "_blank");
-    			attr_dev(a, "class", "svelte-1f5xnqd");
-    			add_location(a, file, 7, 4, 150);
-    			attr_dev(h1, "class", "svelte-1f5xnqd");
-    			add_location(h1, file, 6, 2, 141);
-    			add_location(p, file, 10, 2, 243);
-    			attr_dev(main, "class", "svelte-1f5xnqd");
-    			add_location(main, file, 5, 0, 132);
+    			attr_dev(a, "class", "svelte-1jk1rvo");
+    			add_location(a, file, 32, 4, 590);
+    			attr_dev(h1, "class", "svelte-1jk1rvo");
+    			add_location(h1, file, 31, 2, 581);
+    			add_location(p, file, 35, 2, 683);
+    			attr_dev(main, "class", "svelte-1jk1rvo");
+    			add_location(main, file, 30, 0, 572);
+    			attr_dev(path, "d", "M0 16.67l2.829 2.83 9.175-9.339 9.167 9.339 2.829-2.83-11.996-12.17z");
+    			add_location(path, file, 46, 5, 935);
+    			attr_dev(svg, "id", "arrow");
+    			attr_dev(svg, "xmlns", "http://www.w3.org/2000/svg");
+    			attr_dev(svg, "width", "24");
+    			attr_dev(svg, "height", "24");
+    			attr_dev(svg, "viewBox", "0 0 24 24");
+    			add_location(svg, file, 40, 3, 816);
+    			attr_dev(button, "class", "svelte-1jk1rvo");
+    			toggle_class(button, "hidden", /*hidden*/ ctx[0]);
+    			add_location(button, file, 39, 0, 775);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -28086,10 +28107,27 @@ var app = (function () {
     			append_dev(main, t3);
     			mount_component(leaderboard, main, null);
     			insert_dev(target, t4, anchor);
+    			insert_dev(target, button, anchor);
+    			append_dev(button, svg);
+    			append_dev(svg, path);
+    			insert_dev(target, t5, anchor);
     			mount_component(footer, target, anchor);
     			current = true;
+
+    			if (!mounted) {
+    				dispose = [
+    					listen_dev(window, "scroll", /*handleOnScroll*/ ctx[1], false, false, false),
+    					listen_dev(button, "click", goTop, false, false, false)
+    				];
+
+    				mounted = true;
+    			}
     		},
-    		p: noop$1,
+    		p: function update(ctx, [dirty]) {
+    			if (dirty & /*hidden*/ 1) {
+    				toggle_class(button, "hidden", /*hidden*/ ctx[0]);
+    			}
+    		},
     		i: function intro(local) {
     			if (current) return;
     			transition_in(leaderboard.$$.fragment, local);
@@ -28105,7 +28143,11 @@ var app = (function () {
     			if (detaching) detach_dev(main);
     			destroy_component(leaderboard);
     			if (detaching) detach_dev(t4);
+    			if (detaching) detach_dev(button);
+    			if (detaching) detach_dev(t5);
     			destroy_component(footer, detaching);
+    			mounted = false;
+    			run_all(dispose);
     		}
     	};
 
@@ -28120,17 +28162,58 @@ var app = (function () {
     	return block;
     }
 
+    function goTop() {
+    	document.body.scrollIntoView();
+    }
+
+    function scrollContainer() {
+    	return document.documentElement || document.body;
+    }
+
     function instance($$self, $$props, $$invalidate) {
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('App', slots, []);
+    	let showOnPx = 200;
+    	let hidden = true;
+
+    	function handleOnScroll() {
+    		if (!scrollContainer()) {
+    			return;
+    		}
+
+    		if (scrollContainer().scrollTop > showOnPx) {
+    			$$invalidate(0, hidden = false);
+    		} else {
+    			$$invalidate(0, hidden = true);
+    		}
+    	}
+
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<App> was created with unknown prop '${key}'`);
     	});
 
-    	$$self.$capture_state = () => ({ Leaderboard, Footer });
-    	return [];
+    	$$self.$capture_state = () => ({
+    		Leaderboard,
+    		Footer,
+    		showOnPx,
+    		hidden,
+    		goTop,
+    		scrollContainer,
+    		handleOnScroll
+    	});
+
+    	$$self.$inject_state = $$props => {
+    		if ('showOnPx' in $$props) showOnPx = $$props.showOnPx;
+    		if ('hidden' in $$props) $$invalidate(0, hidden = $$props.hidden);
+    	};
+
+    	if ($$props && "$$inject" in $$props) {
+    		$$self.$inject_state($$props.$$inject);
+    	}
+
+    	return [hidden, handleOnScroll];
     }
 
     class App extends SvelteComponentDev {
