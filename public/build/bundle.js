@@ -28046,8 +28046,14 @@ var app = (function () {
     	let t3;
     	let leaderboard;
     	let t4;
+    	let button;
+    	let svg;
+    	let path;
+    	let t5;
     	let footer;
     	let current;
+    	let mounted;
+    	let dispose;
     	leaderboard = new Leaderboard({ $$inline: true });
     	footer = new Footer({ $$inline: true });
 
@@ -28063,16 +28069,31 @@ var app = (function () {
     			t3 = space();
     			create_component(leaderboard.$$.fragment);
     			t4 = space();
+    			button = element("button");
+    			svg = svg_element("svg");
+    			path = svg_element("path");
+    			t5 = space();
     			create_component(footer.$$.fragment);
     			attr_dev(a, "href", "https://animecorner.me/");
     			attr_dev(a, "target", "_blank");
-    			attr_dev(a, "class", "svelte-1f5xnqd");
-    			add_location(a, file, 7, 4, 150);
-    			attr_dev(h1, "class", "svelte-1f5xnqd");
-    			add_location(h1, file, 6, 2, 141);
-    			add_location(p, file, 10, 2, 243);
-    			attr_dev(main, "class", "svelte-1f5xnqd");
-    			add_location(main, file, 5, 0, 132);
+    			attr_dev(a, "class", "svelte-1c1sbxm");
+    			add_location(a, file, 32, 4, 590);
+    			attr_dev(h1, "class", "svelte-1c1sbxm");
+    			add_location(h1, file, 31, 2, 581);
+    			add_location(p, file, 35, 2, 683);
+    			attr_dev(main, "class", "svelte-1c1sbxm");
+    			add_location(main, file, 30, 0, 572);
+    			attr_dev(path, "d", "M0 16.67l2.829 2.83 9.175-9.339 9.167 9.339 2.829-2.83-11.996-12.17z");
+    			add_location(path, file, 46, 5, 935);
+    			attr_dev(svg, "id", "arrow");
+    			attr_dev(svg, "xmlns", "http://www.w3.org/2000/svg");
+    			attr_dev(svg, "width", "24");
+    			attr_dev(svg, "height", "24");
+    			attr_dev(svg, "viewBox", "0 0 24 24");
+    			add_location(svg, file, 40, 3, 816);
+    			attr_dev(button, "class", "svelte-1c1sbxm");
+    			toggle_class(button, "hidden", /*hidden*/ ctx[0]);
+    			add_location(button, file, 39, 0, 775);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -28086,10 +28107,27 @@ var app = (function () {
     			append_dev(main, t3);
     			mount_component(leaderboard, main, null);
     			insert_dev(target, t4, anchor);
+    			insert_dev(target, button, anchor);
+    			append_dev(button, svg);
+    			append_dev(svg, path);
+    			insert_dev(target, t5, anchor);
     			mount_component(footer, target, anchor);
     			current = true;
+
+    			if (!mounted) {
+    				dispose = [
+    					listen_dev(window, "scroll", /*handleOnScroll*/ ctx[1], false, false, false),
+    					listen_dev(button, "click", goTop, false, false, false)
+    				];
+
+    				mounted = true;
+    			}
     		},
-    		p: noop$1,
+    		p: function update(ctx, [dirty]) {
+    			if (dirty & /*hidden*/ 1) {
+    				toggle_class(button, "hidden", /*hidden*/ ctx[0]);
+    			}
+    		},
     		i: function intro(local) {
     			if (current) return;
     			transition_in(leaderboard.$$.fragment, local);
@@ -28105,7 +28143,11 @@ var app = (function () {
     			if (detaching) detach_dev(main);
     			destroy_component(leaderboard);
     			if (detaching) detach_dev(t4);
+    			if (detaching) detach_dev(button);
+    			if (detaching) detach_dev(t5);
     			destroy_component(footer, detaching);
+    			mounted = false;
+    			run_all(dispose);
     		}
     	};
 
@@ -28120,17 +28162,58 @@ var app = (function () {
     	return block;
     }
 
+    function goTop() {
+    	document.body.scrollIntoView();
+    }
+
+    function scrollContainer() {
+    	return document.documentElement || document.body;
+    }
+
     function instance($$self, $$props, $$invalidate) {
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('App', slots, []);
+    	let showOnPx = 200;
+    	let hidden = true;
+
+    	function handleOnScroll() {
+    		if (!scrollContainer()) {
+    			return;
+    		}
+
+    		if (scrollContainer().scrollTop > showOnPx) {
+    			$$invalidate(0, hidden = false);
+    		} else {
+    			$$invalidate(0, hidden = true);
+    		}
+    	}
+
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<App> was created with unknown prop '${key}'`);
     	});
 
-    	$$self.$capture_state = () => ({ Leaderboard, Footer });
-    	return [];
+    	$$self.$capture_state = () => ({
+    		Leaderboard,
+    		Footer,
+    		showOnPx,
+    		hidden,
+    		goTop,
+    		scrollContainer,
+    		handleOnScroll
+    	});
+
+    	$$self.$inject_state = $$props => {
+    		if ('showOnPx' in $$props) showOnPx = $$props.showOnPx;
+    		if ('hidden' in $$props) $$invalidate(0, hidden = $$props.hidden);
+    	};
+
+    	if ($$props && "$$inject" in $$props) {
+    		$$self.$inject_state($$props.$$inject);
+    	}
+
+    	return [hidden, handleOnScroll];
     }
 
     class App extends SvelteComponentDev {
