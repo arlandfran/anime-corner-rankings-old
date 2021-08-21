@@ -326,7 +326,12 @@
 </script>
 
 <div class="filters">
-  <button on:click={goPrev} class="arrow" id="prev-btn">
+  <button
+    on:click={goPrev}
+    class="arrow"
+    id="prev-btn"
+    aria-label="Previous Page"
+  >
     <svg
       class:active={!$prev}
       class:disabled={$prev}
@@ -341,12 +346,16 @@
   </button>
 
   {#if seasons == 0}
-    <select>
+    <select aria-label="Select Season">
       <option value="">Loading...</option>
     </select>
   {:else}
     <!-- svelte-ignore a11y-no-onchange -->
-    <select bind:value={$season} on:change={updateSeason}>
+    <select
+      bind:value={$season}
+      on:change={updateSeason}
+      aria-label="Select Season"
+    >
       {#each seasons as season}
         <option class="dropdown-item" value={season}>{season}</option>
       {/each}
@@ -354,12 +363,12 @@
   {/if}
 
   {#if weeks.length == 0 || weekDisabled}
-    <select>
+    <select aria-label="Select Week">
       <option value="">Loading...</option>
     </select>
   {:else}
     <!-- svelte-ignore a11y-no-onchange -->
-    <select bind:value={$week} on:change={updateItems}>
+    <select bind:value={$week} on:change={updateItems} aria-label="Select Week">
       {#each weeks as week}
         <option class="dropdown-item" value={week}
           >Week {parseInt(week.split("-")[1])}</option
@@ -368,7 +377,7 @@
     </select>
   {/if}
 
-  <button on:click={goNext} class="arrow" id="next-btn"
+  <button on:click={goNext} class="arrow" id="next-btn" aria-label="Next Page"
     ><svg
       class:active={!$next}
       class:disabled={$next}
