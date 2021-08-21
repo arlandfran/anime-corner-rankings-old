@@ -24371,6 +24371,60 @@ var app = (function () {
     	}
     }
 
+    function cubicOut(t) {
+        const f = t - 1.0;
+        return f * f * f + 1.0;
+    }
+
+    function fade(node, { delay = 0, duration = 400, easing = identity } = {}) {
+        const o = +getComputedStyle(node).opacity;
+        return {
+            delay,
+            duration,
+            easing,
+            css: t => `opacity: ${t * o}`
+        };
+    }
+    function fly(node, { delay = 0, duration = 400, easing = cubicOut, x = 0, y = 0, opacity = 0 } = {}) {
+        const style = getComputedStyle(node);
+        const target_opacity = +style.opacity;
+        const transform = style.transform === 'none' ? '' : style.transform;
+        const od = target_opacity * (1 - opacity);
+        return {
+            delay,
+            duration,
+            easing,
+            css: (t, u) => `
+			transform: ${transform} translate(${(1 - t) * x}px, ${(1 - t) * y}px);
+			opacity: ${target_opacity - (od * u)}`
+        };
+    }
+    function slide(node, { delay = 0, duration = 400, easing = cubicOut } = {}) {
+        const style = getComputedStyle(node);
+        const opacity = +style.opacity;
+        const height = parseFloat(style.height);
+        const padding_top = parseFloat(style.paddingTop);
+        const padding_bottom = parseFloat(style.paddingBottom);
+        const margin_top = parseFloat(style.marginTop);
+        const margin_bottom = parseFloat(style.marginBottom);
+        const border_top_width = parseFloat(style.borderTopWidth);
+        const border_bottom_width = parseFloat(style.borderBottomWidth);
+        return {
+            delay,
+            duration,
+            easing,
+            css: t => 'overflow: hidden;' +
+                `opacity: ${Math.min(t * 20, 1) * opacity};` +
+                `height: ${t * height}px;` +
+                `padding-top: ${t * padding_top}px;` +
+                `padding-bottom: ${t * padding_bottom}px;` +
+                `margin-top: ${t * margin_top}px;` +
+                `margin-bottom: ${t * margin_bottom}px;` +
+                `border-top-width: ${t * border_top_width}px;` +
+                `border-bottom-width: ${t * border_bottom_width}px;`
+        };
+    }
+
     /**
      * Checks if cachedData exists and if true returns cached data and expiry status.
      * @param {string} key localStorage Key that you want to retrieve the value of.
@@ -24416,7 +24470,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (78:2) {#if isActive}
+    // (79:2) {#if isActive}
     function create_if_block$3(ctx) {
     	let div3;
     	let div0;
@@ -24430,6 +24484,7 @@ var app = (function () {
     	let if_block;
     	let t3;
     	let html_tag;
+    	let div3_transition;
     	let current;
     	let each_value_1 = /*genres*/ ctx[9];
     	validate_each_argument(each_value_1);
@@ -24468,16 +24523,16 @@ var app = (function () {
     			if_block.c();
     			t3 = space();
     			html_tag = new HtmlTag();
-    			attr_dev(h2, "class", "title svelte-7u2qz9");
-    			add_location(h2, file$5, 80, 8, 1818);
-    			add_location(div0, file$5, 79, 6, 1804);
-    			attr_dev(div1, "class", "pills svelte-7u2qz9");
-    			add_location(div1, file$5, 82, 6, 1868);
-    			attr_dev(div2, "class", "links svelte-7u2qz9");
-    			add_location(div2, file$5, 87, 6, 1999);
+    			attr_dev(h2, "class", "title svelte-jjyqlm");
+    			add_location(h2, file$5, 81, 8, 1900);
+    			add_location(div0, file$5, 80, 6, 1886);
+    			attr_dev(div1, "class", "pills svelte-jjyqlm");
+    			add_location(div1, file$5, 83, 6, 1950);
+    			attr_dev(div2, "class", "links svelte-jjyqlm");
+    			add_location(div2, file$5, 88, 6, 2081);
     			html_tag.a = null;
-    			attr_dev(div3, "class", "card-content svelte-7u2qz9");
-    			add_location(div3, file$5, 78, 4, 1771);
+    			attr_dev(div3, "class", "card-content svelte-jjyqlm");
+    			add_location(div3, file$5, 79, 4, 1816);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div3, anchor);
@@ -24556,16 +24611,25 @@ var app = (function () {
     		i: function intro(local) {
     			if (current) return;
     			transition_in(if_block);
+
+    			add_render_callback(() => {
+    				if (!div3_transition) div3_transition = create_bidirectional_transition(div3, slide, { duration: 200 }, true);
+    				div3_transition.run(1);
+    			});
+
     			current = true;
     		},
     		o: function outro(local) {
     			transition_out(if_block);
+    			if (!div3_transition) div3_transition = create_bidirectional_transition(div3, slide, { duration: 200 }, false);
+    			div3_transition.run(0);
     			current = false;
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(div3);
     			destroy_each(each_blocks, detaching);
     			if_blocks[current_block_type_index].d();
+    			if (detaching && div3_transition) div3_transition.end();
     		}
     	};
 
@@ -24573,14 +24637,14 @@ var app = (function () {
     		block,
     		id: create_if_block$3.name,
     		type: "if",
-    		source: "(78:2) {#if isActive}",
+    		source: "(79:2) {#if isActive}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (84:8) {#each genres as genres}
+    // (85:8) {#each genres as genres}
     function create_each_block_1$1(ctx) {
     	let div;
     	let t_value = /*genres*/ ctx[9] + "";
@@ -24590,8 +24654,8 @@ var app = (function () {
     		c: function create() {
     			div = element("div");
     			t = text(t_value);
-    			attr_dev(div, "class", "pill svelte-7u2qz9");
-    			add_location(div, file$5, 84, 10, 1931);
+    			attr_dev(div, "class", "pill svelte-jjyqlm");
+    			add_location(div, file$5, 85, 10, 2013);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -24609,14 +24673,14 @@ var app = (function () {
     		block,
     		id: create_each_block_1$1.name,
     		type: "each",
-    		source: "(84:8) {#each genres as genres}",
+    		source: "(85:8) {#each genres as genres}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (91:8) {:else}
+    // (92:8) {:else}
     function create_else_block$1(ctx) {
     	let t;
     	let each_1_anchor;
@@ -24711,14 +24775,14 @@ var app = (function () {
     		block,
     		id: create_else_block$1.name,
     		type: "else",
-    		source: "(91:8) {:else}",
+    		source: "(92:8) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (89:8) {#if externalLinks.length == 0}
+    // (90:8) {#if externalLinks.length == 0}
     function create_if_block_1$1(ctx) {
     	let t;
 
@@ -24741,14 +24805,14 @@ var app = (function () {
     		block,
     		id: create_if_block_1$1.name,
     		type: "if",
-    		source: "(89:8) {#if externalLinks.length == 0}",
+    		source: "(90:8) {#if externalLinks.length == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (102:48) 
+    // (103:48) 
     function create_if_block_3$1(ctx) {
     	let await_block_anchor;
     	let current;
@@ -24808,14 +24872,14 @@ var app = (function () {
     		block,
     		id: create_if_block_3$1.name,
     		type: "if",
-    		source: "(102:48) ",
+    		source: "(103:48) ",
     		ctx
     	});
 
     	return block;
     }
 
-    // (94:12) {#if link.site == "Crunchyroll"}
+    // (95:12) {#if link.site == "Crunchyroll"}
     function create_if_block_2$1(ctx) {
     	let await_block_anchor;
     	let current;
@@ -24875,14 +24939,14 @@ var app = (function () {
     		block,
     		id: create_if_block_2$1.name,
     		type: "if",
-    		source: "(94:12) {#if link.site == \\\"Crunchyroll\\\"}",
+    		source: "(95:12) {#if link.site == \\\"Crunchyroll\\\"}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (1:0) <script>   import ItemRank from "./ItemRank.svelte";   import ItemBanner from "./ItemBanner.svelte";   import ItemDetails from "./ItemDetails.svelte";   import { Circle }
+    // (1:0) <script>   import ItemRank from "./ItemRank.svelte";   import ItemBanner from "./ItemBanner.svelte";   import ItemDetails from "./ItemDetails.svelte";   import { slide }
     function create_catch_block_1(ctx) {
     	const block = {
     		c: noop$1,
@@ -24897,14 +24961,14 @@ var app = (function () {
     		block,
     		id: create_catch_block_1.name,
     		type: "catch",
-    		source: "(1:0) <script>   import ItemRank from \\\"./ItemRank.svelte\\\";   import ItemBanner from \\\"./ItemBanner.svelte\\\";   import ItemDetails from \\\"./ItemDetails.svelte\\\";   import { Circle }",
+    		source: "(1:0) <script>   import ItemRank from \\\"./ItemRank.svelte\\\";   import ItemBanner from \\\"./ItemBanner.svelte\\\";   import ItemDetails from \\\"./ItemDetails.svelte\\\";   import { slide }",
     		ctx
     	});
 
     	return block;
     }
 
-    // (105:14) {:then logo}
+    // (106:14) {:then logo}
     function create_then_block_1(ctx) {
     	let a;
     	let img;
@@ -24919,12 +24983,12 @@ var app = (function () {
     			t = space();
     			if (!src_url_equal(img.src, img_src_value = /*logo*/ ctx[16])) attr_dev(img, "src", img_src_value);
     			attr_dev(img, "alt", "Funimation Logo");
-    			attr_dev(img, "class", "funimation svelte-7u2qz9");
-    			add_location(img, file$5, 106, 18, 2829);
+    			attr_dev(img, "class", "funimation svelte-jjyqlm");
+    			add_location(img, file$5, 107, 18, 2911);
     			attr_dev(a, "href", a_href_value = /*link*/ ctx[13].url);
-    			attr_dev(a, "class", "link svelte-7u2qz9");
+    			attr_dev(a, "class", "link svelte-jjyqlm");
     			attr_dev(a, "target", "_blank");
-    			add_location(a, file$5, 105, 16, 2762);
+    			add_location(a, file$5, 106, 16, 2844);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, a, anchor);
@@ -24948,14 +25012,14 @@ var app = (function () {
     		block,
     		id: create_then_block_1.name,
     		type: "then",
-    		source: "(105:14) {:then logo}",
+    		source: "(106:14) {:then logo}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (103:44)                  <Circle size="32" unit="px" color="#65b893" />               {:then logo}
+    // (104:44)                  <Circle size="32" unit="px" color="#65b893" />               {:then logo}
     function create_pending_block_1(ctx) {
     	let circle;
     	let t;
@@ -24996,14 +25060,14 @@ var app = (function () {
     		block,
     		id: create_pending_block_1.name,
     		type: "pending",
-    		source: "(103:44)                  <Circle size=\\\"32\\\" unit=\\\"px\\\" color=\\\"#65b893\\\" />               {:then logo}",
+    		source: "(104:44)                  <Circle size=\\\"32\\\" unit=\\\"px\\\" color=\\\"#65b893\\\" />               {:then logo}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (1:0) <script>   import ItemRank from "./ItemRank.svelte";   import ItemBanner from "./ItemBanner.svelte";   import ItemDetails from "./ItemDetails.svelte";   import { Circle }
+    // (1:0) <script>   import ItemRank from "./ItemRank.svelte";   import ItemBanner from "./ItemBanner.svelte";   import ItemDetails from "./ItemDetails.svelte";   import { slide }
     function create_catch_block(ctx) {
     	const block = {
     		c: noop$1,
@@ -25018,14 +25082,14 @@ var app = (function () {
     		block,
     		id: create_catch_block.name,
     		type: "catch",
-    		source: "(1:0) <script>   import ItemRank from \\\"./ItemRank.svelte\\\";   import ItemBanner from \\\"./ItemBanner.svelte\\\";   import ItemDetails from \\\"./ItemDetails.svelte\\\";   import { Circle }",
+    		source: "(1:0) <script>   import ItemRank from \\\"./ItemRank.svelte\\\";   import ItemBanner from \\\"./ItemBanner.svelte\\\";   import ItemDetails from \\\"./ItemDetails.svelte\\\";   import { slide }",
     		ctx
     	});
 
     	return block;
     }
 
-    // (97:14) {:then logo}
+    // (98:14) {:then logo}
     function create_then_block(ctx) {
     	let a;
     	let img;
@@ -25040,12 +25104,12 @@ var app = (function () {
     			t = space();
     			if (!src_url_equal(img.src, img_src_value = /*logo*/ ctx[16])) attr_dev(img, "src", img_src_value);
     			attr_dev(img, "alt", "Crunchyroll Logo");
-    			attr_dev(img, "class", "crunchyroll svelte-7u2qz9");
-    			add_location(img, file$5, 98, 18, 2456);
+    			attr_dev(img, "class", "crunchyroll svelte-jjyqlm");
+    			add_location(img, file$5, 99, 18, 2538);
     			attr_dev(a, "href", a_href_value = /*link*/ ctx[13].url);
-    			attr_dev(a, "class", "link svelte-7u2qz9");
+    			attr_dev(a, "class", "link svelte-jjyqlm");
     			attr_dev(a, "target", "_blank");
-    			add_location(a, file$5, 97, 16, 2389);
+    			add_location(a, file$5, 98, 16, 2471);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, a, anchor);
@@ -25069,14 +25133,14 @@ var app = (function () {
     		block,
     		id: create_then_block.name,
     		type: "then",
-    		source: "(97:14) {:then logo}",
+    		source: "(98:14) {:then logo}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (95:45)                  <Circle size="32" unit="px" color="#65b893" />               {:then logo}
+    // (96:45)                  <Circle size="32" unit="px" color="#65b893" />               {:then logo}
     function create_pending_block(ctx) {
     	let circle;
     	let t;
@@ -25117,14 +25181,14 @@ var app = (function () {
     		block,
     		id: create_pending_block.name,
     		type: "pending",
-    		source: "(95:45)                  <Circle size=\\\"32\\\" unit=\\\"px\\\" color=\\\"#65b893\\\" />               {:then logo}",
+    		source: "(96:45)                  <Circle size=\\\"32\\\" unit=\\\"px\\\" color=\\\"#65b893\\\" />               {:then logo}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (93:10) {#each externalLinks as link}
+    // (94:10) {#each externalLinks as link}
     function create_each_block$2(ctx) {
     	let current_block_type_index;
     	let if_block;
@@ -25214,7 +25278,7 @@ var app = (function () {
     		block,
     		id: create_each_block$2.name,
     		type: "each",
-    		source: "(93:10) {#each externalLinks as link}",
+    		source: "(94:10) {#each externalLinks as link}",
     		ctx
     	});
 
@@ -25271,11 +25335,11 @@ var app = (function () {
     			create_component(itemdetails.$$.fragment);
     			t2 = space();
     			if (if_block) if_block.c();
-    			attr_dev(div0, "class", "card svelte-7u2qz9");
+    			attr_dev(div0, "class", "card svelte-jjyqlm");
     			attr_dev(div0, "tabindex", "0");
-    			add_location(div0, file$5, 67, 2, 1502);
-    			attr_dev(div1, "class", "wrapper svelte-7u2qz9");
-    			add_location(div1, file$5, 66, 0, 1478);
+    			add_location(div0, file$5, 68, 2, 1547);
+    			attr_dev(div1, "class", "wrapper svelte-jjyqlm");
+    			add_location(div1, file$5, 67, 0, 1523);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -25465,6 +25529,7 @@ var app = (function () {
     		ItemRank,
     		ItemBanner,
     		ItemDetails,
+    		slide,
     		Circle,
     		db,
     		checkCache,
@@ -25665,60 +25730,6 @@ var app = (function () {
     	set isActive(value) {
     		throw new Error("<Item>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
-    }
-
-    function cubicOut(t) {
-        const f = t - 1.0;
-        return f * f * f + 1.0;
-    }
-
-    function fade(node, { delay = 0, duration = 400, easing = identity } = {}) {
-        const o = +getComputedStyle(node).opacity;
-        return {
-            delay,
-            duration,
-            easing,
-            css: t => `opacity: ${t * o}`
-        };
-    }
-    function fly(node, { delay = 0, duration = 400, easing = cubicOut, x = 0, y = 0, opacity = 0 } = {}) {
-        const style = getComputedStyle(node);
-        const target_opacity = +style.opacity;
-        const transform = style.transform === 'none' ? '' : style.transform;
-        const od = target_opacity * (1 - opacity);
-        return {
-            delay,
-            duration,
-            easing,
-            css: (t, u) => `
-			transform: ${transform} translate(${(1 - t) * x}px, ${(1 - t) * y}px);
-			opacity: ${target_opacity - (od * u)}`
-        };
-    }
-    function slide(node, { delay = 0, duration = 400, easing = cubicOut } = {}) {
-        const style = getComputedStyle(node);
-        const opacity = +style.opacity;
-        const height = parseFloat(style.height);
-        const padding_top = parseFloat(style.paddingTop);
-        const padding_bottom = parseFloat(style.paddingBottom);
-        const margin_top = parseFloat(style.marginTop);
-        const margin_bottom = parseFloat(style.marginBottom);
-        const border_top_width = parseFloat(style.borderTopWidth);
-        const border_bottom_width = parseFloat(style.borderBottomWidth);
-        return {
-            delay,
-            duration,
-            easing,
-            css: t => 'overflow: hidden;' +
-                `opacity: ${Math.min(t * 20, 1) * opacity};` +
-                `height: ${t * height}px;` +
-                `padding-top: ${t * padding_top}px;` +
-                `padding-bottom: ${t * padding_bottom}px;` +
-                `margin-top: ${t * margin_top}px;` +
-                `margin-bottom: ${t * margin_bottom}px;` +
-                `border-top-width: ${t * border_top_width}px;` +
-                `border-bottom-width: ${t * border_bottom_width}px;`
-        };
     }
 
     const subscriber_queue = [];
