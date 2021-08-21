@@ -99,7 +99,30 @@
 
         <h2>Legend</h2>
         <ul>
-          <li><span id="green">⮅</span> Rank Progression</li>
+          <li>
+            <svg
+              class="arrow-gain"
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"><path d="M24 22h-24l12-20z" /></svg
+            >
+            <svg
+              class="arrow-drop"
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"><path d="M12 21l-12-18h24z" /></svg
+            >
+            <svg
+              class="arrow-neutral"
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"><path d="M0 9h24v6h-24z" /></svg
+            >
+            Rank Progression
+          </li>
           <li>% Vote Percentage</li>
         </ul>
         <h2>FAQ</h2>
@@ -211,8 +234,16 @@
     text-transform: uppercase;
   }
 
-  #green {
-    color: #36c120;
+  .arrow-gain {
+    fill: var(--gain-color);
+  }
+
+  .arrow-neutral {
+    fill: var(--neutral-color);
+  }
+
+  .arrow-drop {
+    fill: var(--drop-color);
   }
 
   .about {
