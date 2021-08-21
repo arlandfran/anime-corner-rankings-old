@@ -24234,15 +24234,15 @@ var app = (function () {
     			if_block.c();
     			t3 = space();
     			html_tag = new HtmlTag();
-    			attr_dev(h2, "class", "title svelte-ep6avi");
+    			attr_dev(h2, "class", "title svelte-7u2qz9");
     			add_location(h2, file$5, 80, 8, 1818);
     			add_location(div0, file$5, 79, 6, 1804);
-    			attr_dev(div1, "class", "pills svelte-ep6avi");
+    			attr_dev(div1, "class", "pills svelte-7u2qz9");
     			add_location(div1, file$5, 82, 6, 1868);
-    			attr_dev(div2, "class", "links svelte-ep6avi");
+    			attr_dev(div2, "class", "links svelte-7u2qz9");
     			add_location(div2, file$5, 87, 6, 1999);
     			html_tag.a = null;
-    			attr_dev(div3, "class", "card-content svelte-ep6avi");
+    			attr_dev(div3, "class", "card-content svelte-7u2qz9");
     			add_location(div3, file$5, 78, 4, 1771);
     		},
     		m: function mount(target, anchor) {
@@ -24356,7 +24356,7 @@ var app = (function () {
     		c: function create() {
     			div = element("div");
     			t = text(t_value);
-    			attr_dev(div, "class", "pill svelte-ep6avi");
+    			attr_dev(div, "class", "pill svelte-7u2qz9");
     			add_location(div, file$5, 84, 10, 1931);
     		},
     		m: function mount(target, anchor) {
@@ -24685,10 +24685,10 @@ var app = (function () {
     			t = space();
     			if (!src_url_equal(img.src, img_src_value = /*logo*/ ctx[16])) attr_dev(img, "src", img_src_value);
     			attr_dev(img, "alt", "");
-    			attr_dev(img, "class", "funimation svelte-ep6avi");
+    			attr_dev(img, "class", "funimation svelte-7u2qz9");
     			add_location(img, file$5, 106, 18, 2813);
     			attr_dev(a, "href", a_href_value = /*link*/ ctx[13].url);
-    			attr_dev(a, "class", "link svelte-ep6avi");
+    			attr_dev(a, "class", "link svelte-7u2qz9");
     			attr_dev(a, "target", "_blank");
     			add_location(a, file$5, 105, 16, 2746);
     		},
@@ -24806,10 +24806,10 @@ var app = (function () {
     			t = space();
     			if (!src_url_equal(img.src, img_src_value = /*logo*/ ctx[16])) attr_dev(img, "src", img_src_value);
     			attr_dev(img, "alt", "");
-    			attr_dev(img, "class", "crunchyroll svelte-ep6avi");
+    			attr_dev(img, "class", "crunchyroll svelte-7u2qz9");
     			add_location(img, file$5, 98, 18, 2456);
     			attr_dev(a, "href", a_href_value = /*link*/ ctx[13].url);
-    			attr_dev(a, "class", "link svelte-ep6avi");
+    			attr_dev(a, "class", "link svelte-7u2qz9");
     			attr_dev(a, "target", "_blank");
     			add_location(a, file$5, 97, 16, 2389);
     		},
@@ -25037,10 +25037,10 @@ var app = (function () {
     			create_component(itemdetails.$$.fragment);
     			t2 = space();
     			if (if_block) if_block.c();
-    			attr_dev(div0, "class", "card svelte-ep6avi");
+    			attr_dev(div0, "class", "card svelte-7u2qz9");
     			attr_dev(div0, "tabindex", "0");
     			add_location(div0, file$5, 67, 2, 1502);
-    			attr_dev(div1, "class", "wrapper svelte-ep6avi");
+    			attr_dev(div1, "class", "wrapper svelte-7u2qz9");
     			add_location(div1, file$5, 66, 0, 1478);
     		},
     		l: function claim(nodes) {

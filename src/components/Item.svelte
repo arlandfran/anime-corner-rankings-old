@@ -149,6 +149,7 @@
     padding-bottom: 0.5rem;
     font-size: 0.8rem;
     font-weight: bold;
+    text-transform: capitalize;
   }
 
   .pill {
