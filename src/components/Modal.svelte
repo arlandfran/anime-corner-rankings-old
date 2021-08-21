@@ -1,4 +1,5 @@
 <script>
+  import { fade, fly } from "svelte/transition";
   import { faq, modalState } from "../stores";
   import Accordion from "./Accordion.svelte";
 
@@ -34,7 +35,7 @@
   // ref: https://dev.to/vibhanshu909/how-to-create-a-full-featured-modal-component-in-svelte-and-trap-focus-within-474i
   function modalAction(node) {
     const returnFn = [];
-    // for accessibility
+    // stops background scrolling if modal is open
     if (document.body.style.overflow !== "hidden") {
       const original = document.body.style.overflow;
       document.body.style.overflow = "hidden";
@@ -72,9 +73,14 @@
 </div>
 
 {#if $isOpen}
-  <div class="modal" use:modalAction tabindex="0">
+  <div
+    class="modal"
+    use:modalAction
+    tabindex="0"
+    transition:fade={{ duration: 200 }}
+  >
     <div class="backdrop" />
-    <div class="content-wrapper">
+    <div class="content-wrapper" transition:fly={{ y: 50, duration: 200 }}>
       <div class="close">
         <button on:click={close} aria-label="Open About">
           <svg
@@ -173,6 +179,16 @@
     opacity: 0.99;
   }
 
+  @media (prefers-reduced-motion) {
+    .modal {
+      transition: none;
+    }
+
+    .content-wrapper {
+      transition: none;
+    }
+  }
+
   .backdrop {
     position: absolute;
     width: 100%;
@@ -186,11 +202,20 @@
     width: 90%;
     max-height: 80%;
     max-width: 1024px;
-    padding-bottom: 3rem;
+    padding-bottom: 1rem;
     border-radius: 6px;
     background-color: black;
     border: 2px solid white;
     overflow: hidden;
+  }
+
+  @media (prefers-reduced-motion) {
+    .content-wrapper {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      animation-delay: 0.01ms !important;
+    }
   }
 
   @media screen and (min-width: 769px) {
