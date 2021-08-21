@@ -4,7 +4,11 @@
 </script>
 
 <main>
-  <h1>Anime Corner Rankings</h1>
+  <h1>
+    <a href="https://animecorner.me/" target="_blank">animecorner.me rankings</a
+    >
+  </h1>
+  <p>A web representation of anime corner's anime of the week.</p>
   <Leaderboard />
 </main>
 
@@ -22,7 +26,14 @@
     margin-block-end: 0;
     font-size: 2em;
     font-weight: bold;
-    text-decoration: underline;
+  }
+
+  a {
+    color: white;
     text-decoration-color: var(--primary-color);
+  }
+  a:hover,
+  a:focus {
+    color: var(--primary-color);
   }
 </style>

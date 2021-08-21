@@ -40,7 +40,8 @@
   }
 
   .active,
-  .accordion:hover {
+  .accordion:hover,
+  .accordion:focus {
     color: var(--primary-color);
   }
 

@@ -334,7 +334,6 @@
       width="16"
       height="16"
       viewBox="0 0 24 24"
-      fill="#fff"
       ><path
         d="M24 20.205L21.005 23.185L9.873 12L21.005 0.813972L24 3.79497L15.833 12L24 20.205V20.205ZM5.96 12L14.127 3.79497L11.132 0.814974L0 12L11.132 23.186L14.127 20.206L5.96 12V12Z"
       /></svg
@@ -377,7 +376,6 @@
       width="16"
       height="16"
       viewBox="0 0 24 24"
-      fill="#fff"
       ><path
         d="M0 3.795l2.995-2.98 11.132 11.185-11.132 11.186-2.995-2.981 8.167-8.205-8.167-8.205zm18.04 8.205l-8.167 8.205 2.995 2.98 11.132-11.185-11.132-11.186-2.995 2.98 8.167 8.206z"
       /></svg
@@ -448,6 +446,9 @@
   #show-more {
     /* padding: 0.5rem; */
     font-size: 1.2rem;
+  }
+
+  #show-more:focus {
     text-decoration: underline;
     text-decoration-color: var(--primary-color);
   }
@@ -461,10 +462,19 @@
     width: 32px;
     height: 32px;
     align-self: flex-end;
+    fill: white;
+  }
+
+  .arrow:focus {
+    fill: var(--primary-color);
   }
 
   .disabled {
     fill: var(--surface);
+  }
+
+  .active {
+    fill: inherit;
   }
 
   .active:hover {

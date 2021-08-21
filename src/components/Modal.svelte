@@ -64,7 +64,6 @@
       xmlns="http://www.w3.org/2000/svg"
       fill-rule="evenodd"
       clip-rule="evenodd"
-      fill="#fff"
       ><path
         d="M24 17.981h-13l-7 5.02v-5.02h-4v-16.981h24v16.981zm-11-9.98h-2v6h2v-6zm-1-1.5c.69 0 1.25-.56 1.25-1.25s-.56-1.25-1.25-1.25-1.25.56-1.25 1.25.56 1.25 1.25 1.25z"
       /></svg
@@ -214,6 +213,18 @@
 
   #green {
     color: #36c120;
+  }
+
+  .about {
+    fill: white;
+  }
+
+  .about:focus {
+    fill: var(--primary-color);
+  }
+
+  #svg-info {
+    fill: inherit;
   }
 
   #svg-info:hover {

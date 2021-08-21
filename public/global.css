@@ -1,6 +1,6 @@
 /* CSS Custom Props */
 :root {
-  --primary-color: #65b893;
+  --primary-color: #f3667b;
   --bg-color: #121212;
   --surface: #323232;
   --gain-color: #65b893;
@@ -31,8 +31,10 @@ a {
   font-weight: bold;
 }
 
-a:hover {
-  color: #ffaf18;
+a:hover,
+a:focus {
+  text-decoration: underline;
+  text-decoration-line: var(--primary-color);
 }
 
 a:visited {
@@ -70,10 +72,6 @@ button:disabled {
 
 button:not(:disabled):active {
   background-color: var(--surface);
-}
-
-button:focus {
-  border-color: #666;
 }
 
 select {
