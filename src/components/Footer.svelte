@@ -16,6 +16,7 @@
           class="icon"
           href="https://www.facebook.com/AnimeCorner.Official"
           target="_blank"
+          aria-label="Open Anime Corner's Facebook Page"
         >
           <svg
             class="svg-icon"
@@ -33,6 +34,7 @@
           class="icon"
           href="https://twitter.com/animecorner_ac"
           target="_blank"
+          aria-label="Open Anime Corner's Twitter Page"
         >
           <svg
             class="svg-icon"
@@ -50,6 +52,7 @@
           class="icon"
           href="https://www.instagram.com/animecorner_ac/"
           target="_blank"
+          aria-label="Open Anime Corner's Instagram Page"
         >
           <svg
             class="svg-icon"
@@ -63,7 +66,12 @@
           >
         </a>
 
-        <a class="icon" href="https://discord.gg/RcXTHqByGP" target="_blank">
+        <a
+          class="icon"
+          href="https://discord.gg/RcXTHqByGP"
+          target="_blank"
+          aria-label="Open Anime Corner's Discord Group"
+        >
           <svg
             class="svg-icon"
             width="24"

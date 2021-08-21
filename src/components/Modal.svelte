@@ -76,7 +76,7 @@
     <div class="backdrop" />
     <div class="content-wrapper">
       <div class="close">
-        <button on:click={close}>
+        <button on:click={close} aria-label="Open About">
           <svg
             id="svg-close"
             xmlns="http://www.w3.org/2000/svg"

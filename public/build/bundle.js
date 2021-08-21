@@ -25939,7 +25939,7 @@ var app = (function () {
     			attr_dev(div0, "class", "backdrop svelte-1xxgf1p");
     			add_location(div0, file$3, 75, 4, 2022);
     			attr_dev(path0, "d", "M24 20.188l-8.315-8.209 8.2-8.282-3.697-3.697-8.212 8.318-8.31-8.203-3.666 3.666 8.321 8.24-8.206 8.313 3.666 3.666 8.237-8.318 8.285 8.203z");
-    			add_location(path0, file$3, 87, 13, 2394);
+    			add_location(path0, file$3, 87, 13, 2418);
     			attr_dev(svg0, "id", "svg-close");
     			attr_dev(svg0, "xmlns", "http://www.w3.org/2000/svg");
     			attr_dev(svg0, "width", "16");
@@ -25948,61 +25948,62 @@ var app = (function () {
     			attr_dev(svg0, "fill", "#fff");
     			attr_dev(svg0, "preserveAspectRatio", "xMidYMid meet");
     			attr_dev(svg0, "class", "svelte-1xxgf1p");
-    			add_location(svg0, file$3, 79, 10, 2151);
+    			add_location(svg0, file$3, 79, 10, 2175);
+    			attr_dev(button0, "aria-label", "Open About");
     			add_location(button0, file$3, 78, 8, 2115);
     			attr_dev(div1, "class", "close svelte-1xxgf1p");
     			add_location(div1, file$3, 77, 6, 2087);
     			attr_dev(h1, "class", "svelte-1xxgf1p");
-    			add_location(h1, file$3, 96, 10, 2689);
+    			add_location(h1, file$3, 96, 10, 2713);
     			attr_dev(div2, "class", "title svelte-1xxgf1p");
-    			add_location(div2, file$3, 95, 8, 2659);
+    			add_location(div2, file$3, 95, 8, 2683);
     			attr_dev(h20, "class", "svelte-1xxgf1p");
-    			add_location(h20, file$3, 99, 8, 2728);
+    			add_location(h20, file$3, 99, 8, 2752);
     			attr_dev(path1, "d", "M24 22h-24l12-20z");
-    			add_location(path1, file$3, 107, 34, 2956);
+    			add_location(path1, file$3, 107, 34, 2980);
     			attr_dev(svg1, "class", "arrow-gain svelte-1xxgf1p");
     			attr_dev(svg1, "xmlns", "http://www.w3.org/2000/svg");
     			attr_dev(svg1, "width", "16");
     			attr_dev(svg1, "height", "16");
     			attr_dev(svg1, "viewBox", "0 0 24 24");
-    			add_location(svg1, file$3, 102, 12, 2784);
+    			add_location(svg1, file$3, 102, 12, 2808);
     			attr_dev(path2, "d", "M12 21l-12-18h24z");
-    			add_location(path2, file$3, 114, 34, 3190);
+    			add_location(path2, file$3, 114, 34, 3214);
     			attr_dev(svg2, "class", "arrow-drop svelte-1xxgf1p");
     			attr_dev(svg2, "xmlns", "http://www.w3.org/2000/svg");
     			attr_dev(svg2, "width", "16");
     			attr_dev(svg2, "height", "16");
     			attr_dev(svg2, "viewBox", "0 0 24 24");
-    			add_location(svg2, file$3, 109, 12, 3018);
+    			add_location(svg2, file$3, 109, 12, 3042);
     			attr_dev(path3, "d", "M0 9h24v6h-24z");
-    			add_location(path3, file$3, 121, 34, 3427);
+    			add_location(path3, file$3, 121, 34, 3451);
     			attr_dev(svg3, "class", "arrow-neutral svelte-1xxgf1p");
     			attr_dev(svg3, "xmlns", "http://www.w3.org/2000/svg");
     			attr_dev(svg3, "width", "16");
     			attr_dev(svg3, "height", "16");
     			attr_dev(svg3, "viewBox", "0 0 24 24");
-    			add_location(svg3, file$3, 116, 12, 3252);
-    			add_location(li0, file$3, 101, 10, 2767);
-    			add_location(li1, file$3, 125, 10, 3529);
-    			add_location(ul, file$3, 100, 8, 2752);
+    			add_location(svg3, file$3, 116, 12, 3276);
+    			add_location(li0, file$3, 101, 10, 2791);
+    			add_location(li1, file$3, 125, 10, 3553);
+    			add_location(ul, file$3, 100, 8, 2776);
     			attr_dev(h21, "class", "svelte-1xxgf1p");
-    			add_location(h21, file$3, 127, 8, 3578);
+    			add_location(h21, file$3, 127, 8, 3602);
     			attr_dev(button1, "id", "expand");
     			button1.disabled = /*showAll*/ ctx[0];
     			attr_dev(button1, "class", "svelte-1xxgf1p");
     			toggle_class(button1, "active", !/*showAll*/ ctx[0]);
     			toggle_class(button1, "disabled", /*showAll*/ ctx[0]);
-    			add_location(button1, file$3, 129, 10, 3638);
+    			add_location(button1, file$3, 129, 10, 3662);
     			attr_dev(button2, "id", "collapse");
     			button2.disabled = button2_disabled_value = !/*showAll*/ ctx[0];
     			attr_dev(button2, "class", "svelte-1xxgf1p");
     			toggle_class(button2, "active", /*showAll*/ ctx[0]);
     			toggle_class(button2, "disabled", !/*showAll*/ ctx[0]);
-    			add_location(button2, file$3, 137, 10, 3860);
+    			add_location(button2, file$3, 137, 10, 3884);
     			attr_dev(div3, "class", "expand-toggles");
-    			add_location(div3, file$3, 128, 8, 3599);
+    			add_location(div3, file$3, 128, 8, 3623);
     			attr_dev(div4, "class", "content svelte-1xxgf1p");
-    			add_location(div4, file$3, 94, 6, 2629);
+    			add_location(div4, file$3, 94, 6, 2653);
     			attr_dev(div5, "class", "content-wrapper svelte-1xxgf1p");
     			add_location(div5, file$3, 76, 4, 2051);
     			attr_dev(div6, "class", "modal svelte-1xxgf1p");
@@ -26474,7 +26475,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (349:2) {:else}
+    // (354:2) {:else}
     function create_else_block_3(ctx) {
     	let select;
     	let mounted;
@@ -26495,8 +26496,9 @@ var app = (function () {
     				each_blocks[i].c();
     			}
 
+    			attr_dev(select, "aria-label", "Select Season");
     			if (/*$season*/ ctx[7] === void 0) add_render_callback(() => /*select_change_handler*/ ctx[18].call(select));
-    			add_location(select, file$2, 350, 4, 9021);
+    			add_location(select, file$2, 355, 4, 9094);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -26557,14 +26559,14 @@ var app = (function () {
     		block,
     		id: create_else_block_3.name,
     		type: "else",
-    		source: "(349:2) {:else}",
+    		source: "(354:2) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (345:2) {#if seasons == 0}
+    // (350:2) {#if seasons == 0}
     function create_if_block_3(ctx) {
     	let select;
     	let option;
@@ -26576,8 +26578,9 @@ var app = (function () {
     			option.textContent = "Loading...";
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file$2, 346, 6, 8912);
-    			add_location(select, file$2, 345, 4, 8897);
+    			add_location(option, file$2, 351, 6, 8985);
+    			attr_dev(select, "aria-label", "Select Season");
+    			add_location(select, file$2, 350, 4, 8943);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -26593,14 +26596,14 @@ var app = (function () {
     		block,
     		id: create_if_block_3.name,
     		type: "if",
-    		source: "(345:2) {#if seasons == 0}",
+    		source: "(350:2) {#if seasons == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (352:6) {#each seasons as season}
+    // (361:6) {#each seasons as season}
     function create_each_block_2(ctx) {
     	let option;
     	let t_value = /*season*/ ctx[42] + "";
@@ -26614,7 +26617,7 @@ var app = (function () {
     			attr_dev(option, "class", "dropdown-item svelte-17mnt76");
     			option.__value = option_value_value = /*season*/ ctx[42];
     			option.value = option.__value;
-    			add_location(option, file$2, 352, 8, 9116);
+    			add_location(option, file$2, 361, 8, 9239);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
@@ -26637,14 +26640,14 @@ var app = (function () {
     		block,
     		id: create_each_block_2.name,
     		type: "each",
-    		source: "(352:6) {#each seasons as season}",
+    		source: "(361:6) {#each seasons as season}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (362:2) {:else}
+    // (371:2) {:else}
     function create_else_block_2(ctx) {
     	let select;
     	let mounted;
@@ -26665,8 +26668,9 @@ var app = (function () {
     				each_blocks[i].c();
     			}
 
+    			attr_dev(select, "aria-label", "Select Week");
     			if (/*$week*/ ctx[4] === void 0) add_render_callback(() => /*select_change_handler_1*/ ctx[19].call(select));
-    			add_location(select, file$2, 363, 4, 9386);
+    			add_location(select, file$2, 372, 4, 9534);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -26727,14 +26731,14 @@ var app = (function () {
     		block,
     		id: create_else_block_2.name,
     		type: "else",
-    		source: "(362:2) {:else}",
+    		source: "(371:2) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (358:2) {#if weeks.length == 0 || weekDisabled}
+    // (367:2) {#if weeks.length == 0 || weekDisabled}
     function create_if_block_2(ctx) {
     	let select;
     	let option;
@@ -26746,8 +26750,9 @@ var app = (function () {
     			option.textContent = "Loading...";
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file$2, 359, 6, 9277);
-    			add_location(select, file$2, 358, 4, 9262);
+    			add_location(option, file$2, 368, 6, 9425);
+    			attr_dev(select, "aria-label", "Select Week");
+    			add_location(select, file$2, 367, 4, 9385);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -26763,14 +26768,14 @@ var app = (function () {
     		block,
     		id: create_if_block_2.name,
     		type: "if",
-    		source: "(358:2) {#if weeks.length == 0 || weekDisabled}",
+    		source: "(367:2) {#if weeks.length == 0 || weekDisabled}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (365:6) {#each weeks as week}
+    // (374:6) {#each weeks as week}
     function create_each_block_1(ctx) {
     	let option;
     	let t0;
@@ -26786,7 +26791,7 @@ var app = (function () {
     			attr_dev(option, "class", "dropdown-item svelte-17mnt76");
     			option.__value = option_value_value = /*week*/ ctx[39];
     			option.value = option.__value;
-    			add_location(option, file$2, 365, 8, 9474);
+    			add_location(option, file$2, 374, 8, 9647);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
@@ -26810,14 +26815,14 @@ var app = (function () {
     		block,
     		id: create_each_block_1.name,
     		type: "each",
-    		source: "(365:6) {#each weeks as week}",
+    		source: "(374:6) {#each weeks as week}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (395:2) {:else}
+    // (404:2) {:else}
     function create_else_block(ctx) {
     	let t;
     	let div;
@@ -26862,9 +26867,9 @@ var app = (function () {
     			if_block.c();
     			attr_dev(button, "id", "show-more");
     			attr_dev(button, "class", "svelte-17mnt76");
-    			add_location(button, file$2, 399, 6, 10354);
+    			add_location(button, file$2, 408, 6, 10550);
     			attr_dev(div, "class", "show-more svelte-17mnt76");
-    			add_location(div, file$2, 398, 4, 10324);
+    			add_location(div, file$2, 407, 4, 10520);
     		},
     		m: function mount(target, anchor) {
     			for (let i = 0; i < each_blocks.length; i += 1) {
@@ -26971,14 +26976,14 @@ var app = (function () {
     		block,
     		id: create_else_block.name,
     		type: "else",
-    		source: "(395:2) {:else}",
+    		source: "(404:2) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (391:2) {#if items.length == 0}
+    // (400:2) {#if items.length == 0}
     function create_if_block(ctx) {
     	let div;
     	let circle;
@@ -26994,7 +26999,7 @@ var app = (function () {
     			div = element("div");
     			create_component(circle.$$.fragment);
     			attr_dev(div, "class", "loading svelte-17mnt76");
-    			add_location(div, file$2, 391, 4, 10148);
+    			add_location(div, file$2, 400, 4, 10344);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -27021,14 +27026,14 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(391:2) {#if items.length == 0}",
+    		source: "(400:2) {#if items.length == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (396:4) {#each items as item}
+    // (405:4) {#each items as item}
     function create_each_block(ctx) {
     	let item;
     	let current;
@@ -27077,14 +27082,14 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(396:4) {#each items as item}",
+    		source: "(405:4) {#each items as item}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (403:8) {:else}
+    // (412:8) {:else}
     function create_else_block_1(ctx) {
     	let t;
 
@@ -27107,14 +27112,14 @@ var app = (function () {
     		block,
     		id: create_else_block_1.name,
     		type: "else",
-    		source: "(403:8) {:else}",
+    		source: "(412:8) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (401:8) {#if $loading}
+    // (410:8) {#if $loading}
     function create_if_block_1(ctx) {
     	let circle;
     	let current;
@@ -27151,7 +27156,7 @@ var app = (function () {
     		block,
     		id: create_if_block_1.name,
     		type: "if",
-    		source: "(401:8) {#if $loading}",
+    		source: "(410:8) {#if $loading}",
     		ctx
     	});
 
@@ -27226,7 +27231,7 @@ var app = (function () {
     			div1 = element("div");
     			if_block2.c();
     			attr_dev(path0, "d", "M24 20.205L21.005 23.185L9.873 12L21.005 0.813972L24 3.79497L15.833 12L24 20.205V20.205ZM5.96 12L14.127 3.79497L11.132 0.814974L0 12L11.132 23.186L14.127 20.206L5.96 12V12Z");
-    			add_location(path0, file$2, 338, 7, 8648);
+    			add_location(path0, file$2, 343, 7, 8694);
     			attr_dev(svg0, "xmlns", "http://www.w3.org/2000/svg");
     			attr_dev(svg0, "width", "16");
     			attr_dev(svg0, "height", "16");
@@ -27234,12 +27239,13 @@ var app = (function () {
     			attr_dev(svg0, "class", "svelte-17mnt76");
     			toggle_class(svg0, "active", !/*$prev*/ ctx[5]);
     			toggle_class(svg0, "disabled", /*$prev*/ ctx[5]);
-    			add_location(svg0, file$2, 331, 4, 8477);
+    			add_location(svg0, file$2, 336, 4, 8523);
     			attr_dev(button0, "class", "arrow svelte-17mnt76");
     			attr_dev(button0, "id", "prev-btn");
+    			attr_dev(button0, "aria-label", "Previous Page");
     			add_location(button0, file$2, 330, 2, 8418);
     			attr_dev(path1, "d", "M0 3.795l2.995-2.98 11.132 11.185-11.132 11.186-2.995-2.981 8.167-8.205-8.167-8.205zm18.04 8.205l-8.167 8.205 2.995 2.98 11.132-11.185-11.132-11.186-2.995 2.98 8.167 8.206z");
-    			add_location(path1, file$2, 380, 7, 9851);
+    			add_location(path1, file$2, 389, 7, 10047);
     			attr_dev(svg1, "xmlns", "http://www.w3.org/2000/svg");
     			attr_dev(svg1, "width", "16");
     			attr_dev(svg1, "height", "16");
@@ -27247,14 +27253,15 @@ var app = (function () {
     			attr_dev(svg1, "class", "svelte-17mnt76");
     			toggle_class(svg1, "active", !/*$next*/ ctx[6]);
     			toggle_class(svg1, "disabled", /*$next*/ ctx[6]);
-    			add_location(svg1, file$2, 373, 5, 9680);
+    			add_location(svg1, file$2, 382, 5, 9876);
     			attr_dev(button1, "class", "arrow svelte-17mnt76");
     			attr_dev(button1, "id", "next-btn");
-    			add_location(button1, file$2, 372, 2, 9621);
+    			attr_dev(button1, "aria-label", "Next Page");
+    			add_location(button1, file$2, 381, 2, 9794);
     			attr_dev(div0, "class", "filters svelte-17mnt76");
     			add_location(div0, file$2, 329, 0, 8394);
     			attr_dev(div1, "class", "rankings svelte-17mnt76");
-    			add_location(div1, file$2, 389, 0, 10095);
+    			add_location(div1, file$2, 398, 0, 10291);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -27893,54 +27900,58 @@ var app = (function () {
     			attr_dev(div0, "class", "vote svelte-7v7sya");
     			add_location(div0, file$1, 2, 4, 36);
     			attr_dev(path0, "d", "M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm3 8h-1.35c-.538 0-.65.221-.65.778v1.222h2l-.209 2h-1.791v7h-3v-7h-2v-2h2v-2.308c0-1.769.931-2.692 3.029-2.692h1.971v3z");
-    			add_location(path0, file$1, 25, 13, 597);
+    			add_location(path0, file$1, 26, 13, 654);
     			attr_dev(svg0, "class", "svg-icon svelte-7v7sya");
     			attr_dev(svg0, "xmlns", "http://www.w3.org/2000/svg");
     			attr_dev(svg0, "width", "24");
     			attr_dev(svg0, "height", "24");
     			attr_dev(svg0, "viewBox", "0 0 24 24");
-    			add_location(svg0, file$1, 19, 10, 424);
+    			add_location(svg0, file$1, 20, 10, 481);
     			attr_dev(a1, "class", "icon svelte-7v7sya");
     			attr_dev(a1, "href", "https://www.facebook.com/AnimeCorner.Official");
     			attr_dev(a1, "target", "_blank");
+    			attr_dev(a1, "aria-label", "Open Anime Corner's Facebook Page");
     			add_location(a1, file$1, 14, 8, 289);
     			attr_dev(path1, "d", "M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z");
-    			add_location(path1, file$1, 42, 13, 1167);
+    			add_location(path1, file$1, 44, 13, 1280);
     			attr_dev(svg1, "class", "svg-icon svelte-7v7sya");
     			attr_dev(svg1, "xmlns", "http://www.w3.org/2000/svg");
     			attr_dev(svg1, "width", "24");
     			attr_dev(svg1, "height", "24");
     			attr_dev(svg1, "viewBox", "0 0 24 24");
-    			add_location(svg1, file$1, 36, 10, 994);
+    			add_location(svg1, file$1, 38, 10, 1107);
     			attr_dev(a2, "class", "icon svelte-7v7sya");
     			attr_dev(a2, "href", "https://twitter.com/animecorner_ac");
     			attr_dev(a2, "target", "_blank");
-    			add_location(a2, file$1, 31, 8, 870);
+    			attr_dev(a2, "aria-label", "Open Anime Corner's Twitter Page");
+    			add_location(a2, file$1, 32, 8, 927);
     			attr_dev(path2, "d", "M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z");
-    			add_location(path2, file$1, 59, 13, 2056);
+    			add_location(path2, file$1, 62, 13, 2227);
     			attr_dev(svg2, "class", "svg-icon svelte-7v7sya");
     			attr_dev(svg2, "xmlns", "http://www.w3.org/2000/svg");
     			attr_dev(svg2, "width", "24");
     			attr_dev(svg2, "height", "24");
     			attr_dev(svg2, "viewBox", "0 0 24 24");
-    			add_location(svg2, file$1, 53, 10, 1883);
+    			add_location(svg2, file$1, 56, 10, 2054);
     			attr_dev(a3, "class", "icon svelte-7v7sya");
     			attr_dev(a3, "href", "https://www.instagram.com/animecorner_ac/");
     			attr_dev(a3, "target", "_blank");
-    			add_location(a3, file$1, 48, 8, 1752);
+    			attr_dev(a3, "aria-label", "Open Anime Corner's Instagram Page");
+    			add_location(a3, file$1, 50, 8, 1865);
     			attr_dev(path3, "d", "M19.54 0c1.356 0 2.46 1.104 2.46 2.472v21.528l-2.58-2.28-1.452-1.344-1.536-1.428.636 2.22h-13.608c-1.356 0-2.46-1.104-2.46-2.472v-16.224c0-1.368 1.104-2.472 2.46-2.472h16.08zm-4.632 15.672c2.652-.084 3.672-1.824 3.672-1.824 0-3.864-1.728-6.996-1.728-6.996-1.728-1.296-3.372-1.26-3.372-1.26l-.168.192c2.04.624 2.988 1.524 2.988 1.524-1.248-.684-2.472-1.02-3.612-1.152-.864-.096-1.692-.072-2.424.024l-.204.024c-.42.036-1.44.192-2.724.756-.444.204-.708.348-.708.348s.996-.948 3.156-1.572l-.12-.144s-1.644-.036-3.372 1.26c0 0-1.728 3.132-1.728 6.996 0 0 1.008 1.74 3.66 1.824 0 0 .444-.54.804-.996-1.524-.456-2.1-1.416-2.1-1.416l.336.204.048.036.047.027.014.006.047.027c.3.168.6.3.876.408.492.192 1.08.384 1.764.516.9.168 1.956.228 3.108.012.564-.096 1.14-.264 1.74-.516.42-.156.888-.384 1.38-.708 0 0-.6.984-2.172 1.428.36.456.792.972.792.972zm-5.58-5.604c-.684 0-1.224.6-1.224 1.332 0 .732.552 1.332 1.224 1.332.684 0 1.224-.6 1.224-1.332.012-.732-.54-1.332-1.224-1.332zm4.38 0c-.684 0-1.224.6-1.224 1.332 0 .732.552 1.332 1.224 1.332.684 0 1.224-.6 1.224-1.332 0-.732-.54-1.332-1.224-1.332z");
-    			add_location(path3, file$1, 73, 13, 3490);
+    			add_location(path3, file$1, 81, 13, 3757);
     			attr_dev(svg3, "class", "svg-icon svelte-7v7sya");
     			attr_dev(svg3, "width", "24");
     			attr_dev(svg3, "height", "24");
     			attr_dev(svg3, "xmlns", "http://www.w3.org/2000/svg");
     			attr_dev(svg3, "fill-rule", "evenodd");
     			attr_dev(svg3, "clip-rule", "evenodd");
-    			add_location(svg3, file$1, 66, 10, 3285);
+    			add_location(svg3, file$1, 74, 10, 3552);
     			attr_dev(a4, "class", "icon svelte-7v7sya");
     			attr_dev(a4, "href", "https://discord.gg/RcXTHqByGP");
     			attr_dev(a4, "target", "_blank");
-    			add_location(a4, file$1, 65, 8, 3205);
+    			attr_dev(a4, "aria-label", "Open Anime Corner's Discord Group");
+    			add_location(a4, file$1, 68, 8, 3376);
     			add_location(div1, file$1, 13, 6, 275);
     			attr_dev(div2, "class", "follow svelte-7v7sya");
     			add_location(div2, file$1, 11, 4, 219);
