@@ -16,6 +16,8 @@
   } from "../stores";
   import { checkCache, cacheData } from "../cache";
 
+  const color = "#f3667b";
+
   let seasons = [];
   let weeks = [];
   let items = [];
@@ -388,7 +390,7 @@
 <div class="rankings">
   {#if items.length == 0}
     <div class="loading">
-      <Circle size="64" unit="px" color="#65b893" />
+      <Circle size="64" unit="px" {color} />
     </div>
   {:else}
     {#each items as item}
@@ -397,7 +399,7 @@
     <div class="show-more">
       <button on:click={fetchNextData} id="show-more">
         {#if $loading}
-          <Circle size="32" unit="px" color="#65b893" />
+          <Circle size="32" unit="px" {color} />
         {:else}
           Show more rankings
         {/if}
