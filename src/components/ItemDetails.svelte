@@ -43,29 +43,47 @@
 
 <div class="container border-tr border-br">
   <div class="sub-container">
-    <div
-      class="figure"
-      class:arrow-gain={rankProgression > 0}
-      class:arrow-neutral={rankProgression == 0}
-      class:arrow-drop={rankProgression < 0}
-    >
+    <div class="figure">
       {#if rankProgression < 0}
+        <svg
+          class="arrow-drop"
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"><path d="M12 21l-12-18h24z" /></svg
+        >
         {rankProgression.toString().replace("-", "")}
+      {:else if rankProgression === 0}
+        <svg
+          class="arrow-neutral"
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"><path d="M0 9h24v6h-24z" /></svg
+        >
+        {rankProgression}
       {:else}
+        <svg
+          class="arrow-gain"
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"><path d="M24 22h-24l12-20z" /></svg
+        >
         {rankProgression}
       {/if}
     </div>
     {#if previousRank == null}
-      <div class="label" class:neutral={previousRank == null}>NEW ENTRY</div>
+      <div class="label" class:neutral={previousRank == null}>New Entry</div>
     {:else if previousRank == rank}
-      <div class="label" class:neutral={previousRank == rank}>SAME RANK</div>
+      <div class="label" class:neutral={previousRank == rank}>Same Rank</div>
     {:else}
       <div
         class="label"
         class:gain={rankProgression > 0}
         class:drop={rankProgression < 0}
       >
-        FROM RANK {previousRank}
+        From Rank {previousRank}
       </div>
     {/if}
   </div>
@@ -77,7 +95,7 @@
         class:gain={voteDifference > 0}
         class:no-border-br={isActive}
       >
-        +{voteDifference}% GAIN
+        +{voteDifference}% Gain
       </div>
     {:else if voteDifference < 0}
       <div
@@ -85,7 +103,7 @@
         class:drop={voteDifference < 0}
         class:no-border-br={isActive}
       >
-        {voteDifference}% DROP
+        {voteDifference}% Drop
       </div>
     {:else}
       <div
@@ -93,7 +111,7 @@
         class:neutral={voteDifference == 0}
         class:no-border-br={isActive}
       >
-        NEW ENTRY
+        New Entry
       </div>
     {/if}
   </div>
@@ -121,6 +139,7 @@
     justify-content: center;
     align-items: center;
     height: 100%;
+    gap: 0.5rem;
   }
 
   .label {
@@ -157,19 +176,16 @@
     }
   }
 
-  .arrow-gain::before {
-    color: var(--gain-color);
-    content: "⮅";
+  .arrow-gain {
+    fill: var(--gain-color);
   }
 
-  .arrow-neutral::before {
-    color: var(--neutral-color);
-    content: "⮂";
+  .arrow-neutral {
+    fill: var(--neutral-color);
   }
 
-  .arrow-drop::before {
-    color: var(--drop-color);
-    content: "⮇";
+  .arrow-drop {
+    fill: var(--drop-color);
   }
 
   .gain {
