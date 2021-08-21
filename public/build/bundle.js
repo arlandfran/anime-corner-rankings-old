@@ -28076,12 +28076,12 @@ var app = (function () {
     			create_component(footer.$$.fragment);
     			attr_dev(a, "href", "https://animecorner.me/");
     			attr_dev(a, "target", "_blank");
-    			attr_dev(a, "class", "svelte-1c1sbxm");
+    			attr_dev(a, "class", "svelte-1jk1rvo");
     			add_location(a, file, 32, 4, 590);
-    			attr_dev(h1, "class", "svelte-1c1sbxm");
+    			attr_dev(h1, "class", "svelte-1jk1rvo");
     			add_location(h1, file, 31, 2, 581);
     			add_location(p, file, 35, 2, 683);
-    			attr_dev(main, "class", "svelte-1c1sbxm");
+    			attr_dev(main, "class", "svelte-1jk1rvo");
     			add_location(main, file, 30, 0, 572);
     			attr_dev(path, "d", "M0 16.67l2.829 2.83 9.175-9.339 9.167 9.339 2.829-2.83-11.996-12.17z");
     			add_location(path, file, 46, 5, 935);
@@ -28091,7 +28091,7 @@ var app = (function () {
     			attr_dev(svg, "height", "24");
     			attr_dev(svg, "viewBox", "0 0 24 24");
     			add_location(svg, file, 40, 3, 816);
-    			attr_dev(button, "class", "svelte-1c1sbxm");
+    			attr_dev(button, "class", "svelte-1jk1rvo");
     			toggle_class(button, "hidden", /*hidden*/ ctx[0]);
     			add_location(button, file, 39, 0, 775);
     		},

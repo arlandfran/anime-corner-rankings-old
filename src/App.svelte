@@ -92,4 +92,10 @@
     opacity: 0;
     visibility: hidden;
   }
+
+  @media (prefers-reduced-motion) {
+    button {
+      transition: none;
+    }
+  }
 </style>
