@@ -17,6 +17,42 @@
     showAll = false;
     showDropdown = false;
   }
+
+  function keydown(e) {
+    e.stopPropagation();
+    if (e.key === "Escape") {
+      close();
+    }
+  }
+
+  // traps focus within modal by listening for modal transition ref: https://css-tricks.com/a-css-approach-to-trap-focus-inside-of-an-element/
+  function transitionend(e) {
+    const node = e.target;
+    node.focus();
+  }
+
+  // ref: https://dev.to/vibhanshu909/how-to-create-a-full-featured-modal-component-in-svelte-and-trap-focus-within-474i
+  function modalAction(node) {
+    const returnFn = [];
+    // for accessibility
+    if (document.body.style.overflow !== "hidden") {
+      const original = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      returnFn.push(() => {
+        document.body.style.overflow = original;
+      });
+    }
+    node.addEventListener("keydown", keydown);
+    node.addEventListener("transitionend", transitionend);
+    node.focus();
+    returnFn.push(() => {
+      node.removeEventListener("keydown", keydown);
+      node.removeEventListener("transitionend", transitionend);
+    });
+    return {
+      destroy: () => returnFn.forEach((fn) => fn()),
+    };
+  }
 </script>
 
 <div>
@@ -37,7 +73,7 @@
 </div>
 
 {#if $isOpen}
-  <div class="modal">
+  <div class="modal" use:modalAction tabindex="0">
     <div class="backdrop" />
     <div class="content-wrapper">
       <div class="close">
@@ -108,6 +144,11 @@
     justify-content: center;
     align-items: center;
     opacity: 1;
+  }
+
+  .modal:not(:focus-within) {
+    transition: opacity 0.1ms;
+    opacity: 0.99;
   }
 
   .backdrop {

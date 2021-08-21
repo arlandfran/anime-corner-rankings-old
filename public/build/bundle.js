@@ -63,6 +63,9 @@ var app = (function () {
         store.set(value);
         return ret;
     }
+    function action_destroyer(action_result) {
+        return action_result && is_function(action_result.destroy) ? action_result.destroy : noop$1;
+    }
     function append(target, node) {
         target.appendChild(node);
     }
@@ -25498,15 +25501,15 @@ var app = (function () {
 
     const file$4 = "src/components/Accordion.svelte";
 
-    // (20:0) {#if showDropdown || showAll}
+    // (26:0) {#if showDropdown || showAll}
     function create_if_block$2(ctx) {
     	let div;
 
     	const block = {
     		c: function create() {
     			div = element("div");
-    			attr_dev(div, "class", "panel");
-    			add_location(div, file$4, 20, 2, 412);
+    			attr_dev(div, "class", "panel svelte-tkrks8");
+    			add_location(div, file$4, 26, 2, 465);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -25523,7 +25526,7 @@ var app = (function () {
     		block,
     		id: create_if_block$2.name,
     		type: "if",
-    		source: "(20:0) {#if showDropdown || showAll}",
+    		source: "(26:0) {#if showDropdown || showAll}",
     		ctx
     	});
 
@@ -25548,9 +25551,10 @@ var app = (function () {
     			t1 = space();
     			if (if_block) if_block.c();
     			if_block_anchor = empty();
-    			attr_dev(h3, "class", "svelte-10sjvk2");
-    			add_location(h3, file$4, 17, 2, 353);
-    			attr_dev(div, "class", "accordion svelte-10sjvk2");
+    			attr_dev(h3, "class", "svelte-tkrks8");
+    			add_location(h3, file$4, 23, 2, 406);
+    			attr_dev(div, "class", "accordion svelte-tkrks8");
+    			attr_dev(div, "tabindex", "0");
     			toggle_class(div, "active", /*showDropdown*/ ctx[1]);
     			add_location(div, file$4, 16, 0, 273);
     		},
@@ -25566,7 +25570,11 @@ var app = (function () {
     			insert_dev(target, if_block_anchor, anchor);
 
     			if (!mounted) {
-    				dispose = listen_dev(div, "click", /*toggleDropdown*/ ctx[4], false, false, false);
+    				dispose = [
+    					listen_dev(div, "click", /*toggleDropdown*/ ctx[4], false, false, false),
+    					listen_dev(div, "keypress", /*toggleDropdown*/ ctx[4], false, false, false)
+    				];
+
     				mounted = true;
     			}
     		},
@@ -25598,7 +25606,7 @@ var app = (function () {
     			if (if_block) if_block.d(detaching);
     			if (detaching) detach_dev(if_block_anchor);
     			mounted = false;
-    			dispose();
+    			run_all(dispose);
     		}
     	};
 
@@ -25741,11 +25749,11 @@ var app = (function () {
 
     function get_each_context$1(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[10] = list[i];
+    	child_ctx[12] = list[i];
     	return child_ctx;
     }
 
-    // (39:0) {#if $isOpen}
+    // (75:0) {#if $isOpen}
     function create_if_block$1(ctx) {
     	let div6;
     	let div0;
@@ -25837,10 +25845,10 @@ var app = (function () {
     				each_blocks[i].c();
     			}
 
-    			attr_dev(div0, "class", "backdrop svelte-ksxdb0");
-    			add_location(div0, file$3, 40, 4, 883);
+    			attr_dev(div0, "class", "backdrop svelte-1824m3f");
+    			add_location(div0, file$3, 76, 4, 2040);
     			attr_dev(path, "d", "M24 20.188l-8.315-8.209 8.2-8.282-3.697-3.697-8.212 8.318-8.31-8.203-3.666 3.666 8.321 8.24-8.206 8.313 3.666 3.666 8.237-8.318 8.285 8.203z");
-    			add_location(path, file$3, 52, 13, 1255);
+    			add_location(path, file$3, 88, 13, 2412);
     			attr_dev(svg, "id", "svg-close");
     			attr_dev(svg, "xmlns", "http://www.w3.org/2000/svg");
     			attr_dev(svg, "width", "16");
@@ -25848,45 +25856,46 @@ var app = (function () {
     			attr_dev(svg, "viewBox", "0 0 24 24");
     			attr_dev(svg, "fill", "#fff");
     			attr_dev(svg, "preserveAspectRatio", "xMidYMid meet");
-    			attr_dev(svg, "class", "svelte-ksxdb0");
-    			add_location(svg, file$3, 44, 10, 1012);
-    			add_location(button0, file$3, 43, 8, 976);
-    			attr_dev(div1, "class", "close svelte-ksxdb0");
-    			add_location(div1, file$3, 42, 6, 948);
-    			attr_dev(h1, "class", "svelte-ksxdb0");
-    			add_location(h1, file$3, 61, 10, 1550);
-    			attr_dev(div2, "class", "title svelte-ksxdb0");
-    			add_location(div2, file$3, 60, 8, 1520);
-    			attr_dev(h20, "class", "svelte-ksxdb0");
-    			add_location(h20, file$3, 64, 8, 1589);
+    			attr_dev(svg, "class", "svelte-1824m3f");
+    			add_location(svg, file$3, 80, 10, 2169);
+    			add_location(button0, file$3, 79, 8, 2133);
+    			attr_dev(div1, "class", "close svelte-1824m3f");
+    			add_location(div1, file$3, 78, 6, 2105);
+    			attr_dev(h1, "class", "svelte-1824m3f");
+    			add_location(h1, file$3, 97, 10, 2707);
+    			attr_dev(div2, "class", "title svelte-1824m3f");
+    			add_location(div2, file$3, 96, 8, 2677);
+    			attr_dev(h20, "class", "svelte-1824m3f");
+    			add_location(h20, file$3, 100, 8, 2746);
     			attr_dev(span, "id", "green");
-    			attr_dev(span, "class", "svelte-ksxdb0");
-    			add_location(span, file$3, 66, 14, 1632);
-    			add_location(li0, file$3, 66, 10, 1628);
-    			add_location(li1, file$3, 67, 10, 1690);
-    			add_location(ul, file$3, 65, 8, 1613);
-    			attr_dev(h21, "class", "svelte-ksxdb0");
-    			add_location(h21, file$3, 69, 8, 1739);
+    			attr_dev(span, "class", "svelte-1824m3f");
+    			add_location(span, file$3, 102, 14, 2789);
+    			add_location(li0, file$3, 102, 10, 2785);
+    			add_location(li1, file$3, 103, 10, 2847);
+    			add_location(ul, file$3, 101, 8, 2770);
+    			attr_dev(h21, "class", "svelte-1824m3f");
+    			add_location(h21, file$3, 105, 8, 2896);
     			attr_dev(button1, "id", "expand");
     			button1.disabled = /*showAll*/ ctx[0];
-    			attr_dev(button1, "class", "svelte-ksxdb0");
+    			attr_dev(button1, "class", "svelte-1824m3f");
     			toggle_class(button1, "active", !/*showAll*/ ctx[0]);
     			toggle_class(button1, "disabled", /*showAll*/ ctx[0]);
-    			add_location(button1, file$3, 71, 10, 1799);
+    			add_location(button1, file$3, 107, 10, 2956);
     			attr_dev(button2, "id", "collapse");
     			button2.disabled = button2_disabled_value = !/*showAll*/ ctx[0];
-    			attr_dev(button2, "class", "svelte-ksxdb0");
+    			attr_dev(button2, "class", "svelte-1824m3f");
     			toggle_class(button2, "active", /*showAll*/ ctx[0]);
     			toggle_class(button2, "disabled", !/*showAll*/ ctx[0]);
-    			add_location(button2, file$3, 79, 10, 2021);
+    			add_location(button2, file$3, 115, 10, 3178);
     			attr_dev(div3, "class", "expand-toggles");
-    			add_location(div3, file$3, 70, 8, 1760);
-    			attr_dev(div4, "class", "content svelte-ksxdb0");
-    			add_location(div4, file$3, 59, 6, 1490);
-    			attr_dev(div5, "class", "content-wrapper svelte-ksxdb0");
-    			add_location(div5, file$3, 41, 4, 912);
-    			attr_dev(div6, "class", "modal svelte-ksxdb0");
-    			add_location(div6, file$3, 39, 2, 859);
+    			add_location(div3, file$3, 106, 8, 2917);
+    			attr_dev(div4, "class", "content svelte-1824m3f");
+    			add_location(div4, file$3, 95, 6, 2647);
+    			attr_dev(div5, "class", "content-wrapper svelte-1824m3f");
+    			add_location(div5, file$3, 77, 4, 2069);
+    			attr_dev(div6, "class", "modal svelte-1824m3f");
+    			attr_dev(div6, "tabindex", "0");
+    			add_location(div6, file$3, 75, 2, 1987);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div6, anchor);
@@ -25931,7 +25940,8 @@ var app = (function () {
     				dispose = [
     					listen_dev(button0, "click", /*close*/ ctx[6], false, false, false),
     					listen_dev(button1, "click", /*expandAll*/ ctx[7], false, false, false),
-    					listen_dev(button2, "click", /*collapseAll*/ ctx[8], false, false, false)
+    					listen_dev(button2, "click", /*collapseAll*/ ctx[8], false, false, false),
+    					action_destroyer(/*modalAction*/ ctx[9].call(null, div6))
     				];
 
     				mounted = true;
@@ -26020,20 +26030,20 @@ var app = (function () {
     		block,
     		id: create_if_block$1.name,
     		type: "if",
-    		source: "(39:0) {#if $isOpen}",
+    		source: "(75:0) {#if $isOpen}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (88:8) {#each $faq as content}
+    // (124:8) {#each $faq as content}
     function create_each_block$1(ctx) {
     	let accordion;
     	let current;
 
     	const accordion_spread_levels = [
-    		/*content*/ ctx[10],
+    		/*content*/ ctx[12],
     		{ showAll: /*showAll*/ ctx[0] },
     		{ showDropdown: /*showDropdown*/ ctx[1] }
     	];
@@ -26057,7 +26067,7 @@ var app = (function () {
     		p: function update(ctx, dirty) {
     			const accordion_changes = (dirty & /*$faq, showAll, showDropdown*/ 11)
     			? get_spread_update(accordion_spread_levels, [
-    					dirty & /*$faq*/ 8 && get_spread_object(/*content*/ ctx[10]),
+    					dirty & /*$faq*/ 8 && get_spread_object(/*content*/ ctx[12]),
     					dirty & /*showAll*/ 1 && { showAll: /*showAll*/ ctx[0] },
     					dirty & /*showDropdown*/ 2 && { showDropdown: /*showDropdown*/ ctx[1] }
     				])
@@ -26083,7 +26093,7 @@ var app = (function () {
     		block,
     		id: create_each_block$1.name,
     		type: "each",
-    		source: "(88:8) {#each $faq as content}",
+    		source: "(124:8) {#each $faq as content}",
     		ctx
     	});
 
@@ -26112,7 +26122,7 @@ var app = (function () {
     			if (if_block) if_block.c();
     			if_block_anchor = empty();
     			attr_dev(path, "d", "M24 17.981h-13l-7 5.02v-5.02h-4v-16.981h24v16.981zm-11-9.98h-2v6h2v-6zm-1-1.5c.69 0 1.25-.56 1.25-1.25s-.56-1.25-1.25-1.25-1.25.56-1.25 1.25.56 1.25 1.25 1.25z");
-    			add_location(path, file$3, 31, 7, 625);
+    			add_location(path, file$3, 67, 7, 1753);
     			attr_dev(svg, "id", "svg-info");
     			attr_dev(svg, "width", "24");
     			attr_dev(svg, "height", "24");
@@ -26120,11 +26130,11 @@ var app = (function () {
     			attr_dev(svg, "fill-rule", "evenodd");
     			attr_dev(svg, "clip-rule", "evenodd");
     			attr_dev(svg, "fill", "#fff");
-    			attr_dev(svg, "class", "svelte-ksxdb0");
-    			add_location(svg, file$3, 23, 4, 447);
-    			attr_dev(button, "class", "about svelte-ksxdb0");
-    			add_location(button, file$3, 22, 2, 404);
-    			add_location(div, file$3, 21, 0, 396);
+    			attr_dev(svg, "class", "svelte-1824m3f");
+    			add_location(svg, file$3, 59, 4, 1575);
+    			attr_dev(button, "class", "about svelte-1824m3f");
+    			add_location(button, file$3, 58, 2, 1532);
+    			add_location(div, file$3, 57, 0, 1524);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -26198,6 +26208,11 @@ var app = (function () {
     	return block;
     }
 
+    function transitionend(e) {
+    	const node = e.target;
+    	node.focus();
+    }
+
     function instance$3($$self, $$props, $$invalidate) {
     	let $isOpen;
     	let $faq;
@@ -26222,6 +26237,42 @@ var app = (function () {
     		$$invalidate(1, showDropdown = false);
     	}
 
+    	function keydown(e) {
+    		e.stopPropagation();
+
+    		if (e.key === "Escape") {
+    			close();
+    		}
+    	}
+
+    	// ref: https://dev.to/vibhanshu909/how-to-create-a-full-featured-modal-component-in-svelte-and-trap-focus-within-474i
+    	function modalAction(node) {
+    		const returnFn = [];
+
+    		// for accessibility
+    		if (document.body.style.overflow !== "hidden") {
+    			const original = document.body.style.overflow;
+    			document.body.style.overflow = "hidden";
+
+    			returnFn.push(() => {
+    				document.body.style.overflow = original;
+    			});
+    		}
+
+    		node.addEventListener("keydown", keydown);
+    		node.addEventListener("transitionend", transitionend);
+    		node.focus();
+
+    		returnFn.push(() => {
+    			node.removeEventListener("keydown", keydown);
+    			node.removeEventListener("transitionend", transitionend);
+    		});
+
+    		return {
+    			destroy: () => returnFn.forEach(fn => fn())
+    		};
+    	}
+
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
@@ -26240,6 +26291,9 @@ var app = (function () {
     		showDropdown,
     		expandAll,
     		collapseAll,
+    		keydown,
+    		transitionend,
+    		modalAction,
     		$isOpen,
     		$faq
     	});
@@ -26262,7 +26316,8 @@ var app = (function () {
     		open,
     		close,
     		expandAll,
-    		collapseAll
+    		collapseAll,
+    		modalAction
     	];
     }
 

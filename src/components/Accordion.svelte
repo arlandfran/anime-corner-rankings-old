@@ -14,7 +14,13 @@
   }
 </script>
 
-<div class="accordion" class:active={showDropdown} on:click={toggleDropdown}>
+<div
+  class="accordion"
+  class:active={showDropdown}
+  on:click={toggleDropdown}
+  on:keypress={toggleDropdown}
+  tabindex="0"
+>
   <h3>{question}</h3>
 </div>
 {#if showDropdown || showAll}
@@ -36,6 +42,10 @@
   .active,
   .accordion:hover {
     color: var(--primary-color);
+  }
+
+  .panel {
+    margin-top: 1rem;
   }
 
   h3 {
