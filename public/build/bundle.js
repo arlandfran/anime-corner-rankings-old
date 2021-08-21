@@ -24109,7 +24109,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (73:2) {#if isActive}
+    // (78:2) {#if isActive}
     function create_if_block$3(ctx) {
     	let div3;
     	let div0;
@@ -24162,15 +24162,15 @@ var app = (function () {
     			t3 = space();
     			html_tag = new HtmlTag();
     			attr_dev(h2, "class", "title svelte-ep6avi");
-    			add_location(h2, file$5, 75, 8, 1759);
-    			add_location(div0, file$5, 74, 6, 1745);
+    			add_location(h2, file$5, 80, 8, 1818);
+    			add_location(div0, file$5, 79, 6, 1804);
     			attr_dev(div1, "class", "pills svelte-ep6avi");
-    			add_location(div1, file$5, 77, 6, 1809);
+    			add_location(div1, file$5, 82, 6, 1868);
     			attr_dev(div2, "class", "links svelte-ep6avi");
-    			add_location(div2, file$5, 82, 6, 1940);
+    			add_location(div2, file$5, 87, 6, 1999);
     			html_tag.a = null;
     			attr_dev(div3, "class", "card-content svelte-ep6avi");
-    			add_location(div3, file$5, 73, 4, 1712);
+    			add_location(div3, file$5, 78, 4, 1771);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div3, anchor);
@@ -24266,14 +24266,14 @@ var app = (function () {
     		block,
     		id: create_if_block$3.name,
     		type: "if",
-    		source: "(73:2) {#if isActive}",
+    		source: "(78:2) {#if isActive}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (79:8) {#each genres as genres}
+    // (84:8) {#each genres as genres}
     function create_each_block_1$1(ctx) {
     	let div;
     	let t_value = /*genres*/ ctx[9] + "";
@@ -24284,7 +24284,7 @@ var app = (function () {
     			div = element("div");
     			t = text(t_value);
     			attr_dev(div, "class", "pill svelte-ep6avi");
-    			add_location(div, file$5, 79, 10, 1872);
+    			add_location(div, file$5, 84, 10, 1931);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -24302,14 +24302,14 @@ var app = (function () {
     		block,
     		id: create_each_block_1$1.name,
     		type: "each",
-    		source: "(79:8) {#each genres as genres}",
+    		source: "(84:8) {#each genres as genres}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (86:8) {:else}
+    // (91:8) {:else}
     function create_else_block$1(ctx) {
     	let t;
     	let each_1_anchor;
@@ -24404,14 +24404,14 @@ var app = (function () {
     		block,
     		id: create_else_block$1.name,
     		type: "else",
-    		source: "(86:8) {:else}",
+    		source: "(91:8) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (84:8) {#if externalLinks.length == 0}
+    // (89:8) {#if externalLinks.length == 0}
     function create_if_block_1$1(ctx) {
     	let t;
 
@@ -24434,14 +24434,14 @@ var app = (function () {
     		block,
     		id: create_if_block_1$1.name,
     		type: "if",
-    		source: "(84:8) {#if externalLinks.length == 0}",
+    		source: "(89:8) {#if externalLinks.length == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (97:48) 
+    // (102:48) 
     function create_if_block_3$1(ctx) {
     	let await_block_anchor;
     	let current;
@@ -24501,14 +24501,14 @@ var app = (function () {
     		block,
     		id: create_if_block_3$1.name,
     		type: "if",
-    		source: "(97:48) ",
+    		source: "(102:48) ",
     		ctx
     	});
 
     	return block;
     }
 
-    // (89:12) {#if link.site == "Crunchyroll"}
+    // (94:12) {#if link.site == "Crunchyroll"}
     function create_if_block_2$1(ctx) {
     	let await_block_anchor;
     	let current;
@@ -24568,7 +24568,7 @@ var app = (function () {
     		block,
     		id: create_if_block_2$1.name,
     		type: "if",
-    		source: "(89:12) {#if link.site == \\\"Crunchyroll\\\"}",
+    		source: "(94:12) {#if link.site == \\\"Crunchyroll\\\"}",
     		ctx
     	});
 
@@ -24597,7 +24597,7 @@ var app = (function () {
     	return block;
     }
 
-    // (100:14) {:then logo}
+    // (105:14) {:then logo}
     function create_then_block_1(ctx) {
     	let a;
     	let img;
@@ -24613,11 +24613,11 @@ var app = (function () {
     			if (!src_url_equal(img.src, img_src_value = /*logo*/ ctx[16])) attr_dev(img, "src", img_src_value);
     			attr_dev(img, "alt", "");
     			attr_dev(img, "class", "funimation svelte-ep6avi");
-    			add_location(img, file$5, 101, 18, 2754);
+    			add_location(img, file$5, 106, 18, 2813);
     			attr_dev(a, "href", a_href_value = /*link*/ ctx[13].url);
     			attr_dev(a, "class", "link svelte-ep6avi");
     			attr_dev(a, "target", "_blank");
-    			add_location(a, file$5, 100, 16, 2687);
+    			add_location(a, file$5, 105, 16, 2746);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, a, anchor);
@@ -24641,14 +24641,14 @@ var app = (function () {
     		block,
     		id: create_then_block_1.name,
     		type: "then",
-    		source: "(100:14) {:then logo}",
+    		source: "(105:14) {:then logo}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (98:44)                  <Circle size="32" unit="px" color="#65b893" />               {:then logo}
+    // (103:44)                  <Circle size="32" unit="px" color="#65b893" />               {:then logo}
     function create_pending_block_1(ctx) {
     	let circle;
     	let t;
@@ -24689,7 +24689,7 @@ var app = (function () {
     		block,
     		id: create_pending_block_1.name,
     		type: "pending",
-    		source: "(98:44)                  <Circle size=\\\"32\\\" unit=\\\"px\\\" color=\\\"#65b893\\\" />               {:then logo}",
+    		source: "(103:44)                  <Circle size=\\\"32\\\" unit=\\\"px\\\" color=\\\"#65b893\\\" />               {:then logo}",
     		ctx
     	});
 
@@ -24718,7 +24718,7 @@ var app = (function () {
     	return block;
     }
 
-    // (92:14) {:then logo}
+    // (97:14) {:then logo}
     function create_then_block(ctx) {
     	let a;
     	let img;
@@ -24734,11 +24734,11 @@ var app = (function () {
     			if (!src_url_equal(img.src, img_src_value = /*logo*/ ctx[16])) attr_dev(img, "src", img_src_value);
     			attr_dev(img, "alt", "");
     			attr_dev(img, "class", "crunchyroll svelte-ep6avi");
-    			add_location(img, file$5, 93, 18, 2397);
+    			add_location(img, file$5, 98, 18, 2456);
     			attr_dev(a, "href", a_href_value = /*link*/ ctx[13].url);
     			attr_dev(a, "class", "link svelte-ep6avi");
     			attr_dev(a, "target", "_blank");
-    			add_location(a, file$5, 92, 16, 2330);
+    			add_location(a, file$5, 97, 16, 2389);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, a, anchor);
@@ -24762,14 +24762,14 @@ var app = (function () {
     		block,
     		id: create_then_block.name,
     		type: "then",
-    		source: "(92:14) {:then logo}",
+    		source: "(97:14) {:then logo}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (90:45)                  <Circle size="32" unit="px" color="#65b893" />               {:then logo}
+    // (95:45)                  <Circle size="32" unit="px" color="#65b893" />               {:then logo}
     function create_pending_block(ctx) {
     	let circle;
     	let t;
@@ -24810,14 +24810,14 @@ var app = (function () {
     		block,
     		id: create_pending_block.name,
     		type: "pending",
-    		source: "(90:45)                  <Circle size=\\\"32\\\" unit=\\\"px\\\" color=\\\"#65b893\\\" />               {:then logo}",
+    		source: "(95:45)                  <Circle size=\\\"32\\\" unit=\\\"px\\\" color=\\\"#65b893\\\" />               {:then logo}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (88:10) {#each externalLinks as link}
+    // (93:10) {#each externalLinks as link}
     function create_each_block$2(ctx) {
     	let current_block_type_index;
     	let if_block;
@@ -24907,7 +24907,7 @@ var app = (function () {
     		block,
     		id: create_each_block$2.name,
     		type: "each",
-    		source: "(88:10) {#each externalLinks as link}",
+    		source: "(93:10) {#each externalLinks as link}",
     		ctx
     	});
 
@@ -24965,6 +24965,7 @@ var app = (function () {
     			t2 = space();
     			if (if_block) if_block.c();
     			attr_dev(div0, "class", "card svelte-ep6avi");
+    			attr_dev(div0, "tabindex", "0");
     			add_location(div0, file$5, 67, 2, 1502);
     			attr_dev(div1, "class", "wrapper svelte-ep6avi");
     			add_location(div1, file$5, 66, 0, 1478);
@@ -24985,7 +24986,11 @@ var app = (function () {
     			current = true;
 
     			if (!mounted) {
-    				dispose = listen_dev(div0, "click", /*toggleActive*/ ctx[12], false, false, false);
+    				dispose = [
+    					listen_dev(div0, "click", /*toggleActive*/ ctx[12], false, false, false),
+    					listen_dev(div0, "keypress", /*toggleActive*/ ctx[12], false, false, false)
+    				];
+
     				mounted = true;
     			}
     		},
@@ -25050,7 +25055,7 @@ var app = (function () {
     			destroy_component(itemdetails);
     			if (if_block) if_block.d();
     			mounted = false;
-    			dispose();
+    			run_all(dispose);
     		}
     	};
 

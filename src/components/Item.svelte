@@ -65,7 +65,12 @@
 </script>
 
 <div class="wrapper">
-  <div class="card" on:click={toggleActive}>
+  <div
+    class="card"
+    on:click={toggleActive}
+    on:keypress={toggleActive}
+    tabindex="0"
+  >
     <ItemRank {rank} />
     <ItemBanner {banner} {title} />
     <ItemDetails {rank} {previousRank} {votes} {previousVotes} {isActive} />
