@@ -79,6 +79,16 @@ The process of how all the data is pulled can be found in [docs/sourcing-the-dat
 - [Git](https://git-scm.com/) - Version Control System
 - [Github](https://github.com/) - Code Hosting Platform
 
+### Frameworks / Packages 
+- [Svelte](https://svelte.dev/) Javascript Framework
+- [Cloud Firestore](https://firebase.google.com/products/firestore) - NoSQL Database
+- [Cloud Functions](https://firebase.google.com/docs/functions/#:~:text=Implementation%20path%20%20%20Set%20up%20Cloud%20Functions,billing%20for%20your%20project%20and%20depl%20...%20) - Serverless functions
+
+### Data Sources
+- [Anime Corner](https://animecorner.me/category/anime-corner/rankings/anime-of-the-week/) - Ranking Data Source
+- [Anilist API](https://anilist.gitbook.io/anilist-apiv2-docs/) - Anime/Manga Discovery Platform
+- [Kitsu.io API](https://kitsu.docs.apiary.io/) - Anime/Manga Discovery Platform
+
 ## Testing
 
 Testing is documented in [docs/testing.md](./docs/testing.md).
