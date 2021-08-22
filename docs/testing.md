@@ -8,7 +8,7 @@ Back to [README](../README.md)
 - [User Story Testing](#user-story-testing)
 - [Manual Testing](#manual-testing)
 - [Bug Fixes](#bug-fixes)
-- [Defensive Design & Edge Cases](#defensive-design-and-edge-cases)
+- [Defensive Design & Edge Cases](#defensive-design-&-edge-cases)
 
 ## Code Validation
 
