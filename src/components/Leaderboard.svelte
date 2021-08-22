@@ -18,17 +18,17 @@
   import { checkCache, cacheData } from "../cache";
 
   const color = "#f3667b";
-
-  let seasons = [];
-  let weeks = [];
-  let items = [];
-  let weekDisabled = false;
-
   // initialize page btn states
   const nextState = nextButtonState(false);
   const prevState = prevButtonState(false);
   const { next, enableNext, disableNext } = nextState;
   const { prev, enablePrev, disablePrev } = prevState;
+
+  let seasons = [];
+  let weeks = [];
+  let items = [];
+  let weekDisabled = false;
+  let fired = false;
 
   let query = db
     .collection($year)
@@ -247,11 +247,49 @@
       updateItems();
     }
   }
+
+  const onClickPrev = debounceClicks(() => goPrev());
+  const onClickNext = debounceClicks(() => goNext());
+
+  // https://www.freecodecamp.org/news/javascript-debounce-example/
+  function debounceClicks(func, timeout = 300) {
+    let timer;
+    return (...args) => {
+      if (!timer) {
+        func.apply(this, args);
+      }
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        timer = undefined;
+      }, timeout);
+    };
+  }
+
+  document.addEventListener("keydown", (e) => {
+    // prevent key being held down from calling function
+    if (!fired) {
+      fired = true;
+      if (e.code === "KeyA" || e.code === "ArrowLeft") {
+        if (!$prev) {
+          goPrev();
+        }
+      }
+      if (e.code === "KeyD" || e.code === "ArrowRight") {
+        if (!$next) {
+          goNext();
+        }
+      }
+    }
+  });
+
+  document.addEventListener("keyup", () => {
+    fired = false;
+  });
 </script>
 
 <div class="filters">
   <button
-    on:click={goPrev}
+    on:click={onClickPrev}
     class="arrow"
     id="prev-btn"
     aria-label="Previous Page"
@@ -301,7 +339,11 @@
     </select>
   {/if}
 
-  <button on:click={goNext} class="arrow" id="next-btn" aria-label="Next Page"
+  <button
+    on:click={onClickNext}
+    class="arrow"
+    id="next-btn"
+    aria-label="Next Page"
     ><svg
       class:active={!$next}
       class:disabled={$next}
@@ -326,7 +368,7 @@
   {:else}
     {#each items as item (item.title)}
       <div
-        animate:flip={{ duration: 500 }}
+        animate:flip={{ duration: 600 }}
         in:fade={{ duration: 500 }}
         out:fade={{ duration: 300 }}
       >
