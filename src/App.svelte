@@ -56,7 +56,7 @@
   main {
     text-align: center;
     min-width: 288px;
-    max-width: 1024px;
+    max-width: 768px;
     margin: 0 auto;
   }
 

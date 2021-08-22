@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { fade } from "svelte/transition";
   import { flip } from "svelte/animate";
+  import { media } from "../stores";
   import { Circle } from "svelte-loading-spinners";
   import { db, cf } from "../firebase";
   import Item from "./Item.svelte";
@@ -365,6 +366,10 @@
     <div class="loading">
       <Circle size="64" unit="px" {color} />
     </div>
+  {:else if $media.noanimations === true}
+    {#each items as item (item.title)}
+      <Item {...item} isActive={$isActive} />
+    {/each}
   {:else}
     {#each items as item (item.title)}
       <div
