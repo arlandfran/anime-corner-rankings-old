@@ -115,3 +115,28 @@ All remaining Svelte errors and warnings were as follows:
 
     1. A link is provided at the footer of the site directing users where to vote. 
     2. A link is also provided in the About modal as frequently asked question.
+
+## Manual Testing
+
+__Navigation__ 
+
+The following steps were taken to test navigation:
+
+1. Navigate to the site and confirm the latest week is displayed and the next button is disabled.
+2. Press the back button confirm the previous week is displayed.
+3. Press the back button until Week 1 is dispayed and confirm the back button is disabled.
+4. Press the next button until the last/most current week is displayed and confirm the next button is disabled.
+5. Select the week dropdown and on selection confirm the correct week is displayed.
+6. Select the season dropdown and on selection confirm the correct season is displayed.
+7. Rapidly click the back and next buttons and confirm that the rankings do not respond to quick successions of clicks.
+8. Press the A key and confirm the rankings display the previous week.
+9. Press the D key and confirm the rankings display the next week.
+10. Press the < arrow key and confirm the rankings display the previous week.
+11. Press the > arrow key and confirm the rankings display the next week.
+12. Press the < and > arrow keys and confirm the rankings do not respond to rapid key presses.
+13. Hold down the < and > arrow keys and confirm the rankings do not respond to held down key presses.
+14. Press tab and confirm that elements are tabbed in logical order from top to bottom.
+15. Open the About modal and confirm the modal displays correctly.
+16. Press tab and confirm that elements are tabbed in logical order and that the user cannot tab outside the modal.
+17. Go back to main page and confirm that all links open in a new tab.
+18. Open the modal, expand each question and confirm all links open in a new tab.
