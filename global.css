@@ -36,9 +36,9 @@ body {
 }
 
 a {
-  color: var(--primary-color);
   text-decoration: underline;
   font-weight: bold;
+  color: white;
 }
 
 a:hover,
@@ -48,7 +48,7 @@ a:focus {
 }
 
 a:visited {
-  color: #e57f10;
+  color: var(--gain-color);
 }
 
 label {
