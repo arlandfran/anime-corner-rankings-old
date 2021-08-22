@@ -57,7 +57,7 @@
 </script>
 
 <div>
-  <button class="about" on:click={open}>
+  <button class="about" on:click={open} aria-label="Open About Modal">
     <svg
       id="svg-info"
       width="24"

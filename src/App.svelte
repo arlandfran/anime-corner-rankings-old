@@ -37,7 +37,7 @@
   <Leaderboard />
 </main>
 
-<button on:click={goTop} class:hidden
+<button on:click={goTop} class:hidden aria-label="Back To Top"
   ><svg
     id="arrow"
     xmlns="http://www.w3.org/2000/svg"
