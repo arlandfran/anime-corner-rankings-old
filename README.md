@@ -58,7 +58,11 @@ The color palette consists of colors found on the weekly ranking graphic. [WebAi
 
 - Responsive Design
 - Paginated Data
-- Dynamic theming based on filter
+- Interactive Navigation
+- Dynamic Animations
+- Conditional CSS Styling
+- Asynchronous Loading
+- Accessible Design & Functionality
 
 ## Where does the data come from?
 
@@ -174,7 +178,7 @@ To run this project locally on your machine, you will need a [Github account](ht
 git clone https://github.com/USERNAME/REPOSITORY
 ```
 
-2. After cloning the repository, navigate to the project directory in terminal and install its dependencies.
+2. After cloning the repository, navigate to the project directory in terminal and install its dependencies by running `npm i` in the terminal.
 
 ```
 cd path/to/project/directory
@@ -183,3 +187,26 @@ npm i
 ```
 
 3. Once the dependencies are installed, you can run `npm run dev` which will start a server on [http://localhost:5000](http://localhost:5000/). This will also watch for any project changes and update the website automatically.
+
+## Setting up Cloud Firestore
+
+The steps for setting up a Cloud Firestore database can be found [here](https://firebase.google.com/docs/firestore/quickstart#:~:text=%20Create%20a%20Cloud%20Firestore%20database%20%201,Cloud%20Platform%20%28GCP%29...%205%20Click%20Done.%20More%20)
+
+Once the database has been set up, generate a Firebase Admin SDK key which is needed to run the scraper. You can do this by going to your project settings > Service Accounts > Firebase Admin SDK > Generate new private key. This will download a JSON which you need to include in the project directory and link to in scripts/scrape.js. Once you've done that you can run `npm run scrape` and that should start the scraper and add the latest rankings to your firestore database.
+
+## Setting up the Anilist & Kitsu API's
+
+Both the Anilists & Kitsu API's are public API's which mean they require no keys to make a fetch request. The endpoints are graphql.anilist.co/ & kitsu.io/api/graphql/.
+
+## Credits / Acknowledgements
+
+References:
+
+- [https://simplernerd.com/js-iterate-json/#:~:text=We%E2%80%99ll%20go%20over%20a%20few%20ways%20JavaScript%20allows,and%20values%20in%20a%20bunch%20of%20different%20ways.](https://simplernerd.com/js-iterate-json/#:~:text=We%E2%80%99ll%20go%20over%20a%20few%20ways%20JavaScript%20allows,and%20values%20in%20a%20bunch%20of%20different%20ways.)
+- [https://firebase.google.com/docs/firestore/manage-data/add-data](https://firebase.google.com/docs/firestore/manage-data/add-data)
+- [https://blog.stranianelli.com/svelte-et-github-english/](https://blog.stranianelli.com/svelte-et-github-english/)
+- [https://stackoverflow.com/questions/46614055/map-items-of-collection-snapshot-in-firebase-firestore](https://stackoverflow.com/questions/46614055/map-items-of-collection-snapshot-in-firebase-firestore)
+- [https://stackoverflow.com/questions/64092593/svelte-is-there-a-way-to-cache-the-api-result-in-a-way-that-it-wont-trigger-th](https://stackoverflow.com/questions/64092593/svelte-is-there-a-way-to-cache-the-api-result-in-a-way-that-it-wont-trigger-th)
+
+- The Code Institute Slack community for all the great resources, tips and support.
+- My mentor Precious Ijege for his support and feedback with the project.
