@@ -248,11 +248,11 @@
     }
   }
 
-  const onClickPrev = debounceClicks(() => goPrev());
-  const onClickNext = debounceClicks(() => goNext());
+  const debouncePrev = debounce(() => goPrev());
+  const debounceNext = debounce(() => goNext());
 
   // https://www.freecodecamp.org/news/javascript-debounce-example/
-  function debounceClicks(func, timeout = 300) {
+  function debounce(func, timeout = 300) {
     let timer;
     return (...args) => {
       if (!timer) {
@@ -271,12 +271,12 @@
       fired = true;
       if (e.code === "KeyA" || e.code === "ArrowLeft") {
         if (!$prev) {
-          goPrev();
+          debouncePrev();
         }
       }
       if (e.code === "KeyD" || e.code === "ArrowRight") {
         if (!$next) {
-          goNext();
+          debounceNext();
         }
       }
     }

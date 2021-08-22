@@ -27148,8 +27148,8 @@ var app = (function () {
     			}
 
     			attr_dev(select, "aria-label", "Select Season");
-    			if (/*$season*/ ctx[7] === void 0) add_render_callback(() => /*select_change_handler*/ ctx[15].call(select));
-    			add_location(select, file$2, 315, 4, 7535);
+    			if (/*$season*/ ctx[7] === void 0) add_render_callback(() => /*select_change_handler*/ ctx[13].call(select));
+    			add_location(select, file$2, 315, 4, 7531);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -27162,7 +27162,7 @@ var app = (function () {
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(select, "change", /*select_change_handler*/ ctx[15]),
+    					listen_dev(select, "change", /*select_change_handler*/ ctx[13]),
     					listen_dev(select, "change", /*updateSeason*/ ctx[11], false, false, false)
     				];
 
@@ -27229,9 +27229,9 @@ var app = (function () {
     			option.textContent = "Loading...";
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file$2, 311, 6, 7426);
+    			add_location(option, file$2, 311, 6, 7422);
     			attr_dev(select, "aria-label", "Select Season");
-    			add_location(select, file$2, 310, 4, 7384);
+    			add_location(select, file$2, 310, 4, 7380);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -27268,7 +27268,7 @@ var app = (function () {
     			attr_dev(option, "class", "dropdown-item svelte-168ebyw");
     			option.__value = option_value_value = /*season*/ ctx[39];
     			option.value = option.__value;
-    			add_location(option, file$2, 321, 8, 7680);
+    			add_location(option, file$2, 321, 8, 7676);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
@@ -27320,8 +27320,8 @@ var app = (function () {
     			}
 
     			attr_dev(select, "aria-label", "Select Week");
-    			if (/*$week*/ ctx[6] === void 0) add_render_callback(() => /*select_change_handler_1*/ ctx[16].call(select));
-    			add_location(select, file$2, 332, 4, 7975);
+    			if (/*$week*/ ctx[6] === void 0) add_render_callback(() => /*select_change_handler_1*/ ctx[14].call(select));
+    			add_location(select, file$2, 332, 4, 7971);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -27334,7 +27334,7 @@ var app = (function () {
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(select, "change", /*select_change_handler_1*/ ctx[16]),
+    					listen_dev(select, "change", /*select_change_handler_1*/ ctx[14]),
     					listen_dev(select, "change", /*updateItems*/ ctx[12], false, false, false)
     				];
 
@@ -27401,9 +27401,9 @@ var app = (function () {
     			option.textContent = "Loading...";
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file$2, 328, 6, 7866);
+    			add_location(option, file$2, 328, 6, 7862);
     			attr_dev(select, "aria-label", "Select Week");
-    			add_location(select, file$2, 327, 4, 7826);
+    			add_location(select, file$2, 327, 4, 7822);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -27442,7 +27442,7 @@ var app = (function () {
     			attr_dev(option, "class", "dropdown-item svelte-168ebyw");
     			option.__value = option_value_value = /*week*/ ctx[36];
     			option.value = option.__value;
-    			add_location(option, file$2, 334, 8, 8088);
+    			add_location(option, file$2, 334, 8, 8084);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
@@ -27570,7 +27570,7 @@ var app = (function () {
     			div = element("div");
     			create_component(circle.$$.fragment);
     			attr_dev(div, "class", "loading svelte-168ebyw");
-    			add_location(div, file$2, 364, 4, 8806);
+    			add_location(div, file$2, 364, 4, 8802);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -27630,7 +27630,7 @@ var app = (function () {
     			div = element("div");
     			create_component(item.$$.fragment);
     			t = space();
-    			add_location(div, file$2, 369, 6, 8939);
+    			add_location(div, file$2, 369, 6, 8935);
     			this.first = div;
     		},
     		m: function mount(target, anchor) {
@@ -27767,7 +27767,7 @@ var app = (function () {
     			div1 = element("div");
     			if_block2.c();
     			attr_dev(path0, "d", "M24 20.205L21.005 23.185L9.873 12L21.005 0.813972L24 3.79497L15.833 12L24 20.205V20.205ZM5.96 12L14.127 3.79497L11.132 0.814974L0 12L11.132 23.186L14.127 20.206L5.96 12V12Z");
-    			add_location(path0, file$2, 303, 7, 7135);
+    			add_location(path0, file$2, 303, 7, 7131);
     			attr_dev(svg0, "xmlns", "http://www.w3.org/2000/svg");
     			attr_dev(svg0, "width", "16");
     			attr_dev(svg0, "height", "16");
@@ -27775,13 +27775,13 @@ var app = (function () {
     			attr_dev(svg0, "class", "svelte-168ebyw");
     			toggle_class(svg0, "active", !/*$prev*/ ctx[5]);
     			toggle_class(svg0, "disabled", /*$prev*/ ctx[5]);
-    			add_location(svg0, file$2, 296, 4, 6964);
+    			add_location(svg0, file$2, 296, 4, 6960);
     			attr_dev(button0, "class", "arrow svelte-168ebyw");
     			attr_dev(button0, "id", "prev-btn");
     			attr_dev(button0, "aria-label", "Previous Page");
-    			add_location(button0, file$2, 290, 2, 6854);
+    			add_location(button0, file$2, 290, 2, 6850);
     			attr_dev(path1, "d", "M0 3.795l2.995-2.98 11.132 11.185-11.132 11.186-2.995-2.981 8.167-8.205-8.167-8.205zm18.04 8.205l-8.167 8.205 2.995 2.98 11.132-11.185-11.132-11.186-2.995 2.98 8.167 8.206z");
-    			add_location(path1, file$2, 353, 7, 8509);
+    			add_location(path1, file$2, 353, 7, 8505);
     			attr_dev(svg1, "xmlns", "http://www.w3.org/2000/svg");
     			attr_dev(svg1, "width", "16");
     			attr_dev(svg1, "height", "16");
@@ -27789,15 +27789,15 @@ var app = (function () {
     			attr_dev(svg1, "class", "svelte-168ebyw");
     			toggle_class(svg1, "active", !/*$next*/ ctx[4]);
     			toggle_class(svg1, "disabled", /*$next*/ ctx[4]);
-    			add_location(svg1, file$2, 346, 5, 8338);
+    			add_location(svg1, file$2, 346, 5, 8334);
     			attr_dev(button1, "class", "arrow svelte-168ebyw");
     			attr_dev(button1, "id", "next-btn");
     			attr_dev(button1, "aria-label", "Next Page");
-    			add_location(button1, file$2, 341, 2, 8235);
+    			add_location(button1, file$2, 341, 2, 8231);
     			attr_dev(div0, "class", "filters svelte-168ebyw");
-    			add_location(div0, file$2, 289, 0, 6830);
+    			add_location(div0, file$2, 289, 0, 6826);
     			attr_dev(div1, "class", "rankings svelte-168ebyw");
-    			add_location(div1, file$2, 362, 0, 8753);
+    			add_location(div1, file$2, 362, 0, 8749);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -27824,8 +27824,8 @@ var app = (function () {
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(button0, "click", /*onClickPrev*/ ctx[13], false, false, false),
-    					listen_dev(button1, "click", /*onClickNext*/ ctx[14], false, false, false)
+    					listen_dev(button0, "click", onClickPrev, false, false, false),
+    					listen_dev(button1, "click", onClickNext, false, false, false)
     				];
 
     				mounted = true;
@@ -27936,7 +27936,7 @@ var app = (function () {
     const color = "#f3667b";
 
     // https://www.freecodecamp.org/news/javascript-debounce-example/
-    function debounceClicks(func, timeout = 300) {
+    function debounce(func, timeout = 300) {
     	let timer;
 
     	return (...args) => {
@@ -27968,9 +27968,9 @@ var app = (function () {
     	validate_store(season, 'season');
     	component_subscribe($$self, season, $$value => $$invalidate(7, $season = $$value));
     	validate_store(year, 'year');
-    	component_subscribe($$self, year, $$value => $$invalidate(19, $year = $$value));
+    	component_subscribe($$self, year, $$value => $$invalidate(17, $year = $$value));
     	validate_store(page, 'page');
-    	component_subscribe($$self, page, $$value => $$invalidate(20, $page = $$value));
+    	component_subscribe($$self, page, $$value => $$invalidate(18, $page = $$value));
     	validate_store(isActive, 'isActive');
     	component_subscribe($$self, isActive, $$value => $$invalidate(8, $isActive = $$value));
     	let { $$slots: slots = {}, $$scope } = $$props;
@@ -28186,8 +28186,8 @@ var app = (function () {
     		}
     	}
 
-    	const onClickPrev = debounceClicks(() => goPrev());
-    	const onClickNext = debounceClicks(() => goNext());
+    	const debouncePrev = debounce(() => goPrev());
+    	const debounceNext = debounce(() => goNext());
 
     	document.addEventListener("keydown", e => {
     		// prevent key being held down from calling function
@@ -28196,13 +28196,13 @@ var app = (function () {
 
     			if (e.code === "KeyA" || e.code === "ArrowLeft") {
     				if (!$prev) {
-    					goPrev();
+    					debouncePrev();
     				}
     			}
 
     			if (e.code === "KeyD" || e.code === "ArrowRight") {
     				if (!$next) {
-    					goNext();
+    					debounceNext();
     				}
     			}
     		}
@@ -28271,9 +28271,9 @@ var app = (function () {
     		fetchBanners,
     		goPrev,
     		goNext,
-    		onClickPrev,
-    		onClickNext,
-    		debounceClicks,
+    		debouncePrev,
+    		debounceNext,
+    		debounce,
     		$next,
     		$prev,
     		$week,
@@ -28310,8 +28310,6 @@ var app = (function () {
     		prev,
     		updateSeason,
     		updateItems,
-    		onClickPrev,
-    		onClickNext,
     		select_change_handler,
     		select_change_handler_1
     	];
