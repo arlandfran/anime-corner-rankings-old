@@ -5,6 +5,7 @@ Back to [README](../README.md)
 ## Contents
 
 - [Code Validation](#code-validation)
+- [User Story Testing](#user-story-testing)
 
 ## Code Validation
 
@@ -87,3 +88,30 @@ All remaining Svelte errors and warnings were as follows:
   This was left as is because we know that each object in the data array has a property and it keeps the code more readable.
 
 - Functions declared within loops referencing an outer scoped variable may lead to confusing semantics. (console, banner, fetchKitsuBanners, title) - The code is commented so semantics should be clear.
+
+## User Story Testing
+
+1. As a user I want to be able to see the weekly anime ranking so I can see what is currently popular.
+
+    1. Uses can navigate to the site and see the top 15 anime of the current week.
+
+2. As a user I want to be able to select and view each anime so that I can find out more information about it.
+
+    1. Users can click on a ranking and it expands a dropdown containing a description of the anime and what categories the anime is classed in.
+
+3. As a user I want to be able to see what anime streaming platform each anime is available on so that I can watch the anime for myself if I am interested.
+
+    1. Users can expand a ranking dropdown and see if the anime is streamed on either Crunchyroll or Funimation.
+    2. Users can click on a streamer logo and the anime page on the streamer site will open in a new tab.
+    3. If the show is not found on any streamer site then appropriate messaging is shown.
+
+4. As a user I want to be able to see what was popular last week or further back so that I can track popularity trends or discover new anime.
+
+    1. Users can use the arrow buttons and select dropdowns to go back and forth through past rankings.
+    2. Users can see a rankings past standing on the ranking card to track popularity.
+    3. Users can navigate using the keyboard for easier browsing of past rankings.
+
+5. As a user I want to be able to vote for the current week's top anime so that I can contribute to the rankings.
+
+    1. A link is provided at the footer of the site directing users where to vote. 
+    2. A link is also provided in the About modal as frequently asked question.
