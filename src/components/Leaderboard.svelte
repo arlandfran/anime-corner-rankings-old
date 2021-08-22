@@ -289,7 +289,7 @@
 
 <div class="filters">
   <button
-    on:click={onClickPrev}
+    on:click={debouncePrev}
     class="arrow"
     id="prev-btn"
     aria-label="Previous Page"
@@ -340,7 +340,7 @@
   {/if}
 
   <button
-    on:click={onClickNext}
+    on:click={debounceNext}
     class="arrow"
     id="next-btn"
     aria-label="Next Page"
