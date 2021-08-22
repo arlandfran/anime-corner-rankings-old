@@ -368,7 +368,7 @@
   {:else}
     {#each items as item (item.title)}
       <div
-        animate:flip={{ duration: 600 }}
+        animate:flip={{ duration: 850 }}
         in:fade={{ duration: 500 }}
         out:fade={{ duration: 300 }}
       >

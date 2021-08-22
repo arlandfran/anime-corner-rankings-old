@@ -27661,7 +27661,7 @@ var app = (function () {
     		},
     		a: function animate() {
     			stop_animation();
-    			stop_animation = create_animation(div, rect, flip, { duration: 600 });
+    			stop_animation = create_animation(div, rect, flip, { duration: 850 });
     		},
     		i: function intro(local) {
     			if (current) return;
