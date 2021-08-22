@@ -152,3 +152,20 @@ The following steps were taken to test responsiveness:
 4. Expand the viewport to 1024px and confirm the rankings stop expanding horizontally.
 
 Website responsiveness was also test on [Google's Mobile Friendly Test](https://search.google.com/test/mobile-friendly) - Passed and [Website Responsive Test](https://websiteresponsivetest.com/) - All devices test.
+
+__Accessibility_
+
+The following steps were taken to test accessibility:
+
+1. Navigate to the site, open browser dev tools and toggle prefers-reduced-motion.
+2. Press the back button and confirm there is no transition animation for the rankings.
+3. Press on a ranking and confirm that there is no animation for the ranking dropdown.
+4. Press the About modal and confirm there is no fly in animation for the modal.
+5. Scroll down and press the back to top buttona and confirm the scrolling is instant.
+
+Note: Animations considered safe for vestibular disorders such as fades were left in for a better user experience.
+
+Accessiblity was also tested through the [Web Accessibility Evaluation Tool: WAVE](https://wave.webaim.org/) and changes were made to that the site passed with no errors. Changes include adding alt text to every image & aria-labels to every button with no text value.
+![image](https://user-images.githubusercontent.com/47261277/130350903-16b1efe0-395c-4ec5-82a2-2e4007f1f4ce.png)
+
+Accessibility was also tested using [Microsoft's accessibility.io Web Extension](https://accessibilityinsights.io/en/) and the site passed the automatic check with no errors. 
