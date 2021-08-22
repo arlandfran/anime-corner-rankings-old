@@ -35,11 +35,11 @@ Validating this markup will throw errors such as `Attribute on:click is not seri
 
 **CSS**
 
-All CSS styles was validated with the [W3C CSS Validator](https://jigsaw.w3.org/css-validator/) and all changes were made in [5bb8f01](5bb8f019cbc817949c61a1a5dd1dae6fc32a6c33). Every component passed with valid css however when validating by URI, errors are thrown due to the way Svelte compiles the bundle.css file. These are only shown when validating by URI and not by direct input.
+All CSS styles was validated with the [W3C CSS Validator](https://jigsaw.w3.org/css-validator/) and all changes were made in [5bb8f01](https://github.com/arlandfran/anime-corner-rankings/commit/5bb8f019cbc817949c61a1a5dd1dae6fc32a6c33). Every component passed with valid css however when validating by URI, errors are thrown due to the way Svelte compiles the bundle.css file. These are only shown when validating by URI and not by direct input.
 
 **JS**
 
-All Javascript code was validated by [JSHint](https://jshint.com/) and changes can be found on [9f4e2f7](9f4e2f7a7c175ecd61ad5309a368b6a2006c6344). Because Svelte was used, JSHint throws unused variable errors as it doest not recognise the function is called in the markup - example: Accordion.svelte
+All Javascript code was validated by [JSHint](https://jshint.com/) and changes can be found on [9f4e2f7](https://github.com/arlandfran/anime-corner-rankings/commit/9f4e2f7a7c175ecd61ad5309a368b6a2006c6344). Because Svelte was used, JSHint throws unused variable errors as it doest not recognise the function is called in the markup - example: Accordion.svelte
 
 ```
 JSHint: One unused variable toggleDropdown
