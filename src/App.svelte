@@ -6,7 +6,7 @@
   let hidden = true;
 
   function goTop() {
-    document.body.scrollIntoView();
+    window.scrollTo(0, 0);
   }
 
   function scrollContainer() {
