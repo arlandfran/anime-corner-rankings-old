@@ -14,7 +14,6 @@
     isActive,
     nextButtonState,
     prevButtonState,
-    showMoreButtonState,
   } from "../stores";
   import { checkCache, cacheData } from "../cache";
 
@@ -28,7 +27,6 @@
   // initialize page btn states
   const nextState = nextButtonState(false);
   const prevState = prevButtonState(false);
-  const showMoreState = showMoreButtonState(false);
   const { next, enableNext, disableNext } = nextState;
   const { prev, enablePrev, disablePrev } = prevState;
 
