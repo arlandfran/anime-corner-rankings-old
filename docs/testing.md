@@ -6,6 +6,7 @@ Back to [README](../README.md)
 
 - [Code Validation](#code-validation)
 - [User Story Testing](#user-story-testing)
+- [Manual Testing](#manual-testing)
 
 ## Code Validation
 
@@ -140,3 +141,14 @@ The following steps were taken to test navigation:
 16. Press tab and confirm that elements are tabbed in logical order and that the user cannot tab outside the modal.
 17. Go back to main page and confirm that all links open in a new tab.
 18. Open the modal, expand each question and confirm all links open in a new tab.
+
+__Responsiveness__
+
+The following steps were taken to test responsiveness:
+
+1. Navigate to the site, open browser dev tools and toggle device emulation.
+2. Set the viewport to 320px and confirm that elements are displayed correctly.
+3. Expand the viewport to 768px and confirm that rankings details collapse into a row.
+4. Expand the viewport to 1024px and confirm the rankings stop expanding horizontally.
+
+Website responsiveness was also test on [Google's Mobile Friendly Test](https://search.google.com/test/mobile-friendly) - Passed and [Website Responsive Test](https://websiteresponsivetest.com/) - All devices test.
