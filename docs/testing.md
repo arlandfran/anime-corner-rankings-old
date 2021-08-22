@@ -8,6 +8,7 @@ Back to [README](../README.md)
 - [User Story Testing](#user-story-testing)
 - [Manual Testing](#manual-testing)
 - [Bug Fixes](#bug-fixes)
+- [Defensive Design & Edge Cases](#defensive-design-and-edge-cases)
 
 ## Code Validation
 
@@ -162,7 +163,8 @@ The following steps were taken to test accessibility:
 2. Press the back button and confirm there is no transition animation for the rankings.
 3. Press on a ranking and confirm that there is no animation for the ranking dropdown.
 4. Press the About modal and confirm there is no fly in animation for the modal.
-5. Scroll down and press the back to top buttona and confirm the scrolling is instant.
+5. Press the ESC key and confirm a keyboard only user can close the modal.
+6. Scroll down and press the back to top buttona and confirm the scrolling is instant.
 
 Note: Animations considered safe for vestibular disorders such as fades were left in for a better user experience.
 
@@ -174,3 +176,17 @@ Accessibility was also tested using [Microsoft's accessibility.io Web Extension]
 
 Bug fixes were documented in the project [issues tracker](https://github.com/arlandfran/anime-corner-rankings/issues?q=label%3Abug+is%3Aclosed). Even though I was not able to apply TDD or use a test framework, console logging was heavily relied on during the development process and the majority of bugs were caught and fixed before being pushed to the repo. Issues tagged as bugs were found after pushing code to the repo.
 
+## Defensive Design & Edge Cases
+
+__Defensive Design__
+
+- If no previous/next rankings exists, the page buttons are disabled and rendered grey to convey that the user cannot navigate any further.
+- Debouncing has been implemented to protect against the leaderboard animation being broken and rendering the rankings incorrectly due to spam clicking. Ref: [https://www.freecodecamp.org/news/javascript-debounce-example/](https://www.freecodecamp.org/news/javascript-debounce-example/)
+- If no banner images are found then a 404 banner image is displayed instead.
+- If no an anime cannot be found on [Crunchyroll](https://www.crunchyroll.com/) or [Funimation](https://www.funimation.com/) then a fallback message is displayed.
+- If a user is tabbing and presses space to expand an anime, the default scroll behaviour is prevent and the user experience is not broken.
+
+__Edge Cases__
+- If a user tabs to either the season or week select and navigates to either the first or last week and attemps to navigate above or below that, the page will load endlessley until the page is refreshed or another week is selected. This is due to the select element not setting next/prev to false and disabling navigation beyond that point. This only happens for the current season as updateItems() currently only checks if the Week == 12, as there is no check in place to track what week is the latest week as of yet.
+- If a user tabs to the week select, loads every week and then spams the keyboard navigation keys then it may break the leaderboard as the debouncing does not come into effect when the user is rapidly navigating from the select. This is a rare edge case and only happens if the user has loaded every week and spams the keyboard navigation keys. 
+- Both edge cases can be resolved by refreshing the page until a fix can be implementated to cover these edge cases.
