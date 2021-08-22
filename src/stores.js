@@ -42,7 +42,7 @@ export const faq = writable([
   {
     question: "How can I contact you?",
     answer:
-      "If you have any have questions, feedback or suggestions about the site, please feel free and create an issue on the project repository or even better make a PR yourself!",
+      "If you have any have questions, feedback or suggestions about the site, please feel free and create an issue on the <a href='https://github.com/arlandfran/anime-corner-rankings/issues' target=''_blank>project repository</a> or even better make a PR yourself!",
   },
 ]);
 

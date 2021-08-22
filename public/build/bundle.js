@@ -26126,7 +26126,7 @@ var app = (function () {
       {
         question: "How can I contact you?",
         answer:
-          "If you have any have questions, feedback or suggestions about the site, please feel free and create an issue on the project repository or even better make a PR yourself!",
+          "If you have any have questions, feedback or suggestions about the site, please feel free and create an issue on the <a href='https://github.com/arlandfran/anime-corner-rankings/issues' target=''_blank>project repository</a> or even better make a PR yourself!",
       },
     ]);
 
@@ -26187,7 +26187,7 @@ var app = (function () {
     	const block = {
     		c: function create() {
     			div = element("div");
-    			attr_dev(div, "class", "panel svelte-1djb4ge");
+    			attr_dev(div, "class", "panel svelte-11l3acu");
     			add_location(div, file$4, 28, 2, 511);
     		},
     		m: function mount(target, anchor) {
@@ -26248,9 +26248,9 @@ var app = (function () {
     			t1 = space();
     			if (if_block) if_block.c();
     			if_block_anchor = empty();
-    			attr_dev(h3, "class", "svelte-1djb4ge");
+    			attr_dev(h3, "class", "svelte-11l3acu");
     			add_location(h3, file$4, 25, 2, 452);
-    			attr_dev(div, "class", "accordion svelte-1djb4ge");
+    			attr_dev(div, "class", "accordion svelte-11l3acu");
     			attr_dev(div, "tabindex", "0");
     			toggle_class(div, "active", /*showDropdown*/ ctx[1]);
     			add_location(div, file$4, 18, 0, 319);
