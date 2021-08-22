@@ -1,5 +1,7 @@
 <script>
   import { onMount } from "svelte";
+  import { fade } from "svelte/transition";
+  import { flip } from "svelte/animate";
   import { Circle } from "svelte-loading-spinners";
   import { db, cf } from "../firebase";
   import Item from "./Item.svelte";
@@ -403,8 +405,14 @@
       <Circle size="64" unit="px" {color} />
     </div>
   {:else}
-    {#each items as item}
-      <Item {...item} isActive={$isActive} />
+    {#each items as item (item.title)}
+      <div
+        animate:flip={{ duration: 500 }}
+        in:fade={{ duration: 500 }}
+        out:fade={{ duration: 300 }}
+      >
+        <Item {...item} isActive={$isActive} />
+      </div>
     {/each}
     <div class="show-more">
       <button on:click={fetchNextData} id="show-more">

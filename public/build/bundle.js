@@ -281,6 +281,75 @@ var app = (function () {
         });
     }
 
+    function create_animation(node, from, fn, params) {
+        if (!from)
+            return noop$1;
+        const to = node.getBoundingClientRect();
+        if (from.left === to.left && from.right === to.right && from.top === to.top && from.bottom === to.bottom)
+            return noop$1;
+        const { delay = 0, duration = 300, easing = identity, 
+        // @ts-ignore todo: should this be separated from destructuring? Or start/end added to public api and documentation?
+        start: start_time = now() + delay, 
+        // @ts-ignore todo:
+        end = start_time + duration, tick = noop$1, css } = fn(node, { from, to }, params);
+        let running = true;
+        let started = false;
+        let name;
+        function start() {
+            if (css) {
+                name = create_rule(node, 0, 1, duration, delay, easing, css);
+            }
+            if (!delay) {
+                started = true;
+            }
+        }
+        function stop() {
+            if (css)
+                delete_rule(node, name);
+            running = false;
+        }
+        loop(now => {
+            if (!started && now >= start_time) {
+                started = true;
+            }
+            if (started && now >= end) {
+                tick(1, 0);
+                stop();
+            }
+            if (!running) {
+                return false;
+            }
+            if (started) {
+                const p = now - start_time;
+                const t = 0 + 1 * easing(p / duration);
+                tick(t, 1 - t);
+            }
+            return true;
+        });
+        start();
+        tick(0, 1);
+        return stop;
+    }
+    function fix_position(node) {
+        const style = getComputedStyle(node);
+        if (style.position !== 'absolute' && style.position !== 'fixed') {
+            const { width, height } = style;
+            const a = node.getBoundingClientRect();
+            node.style.position = 'absolute';
+            node.style.width = width;
+            node.style.height = height;
+            add_transform(node, a);
+        }
+    }
+    function add_transform(node, a) {
+        const b = node.getBoundingClientRect();
+        if (a.left !== b.left || a.top !== b.top) {
+            const style = getComputedStyle(node);
+            const transform = style.transform === 'none' ? '' : style.transform;
+            node.style.transform = `${transform} translate(${a.left - b.left}px, ${a.top - b.top}px)`;
+        }
+    }
+
     let current_component;
     function set_current_component(component) {
         current_component = component;
@@ -412,6 +481,125 @@ var app = (function () {
         }
     }
     const null_transition = { duration: 0 };
+    function create_in_transition(node, fn, params) {
+        let config = fn(node, params);
+        let running = false;
+        let animation_name;
+        let task;
+        let uid = 0;
+        function cleanup() {
+            if (animation_name)
+                delete_rule(node, animation_name);
+        }
+        function go() {
+            const { delay = 0, duration = 300, easing = identity, tick = noop$1, css } = config || null_transition;
+            if (css)
+                animation_name = create_rule(node, 0, 1, duration, delay, easing, css, uid++);
+            tick(0, 1);
+            const start_time = now() + delay;
+            const end_time = start_time + duration;
+            if (task)
+                task.abort();
+            running = true;
+            add_render_callback(() => dispatch(node, true, 'start'));
+            task = loop(now => {
+                if (running) {
+                    if (now >= end_time) {
+                        tick(1, 0);
+                        dispatch(node, true, 'end');
+                        cleanup();
+                        return running = false;
+                    }
+                    if (now >= start_time) {
+                        const t = easing((now - start_time) / duration);
+                        tick(t, 1 - t);
+                    }
+                }
+                return running;
+            });
+        }
+        let started = false;
+        return {
+            start() {
+                if (started)
+                    return;
+                started = true;
+                delete_rule(node);
+                if (is_function(config)) {
+                    config = config();
+                    wait().then(go);
+                }
+                else {
+                    go();
+                }
+            },
+            invalidate() {
+                started = false;
+            },
+            end() {
+                if (running) {
+                    cleanup();
+                    running = false;
+                }
+            }
+        };
+    }
+    function create_out_transition(node, fn, params) {
+        let config = fn(node, params);
+        let running = true;
+        let animation_name;
+        const group = outros;
+        group.r += 1;
+        function go() {
+            const { delay = 0, duration = 300, easing = identity, tick = noop$1, css } = config || null_transition;
+            if (css)
+                animation_name = create_rule(node, 1, 0, duration, delay, easing, css);
+            const start_time = now() + delay;
+            const end_time = start_time + duration;
+            add_render_callback(() => dispatch(node, false, 'start'));
+            loop(now => {
+                if (running) {
+                    if (now >= end_time) {
+                        tick(0, 1);
+                        dispatch(node, false, 'end');
+                        if (!--group.r) {
+                            // this will result in `end()` being called,
+                            // so we don't need to clean up here
+                            run_all(group.c);
+                        }
+                        return false;
+                    }
+                    if (now >= start_time) {
+                        const t = easing((now - start_time) / duration);
+                        tick(1 - t, t);
+                    }
+                }
+                return running;
+            });
+        }
+        if (is_function(config)) {
+            wait().then(() => {
+                // @ts-ignore
+                config = config();
+                go();
+            });
+        }
+        else {
+            go();
+        }
+        return {
+            end(reset) {
+                if (reset && config.tick) {
+                    config.tick(1, 0);
+                }
+                if (running) {
+                    if (animation_name)
+                        delete_rule(node, animation_name);
+                    running = false;
+                }
+            }
+        };
+    }
     function create_bidirectional_transition(node, fn, params, intro) {
         let config = fn(node, params);
         let t = intro ? 0 : 1;
@@ -598,6 +786,100 @@ var app = (function () {
             child_ctx[info.error] = resolved;
         }
         info.block.p(child_ctx, dirty);
+    }
+    function outro_and_destroy_block(block, lookup) {
+        transition_out(block, 1, 1, () => {
+            lookup.delete(block.key);
+        });
+    }
+    function fix_and_outro_and_destroy_block(block, lookup) {
+        block.f();
+        outro_and_destroy_block(block, lookup);
+    }
+    function update_keyed_each(old_blocks, dirty, get_key, dynamic, ctx, list, lookup, node, destroy, create_each_block, next, get_context) {
+        let o = old_blocks.length;
+        let n = list.length;
+        let i = o;
+        const old_indexes = {};
+        while (i--)
+            old_indexes[old_blocks[i].key] = i;
+        const new_blocks = [];
+        const new_lookup = new Map();
+        const deltas = new Map();
+        i = n;
+        while (i--) {
+            const child_ctx = get_context(ctx, list, i);
+            const key = get_key(child_ctx);
+            let block = lookup.get(key);
+            if (!block) {
+                block = create_each_block(key, child_ctx);
+                block.c();
+            }
+            else if (dynamic) {
+                block.p(child_ctx, dirty);
+            }
+            new_lookup.set(key, new_blocks[i] = block);
+            if (key in old_indexes)
+                deltas.set(key, Math.abs(i - old_indexes[key]));
+        }
+        const will_move = new Set();
+        const did_move = new Set();
+        function insert(block) {
+            transition_in(block, 1);
+            block.m(node, next);
+            lookup.set(block.key, block);
+            next = block.first;
+            n--;
+        }
+        while (o && n) {
+            const new_block = new_blocks[n - 1];
+            const old_block = old_blocks[o - 1];
+            const new_key = new_block.key;
+            const old_key = old_block.key;
+            if (new_block === old_block) {
+                // do nothing
+                next = new_block.first;
+                o--;
+                n--;
+            }
+            else if (!new_lookup.has(old_key)) {
+                // remove old block
+                destroy(old_block, lookup);
+                o--;
+            }
+            else if (!lookup.has(new_key) || will_move.has(new_key)) {
+                insert(new_block);
+            }
+            else if (did_move.has(old_key)) {
+                o--;
+            }
+            else if (deltas.get(new_key) > deltas.get(old_key)) {
+                did_move.add(new_key);
+                insert(new_block);
+            }
+            else {
+                will_move.add(old_key);
+                o--;
+            }
+        }
+        while (o--) {
+            const old_block = old_blocks[o];
+            if (!new_lookup.has(old_block.key))
+                destroy(old_block, lookup);
+        }
+        while (n)
+            insert(new_blocks[n - 1]);
+        return new_blocks;
+    }
+    function validate_each_keys(ctx, list, get_context, get_key) {
+        const keys = new Set();
+        for (let i = 0; i < list.length; i++) {
+            const key = get_key(get_context(ctx, list, i));
+            if (keys.has(key)) {
+                throw new Error('Cannot have duplicate keys in a keyed each');
+            }
+            keys.add(key);
+        }
     }
 
     function get_spread_update(levels, updates) {
@@ -845,6 +1127,77 @@ var app = (function () {
         }
         $capture_state() { }
         $inject_state() { }
+    }
+
+    function cubicOut(t) {
+        const f = t - 1.0;
+        return f * f * f + 1.0;
+    }
+
+    function fade(node, { delay = 0, duration = 400, easing = identity } = {}) {
+        const o = +getComputedStyle(node).opacity;
+        return {
+            delay,
+            duration,
+            easing,
+            css: t => `opacity: ${t * o}`
+        };
+    }
+    function fly(node, { delay = 0, duration = 400, easing = cubicOut, x = 0, y = 0, opacity = 0 } = {}) {
+        const style = getComputedStyle(node);
+        const target_opacity = +style.opacity;
+        const transform = style.transform === 'none' ? '' : style.transform;
+        const od = target_opacity * (1 - opacity);
+        return {
+            delay,
+            duration,
+            easing,
+            css: (t, u) => `
+			transform: ${transform} translate(${(1 - t) * x}px, ${(1 - t) * y}px);
+			opacity: ${target_opacity - (od * u)}`
+        };
+    }
+    function slide(node, { delay = 0, duration = 400, easing = cubicOut } = {}) {
+        const style = getComputedStyle(node);
+        const opacity = +style.opacity;
+        const height = parseFloat(style.height);
+        const padding_top = parseFloat(style.paddingTop);
+        const padding_bottom = parseFloat(style.paddingBottom);
+        const margin_top = parseFloat(style.marginTop);
+        const margin_bottom = parseFloat(style.marginBottom);
+        const border_top_width = parseFloat(style.borderTopWidth);
+        const border_bottom_width = parseFloat(style.borderBottomWidth);
+        return {
+            delay,
+            duration,
+            easing,
+            css: t => 'overflow: hidden;' +
+                `opacity: ${Math.min(t * 20, 1) * opacity};` +
+                `height: ${t * height}px;` +
+                `padding-top: ${t * padding_top}px;` +
+                `padding-bottom: ${t * padding_bottom}px;` +
+                `margin-top: ${t * margin_top}px;` +
+                `margin-bottom: ${t * margin_bottom}px;` +
+                `border-top-width: ${t * border_top_width}px;` +
+                `border-bottom-width: ${t * border_bottom_width}px;`
+        };
+    }
+
+    function flip(node, animation, params = {}) {
+        const style = getComputedStyle(node);
+        const transform = style.transform === 'none' ? '' : style.transform;
+        const scaleX = animation.from.width / node.clientWidth;
+        const scaleY = animation.from.height / node.clientHeight;
+        const dx = (animation.from.left - animation.to.left) / scaleX;
+        const dy = (animation.from.top - animation.to.top) / scaleY;
+        const d = Math.sqrt(dx * dx + dy * dy);
+        const { delay = 0, duration = (d) => Math.sqrt(d) * 120, easing = cubicOut } = params;
+        return {
+            delay,
+            duration: is_function(duration) ? duration(d) : duration,
+            easing,
+            css: (_t, u) => `transform: ${transform} translate(${u * dx}px, ${u * dy}px);`
+        };
     }
 
     /* node_modules/svelte-loading-spinners/dist/Circle.svelte generated by Svelte v3.41.0 */
@@ -24371,60 +24724,6 @@ var app = (function () {
     	}
     }
 
-    function cubicOut(t) {
-        const f = t - 1.0;
-        return f * f * f + 1.0;
-    }
-
-    function fade(node, { delay = 0, duration = 400, easing = identity } = {}) {
-        const o = +getComputedStyle(node).opacity;
-        return {
-            delay,
-            duration,
-            easing,
-            css: t => `opacity: ${t * o}`
-        };
-    }
-    function fly(node, { delay = 0, duration = 400, easing = cubicOut, x = 0, y = 0, opacity = 0 } = {}) {
-        const style = getComputedStyle(node);
-        const target_opacity = +style.opacity;
-        const transform = style.transform === 'none' ? '' : style.transform;
-        const od = target_opacity * (1 - opacity);
-        return {
-            delay,
-            duration,
-            easing,
-            css: (t, u) => `
-			transform: ${transform} translate(${(1 - t) * x}px, ${(1 - t) * y}px);
-			opacity: ${target_opacity - (od * u)}`
-        };
-    }
-    function slide(node, { delay = 0, duration = 400, easing = cubicOut } = {}) {
-        const style = getComputedStyle(node);
-        const opacity = +style.opacity;
-        const height = parseFloat(style.height);
-        const padding_top = parseFloat(style.paddingTop);
-        const padding_bottom = parseFloat(style.paddingBottom);
-        const margin_top = parseFloat(style.marginTop);
-        const margin_bottom = parseFloat(style.marginBottom);
-        const border_top_width = parseFloat(style.borderTopWidth);
-        const border_bottom_width = parseFloat(style.borderBottomWidth);
-        return {
-            delay,
-            duration,
-            easing,
-            css: t => 'overflow: hidden;' +
-                `opacity: ${Math.min(t * 20, 1) * opacity};` +
-                `height: ${t * height}px;` +
-                `padding-top: ${t * padding_top}px;` +
-                `padding-bottom: ${t * padding_bottom}px;` +
-                `margin-top: ${t * margin_top}px;` +
-                `margin-bottom: ${t * margin_bottom}px;` +
-                `border-top-width: ${t * border_top_width}px;` +
-                `border-bottom-width: ${t * border_bottom_width}px;`
-        };
-    }
-
     /**
      * Checks if cachedData exists and if true returns cached data and expiry status.
      * @param {string} key localStorage Key that you want to retrieve the value of.
@@ -26832,7 +27131,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (355:2) {:else}
+    // (357:2) {:else}
     function create_else_block_3(ctx) {
     	let select;
     	let mounted;
@@ -26855,7 +27154,7 @@ var app = (function () {
 
     			attr_dev(select, "aria-label", "Select Season");
     			if (/*$season*/ ctx[7] === void 0) add_render_callback(() => /*select_change_handler*/ ctx[18].call(select));
-    			add_location(select, file$2, 356, 4, 9116);
+    			add_location(select, file$2, 358, 4, 9201);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -26916,14 +27215,14 @@ var app = (function () {
     		block,
     		id: create_else_block_3.name,
     		type: "else",
-    		source: "(355:2) {:else}",
+    		source: "(357:2) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (351:2) {#if seasons == 0}
+    // (353:2) {#if seasons == 0}
     function create_if_block_3(ctx) {
     	let select;
     	let option;
@@ -26935,9 +27234,9 @@ var app = (function () {
     			option.textContent = "Loading...";
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file$2, 352, 6, 9007);
+    			add_location(option, file$2, 354, 6, 9092);
     			attr_dev(select, "aria-label", "Select Season");
-    			add_location(select, file$2, 351, 4, 8965);
+    			add_location(select, file$2, 353, 4, 9050);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -26953,14 +27252,14 @@ var app = (function () {
     		block,
     		id: create_if_block_3.name,
     		type: "if",
-    		source: "(351:2) {#if seasons == 0}",
+    		source: "(353:2) {#if seasons == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (362:6) {#each seasons as season}
+    // (364:6) {#each seasons as season}
     function create_each_block_2(ctx) {
     	let option;
     	let t_value = /*season*/ ctx[42] + "";
@@ -26974,7 +27273,7 @@ var app = (function () {
     			attr_dev(option, "class", "dropdown-item svelte-1g6kmqe");
     			option.__value = option_value_value = /*season*/ ctx[42];
     			option.value = option.__value;
-    			add_location(option, file$2, 362, 8, 9261);
+    			add_location(option, file$2, 364, 8, 9346);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
@@ -26997,14 +27296,14 @@ var app = (function () {
     		block,
     		id: create_each_block_2.name,
     		type: "each",
-    		source: "(362:6) {#each seasons as season}",
+    		source: "(364:6) {#each seasons as season}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (372:2) {:else}
+    // (374:2) {:else}
     function create_else_block_2(ctx) {
     	let select;
     	let mounted;
@@ -27027,7 +27326,7 @@ var app = (function () {
 
     			attr_dev(select, "aria-label", "Select Week");
     			if (/*$week*/ ctx[4] === void 0) add_render_callback(() => /*select_change_handler_1*/ ctx[19].call(select));
-    			add_location(select, file$2, 373, 4, 9556);
+    			add_location(select, file$2, 375, 4, 9641);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -27088,14 +27387,14 @@ var app = (function () {
     		block,
     		id: create_else_block_2.name,
     		type: "else",
-    		source: "(372:2) {:else}",
+    		source: "(374:2) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (368:2) {#if weeks.length == 0 || weekDisabled}
+    // (370:2) {#if weeks.length == 0 || weekDisabled}
     function create_if_block_2(ctx) {
     	let select;
     	let option;
@@ -27107,9 +27406,9 @@ var app = (function () {
     			option.textContent = "Loading...";
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file$2, 369, 6, 9447);
+    			add_location(option, file$2, 371, 6, 9532);
     			attr_dev(select, "aria-label", "Select Week");
-    			add_location(select, file$2, 368, 4, 9407);
+    			add_location(select, file$2, 370, 4, 9492);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, select, anchor);
@@ -27125,14 +27424,14 @@ var app = (function () {
     		block,
     		id: create_if_block_2.name,
     		type: "if",
-    		source: "(368:2) {#if weeks.length == 0 || weekDisabled}",
+    		source: "(370:2) {#if weeks.length == 0 || weekDisabled}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (375:6) {#each weeks as week}
+    // (377:6) {#each weeks as week}
     function create_each_block_1(ctx) {
     	let option;
     	let t0;
@@ -27148,7 +27447,7 @@ var app = (function () {
     			attr_dev(option, "class", "dropdown-item svelte-1g6kmqe");
     			option.__value = option_value_value = /*week*/ ctx[39];
     			option.value = option.__value;
-    			add_location(option, file$2, 375, 8, 9669);
+    			add_location(option, file$2, 377, 8, 9754);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
@@ -27172,15 +27471,17 @@ var app = (function () {
     		block,
     		id: create_each_block_1.name,
     		type: "each",
-    		source: "(375:6) {#each weeks as week}",
+    		source: "(377:6) {#each weeks as week}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (405:2) {:else}
+    // (407:2) {:else}
     function create_else_block(ctx) {
+    	let each_blocks = [];
+    	let each_1_lookup = new Map();
     	let t;
     	let div;
     	let button;
@@ -27191,15 +27492,14 @@ var app = (function () {
     	let dispose;
     	let each_value = /*items*/ ctx[2];
     	validate_each_argument(each_value);
-    	let each_blocks = [];
+    	const get_key = ctx => /*item*/ ctx[36].title;
+    	validate_each_keys(ctx, each_value, get_each_context, get_key);
 
     	for (let i = 0; i < each_value.length; i += 1) {
-    		each_blocks[i] = create_each_block(get_each_context(ctx, each_value, i));
+    		let child_ctx = get_each_context(ctx, each_value, i);
+    		let key = get_key(child_ctx);
+    		each_1_lookup.set(key, each_blocks[i] = create_each_block(key, child_ctx));
     	}
-
-    	const out = i => transition_out(each_blocks[i], 1, 1, () => {
-    		each_blocks[i] = null;
-    	});
 
     	const if_block_creators = [create_if_block_1, create_else_block_1];
     	const if_blocks = [];
@@ -27224,9 +27524,9 @@ var app = (function () {
     			if_block.c();
     			attr_dev(button, "id", "show-more");
     			attr_dev(button, "class", "svelte-1g6kmqe");
-    			add_location(button, file$2, 409, 6, 10572);
+    			add_location(button, file$2, 417, 6, 10818);
     			attr_dev(div, "class", "show-more svelte-1g6kmqe");
-    			add_location(div, file$2, 408, 4, 10542);
+    			add_location(div, file$2, 416, 4, 10788);
     		},
     		m: function mount(target, anchor) {
     			for (let i = 0; i < each_blocks.length; i += 1) {
@@ -27248,28 +27548,11 @@ var app = (function () {
     			if (dirty[0] & /*items, $isActive*/ 260) {
     				each_value = /*items*/ ctx[2];
     				validate_each_argument(each_value);
-    				let i;
-
-    				for (i = 0; i < each_value.length; i += 1) {
-    					const child_ctx = get_each_context(ctx, each_value, i);
-
-    					if (each_blocks[i]) {
-    						each_blocks[i].p(child_ctx, dirty);
-    						transition_in(each_blocks[i], 1);
-    					} else {
-    						each_blocks[i] = create_each_block(child_ctx);
-    						each_blocks[i].c();
-    						transition_in(each_blocks[i], 1);
-    						each_blocks[i].m(t.parentNode, t);
-    					}
-    				}
-
     				group_outros();
-
-    				for (i = each_value.length; i < each_blocks.length; i += 1) {
-    					out(i);
-    				}
-
+    				for (let i = 0; i < each_blocks.length; i += 1) each_blocks[i].r();
+    				validate_each_keys(ctx, each_value, get_each_context, get_key);
+    				each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value, each_1_lookup, t.parentNode, fix_and_outro_and_destroy_block, create_each_block, t, get_each_context);
+    				for (let i = 0; i < each_blocks.length; i += 1) each_blocks[i].a();
     				check_outros();
     			}
 
@@ -27310,8 +27593,6 @@ var app = (function () {
     			current = true;
     		},
     		o: function outro(local) {
-    			each_blocks = each_blocks.filter(Boolean);
-
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				transition_out(each_blocks[i]);
     			}
@@ -27320,7 +27601,10 @@ var app = (function () {
     			current = false;
     		},
     		d: function destroy(detaching) {
-    			destroy_each(each_blocks, detaching);
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].d(detaching);
+    			}
+
     			if (detaching) detach_dev(t);
     			if (detaching) detach_dev(div);
     			if_blocks[current_block_type_index].d();
@@ -27333,14 +27617,14 @@ var app = (function () {
     		block,
     		id: create_else_block.name,
     		type: "else",
-    		source: "(405:2) {:else}",
+    		source: "(407:2) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (401:2) {#if items.length == 0}
+    // (403:2) {#if items.length == 0}
     function create_if_block(ctx) {
     	let div;
     	let circle;
@@ -27356,7 +27640,7 @@ var app = (function () {
     			div = element("div");
     			create_component(circle.$$.fragment);
     			attr_dev(div, "class", "loading svelte-1g6kmqe");
-    			add_location(div, file$2, 401, 4, 10366);
+    			add_location(div, file$2, 403, 4, 10451);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -27383,16 +27667,21 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(401:2) {#if items.length == 0}",
+    		source: "(403:2) {#if items.length == 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (406:4) {#each items as item}
-    function create_each_block(ctx) {
+    // (408:4) {#each items as item (item.title)}
+    function create_each_block(key_1, ctx) {
+    	let div;
     	let item;
+    	let div_intro;
+    	let div_outro;
+    	let rect;
+    	let stop_animation = noop$1;
     	let current;
     	const item_spread_levels = [/*item*/ ctx[36], { isActive: /*$isActive*/ ctx[8] }];
     	let item_props = {};
@@ -27404,14 +27693,22 @@ var app = (function () {
     	item = new Item({ props: item_props, $$inline: true });
 
     	const block = {
+    		key: key_1,
+    		first: null,
     		c: function create() {
+    			div = element("div");
     			create_component(item.$$.fragment);
+    			add_location(div, file$2, 408, 6, 10584);
+    			this.first = div;
     		},
     		m: function mount(target, anchor) {
-    			mount_component(item, target, anchor);
+    			insert_dev(target, div, anchor);
+    			mount_component(item, div, null);
     			current = true;
     		},
-    		p: function update(ctx, dirty) {
+    		p: function update(new_ctx, dirty) {
+    			ctx = new_ctx;
+
     			const item_changes = (dirty[0] & /*items, $isActive*/ 260)
     			? get_spread_update(item_spread_levels, [
     					dirty[0] & /*items*/ 4 && get_spread_object(/*item*/ ctx[36]),
@@ -27421,17 +27718,40 @@ var app = (function () {
 
     			item.$set(item_changes);
     		},
+    		r: function measure() {
+    			rect = div.getBoundingClientRect();
+    		},
+    		f: function fix() {
+    			fix_position(div);
+    			stop_animation();
+    			add_transform(div, rect);
+    		},
+    		a: function animate() {
+    			stop_animation();
+    			stop_animation = create_animation(div, rect, flip, { duration: 500 });
+    		},
     		i: function intro(local) {
     			if (current) return;
     			transition_in(item.$$.fragment, local);
+
+    			add_render_callback(() => {
+    				if (div_outro) div_outro.end(1);
+    				div_intro = create_in_transition(div, fade, { duration: 500 });
+    				div_intro.start();
+    			});
+
     			current = true;
     		},
     		o: function outro(local) {
     			transition_out(item.$$.fragment, local);
+    			if (div_intro) div_intro.invalidate();
+    			div_outro = create_out_transition(div, fade, { duration: 300 });
     			current = false;
     		},
     		d: function destroy(detaching) {
-    			destroy_component(item, detaching);
+    			if (detaching) detach_dev(div);
+    			destroy_component(item);
+    			if (detaching && div_outro) div_outro.end();
     		}
     	};
 
@@ -27439,14 +27759,14 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(406:4) {#each items as item}",
+    		source: "(408:4) {#each items as item (item.title)}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (413:8) {:else}
+    // (421:8) {:else}
     function create_else_block_1(ctx) {
     	let t;
 
@@ -27469,14 +27789,14 @@ var app = (function () {
     		block,
     		id: create_else_block_1.name,
     		type: "else",
-    		source: "(413:8) {:else}",
+    		source: "(421:8) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (411:8) {#if $loading}
+    // (419:8) {#if $loading}
     function create_if_block_1(ctx) {
     	let circle;
     	let current;
@@ -27513,7 +27833,7 @@ var app = (function () {
     		block,
     		id: create_if_block_1.name,
     		type: "if",
-    		source: "(411:8) {#if $loading}",
+    		source: "(419:8) {#if $loading}",
     		ctx
     	});
 
@@ -27588,7 +27908,7 @@ var app = (function () {
     			div1 = element("div");
     			if_block2.c();
     			attr_dev(path0, "d", "M24 20.205L21.005 23.185L9.873 12L21.005 0.813972L24 3.79497L15.833 12L24 20.205V20.205ZM5.96 12L14.127 3.79497L11.132 0.814974L0 12L11.132 23.186L14.127 20.206L5.96 12V12Z");
-    			add_location(path0, file$2, 344, 7, 8716);
+    			add_location(path0, file$2, 346, 7, 8801);
     			attr_dev(svg0, "xmlns", "http://www.w3.org/2000/svg");
     			attr_dev(svg0, "width", "16");
     			attr_dev(svg0, "height", "16");
@@ -27596,13 +27916,13 @@ var app = (function () {
     			attr_dev(svg0, "class", "svelte-1g6kmqe");
     			toggle_class(svg0, "active", !/*$prev*/ ctx[5]);
     			toggle_class(svg0, "disabled", /*$prev*/ ctx[5]);
-    			add_location(svg0, file$2, 337, 4, 8545);
+    			add_location(svg0, file$2, 339, 4, 8630);
     			attr_dev(button0, "class", "arrow svelte-1g6kmqe");
     			attr_dev(button0, "id", "prev-btn");
     			attr_dev(button0, "aria-label", "Previous Page");
-    			add_location(button0, file$2, 331, 2, 8440);
+    			add_location(button0, file$2, 333, 2, 8525);
     			attr_dev(path1, "d", "M0 3.795l2.995-2.98 11.132 11.185-11.132 11.186-2.995-2.981 8.167-8.205-8.167-8.205zm18.04 8.205l-8.167 8.205 2.995 2.98 11.132-11.185-11.132-11.186-2.995 2.98 8.167 8.206z");
-    			add_location(path1, file$2, 390, 7, 10069);
+    			add_location(path1, file$2, 392, 7, 10154);
     			attr_dev(svg1, "xmlns", "http://www.w3.org/2000/svg");
     			attr_dev(svg1, "width", "16");
     			attr_dev(svg1, "height", "16");
@@ -27610,15 +27930,15 @@ var app = (function () {
     			attr_dev(svg1, "class", "svelte-1g6kmqe");
     			toggle_class(svg1, "active", !/*$next*/ ctx[6]);
     			toggle_class(svg1, "disabled", /*$next*/ ctx[6]);
-    			add_location(svg1, file$2, 383, 5, 9898);
+    			add_location(svg1, file$2, 385, 5, 9983);
     			attr_dev(button1, "class", "arrow svelte-1g6kmqe");
     			attr_dev(button1, "id", "next-btn");
     			attr_dev(button1, "aria-label", "Next Page");
-    			add_location(button1, file$2, 382, 2, 9816);
+    			add_location(button1, file$2, 384, 2, 9901);
     			attr_dev(div0, "class", "filters svelte-1g6kmqe");
-    			add_location(div0, file$2, 330, 0, 8416);
+    			add_location(div0, file$2, 332, 0, 8501);
     			attr_dev(div1, "class", "rankings svelte-1g6kmqe");
-    			add_location(div1, file$2, 399, 0, 10313);
+    			add_location(div1, file$2, 401, 0, 10398);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -28093,6 +28413,8 @@ var app = (function () {
 
     	$$self.$capture_state = () => ({
     		onMount,
+    		fade,
+    		flip,
     		Circle,
     		db,
     		cf,
