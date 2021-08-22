@@ -231,7 +231,6 @@
       $week = weeks[i - 1];
       updateItems();
     }
-    document.getElementById("show-more").disabled = false;
   }
 
   function goNext() {
@@ -249,7 +248,6 @@
       $week = weeks[i + 1];
       updateItems();
     }
-    document.getElementById("show-more").disabled = false;
   }
 </script>
 
