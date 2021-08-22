@@ -37,7 +37,7 @@
     .doc($season)
     .collection($week)
     .orderBy("rank", "asc")
-    .limit(10);
+    .limit(15);
 
   onMount(async () => {
     // disable page btns on initial page load
@@ -163,7 +163,7 @@
         .doc($season)
         .collection($week)
         .orderBy("rank", "asc")
-        .limit(10);
+        .limit(15);
 
       let data = await query
         .get()
