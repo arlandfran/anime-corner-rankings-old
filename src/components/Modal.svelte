@@ -102,7 +102,30 @@
         <div class="title">
           <h1>About</h1>
         </div>
-
+        <h2>Navigation</h2>
+        <p>
+          Use the A D,
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="10"
+            height="10"
+            viewBox="0 0 24 24"
+            fill="#fff"
+            ><path
+              d="M16.67 0l2.83 2.829-9.339 9.175 9.339 9.167-2.83 2.829-12.17-11.996z"
+            /></svg
+          >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="10"
+            height="10"
+            viewBox="0 0 24 24"
+            fill="#fff"
+            ><path
+              d="M7.33 24l-2.83-2.829 9.339-9.175-9.339-9.167 2.83-2.829 12.17 11.996z"
+            /></svg
+          > keys to navigate back and forth the weekly ranking.
+        </p>
         <h2>Legend</h2>
         <ul>
           <li>

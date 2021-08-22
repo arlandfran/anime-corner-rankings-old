@@ -84,7 +84,6 @@
     bottom: 1rem;
     fill: white;
     background-color: var(--primary-color);
-    opacity: 1;
     transition: opacity 0.3s, visibility 0.3s;
   }
 

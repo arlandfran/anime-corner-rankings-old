@@ -164,7 +164,7 @@
 
   .pill {
     padding: 0.5rem;
-    background-color: var(--gain-color);
+    background-color: var(--primary-color);
     border-radius: 12px;
   }
 
