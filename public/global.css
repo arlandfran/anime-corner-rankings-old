@@ -8,6 +8,16 @@
   --drop-color: #b05455;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 html,
 body {
   position: relative;
@@ -57,7 +67,6 @@ textarea {
   box-sizing: border-box;
   color: white;
   border: transparent;
-  border-radius: 6px;
   background-color: transparent;
   cursor: pointer;
 }

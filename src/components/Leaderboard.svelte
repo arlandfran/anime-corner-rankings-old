@@ -1,5 +1,7 @@
 <script>
   import { onMount } from "svelte";
+  import { fade } from "svelte/transition";
+  import { flip } from "svelte/animate";
   import { Circle } from "svelte-loading-spinners";
   import { db, cf } from "../firebase";
   import Item from "./Item.svelte";
@@ -12,31 +14,28 @@
     isActive,
     nextButtonState,
     prevButtonState,
-    showMoreButtonState,
   } from "../stores";
   import { checkCache, cacheData } from "../cache";
 
   const color = "#f3667b";
+  // initialize page btn states
+  const nextState = nextButtonState(false);
+  const prevState = prevButtonState(false);
+  const { next, enableNext, disableNext } = nextState;
+  const { prev, enablePrev, disablePrev } = prevState;
 
   let seasons = [];
   let weeks = [];
   let items = [];
   let weekDisabled = false;
-
-  // initialize page btn states
-  const nextState = nextButtonState(false);
-  const prevState = prevButtonState(false);
-  const showMoreState = showMoreButtonState(false);
-  const { next, enableNext, disableNext } = nextState;
-  const { prev, enablePrev, disablePrev } = prevState;
-  const { loading, fetching, fetched } = showMoreState;
+  let fired = false;
 
   let query = db
     .collection($year)
     .doc($season)
     .collection($week)
     .orderBy("rank", "asc")
-    .limit(10);
+    .limit(15);
 
   onMount(async () => {
     // disable page btns on initial page load
@@ -75,82 +74,6 @@
       cacheData(key, data);
 
       return data;
-    }
-  };
-
-  const fetchNextData = async () => {
-    fetching();
-    $page += 1;
-    let item;
-    let key = `${$season}-${$week}-page-${$page}`;
-    let cache = checkCache(key);
-
-    if (cache.cachedData && !cache.expired) {
-      // Update items array with cached documents
-      let data = cache.cachedData.data;
-      for (let i = 0; i < data.length; i++) {
-        item = {
-          rank: data[i].rank,
-          title: data[i].title,
-          votes: data[i].votes,
-          banner: data[i].banner,
-          previousRank: data[i].previousRank,
-          previousVotes: data[i].previousVotes,
-          description: data[i].description,
-          genres: data[i].genres,
-          externalLinks: data[i].externalLinks,
-        };
-        items = [...items, item];
-        if (data.length < 10) {
-          document.getElementById("show-more").disabled = true;
-        }
-        fetched();
-      }
-    } else {
-      await query.get().then((snapshots) => {
-        // Get the last visible document
-        let lastVisible = snapshots.docs[snapshots.docs.length - 1];
-
-        query = db
-          .collection($year)
-          .doc($season)
-          .collection($week)
-          .orderBy("rank", "asc")
-          .startAfter(lastVisible)
-          .limit(10);
-
-        query.get().then(async (snapshots) => {
-          // Converts newly fetched collection into array of documents
-          let data = snapshots.docs.map((doc) => doc.data());
-
-          await fetchBanners(data);
-
-          // Update items array with new documents
-          for (let i = 0; i < data.length; i++) {
-            item = {
-              rank: data[i].rank,
-              title: data[i].title,
-              votes: data[i].votes,
-              banner: data[i].banner,
-              previousRank: data[i].previousRank,
-              previousVotes: data[i].previousVotes,
-              description: data[i].description,
-              genres: data[i].genres,
-              externalLinks: data[i].externalLinks,
-            };
-            items = [...items, item];
-          }
-
-          cacheData(key, data);
-
-          // Disable show more button if there is no more data to be fetched
-          if (snapshots.size < 10) {
-            document.getElementById("show-more").disabled = true;
-          } else {
-          }
-          fetched();
-        });
-      });
     }
   };
 
@@ -219,8 +142,9 @@
   const updateItems = async () => {
     disablePrev();
     disableNext();
+    $page = 1;
 
-    let key = `${$season}-${$week}-page-1`;
+    let key = `${$season}-${$week}-page-${$page}`;
     let cache = checkCache(key);
 
     // If cached data exists and is not expired then return data
@@ -237,7 +161,7 @@
         .doc($season)
         .collection($week)
         .orderBy("rank", "asc")
-        .limit(10);
+        .limit(15);
 
       let data = await query
         .get()
@@ -305,7 +229,6 @@
       $week = weeks[i - 1];
       updateItems();
     }
-    document.getElementById("show-more").disabled = false;
   }
 
   function goNext() {
@@ -323,13 +246,50 @@
       $week = weeks[i + 1];
       updateItems();
     }
-    document.getElementById("show-more").disabled = false;
   }
+
+  const debouncePrev = debounce(() => goPrev());
+  const debounceNext = debounce(() => goNext());
+
+  // https://www.freecodecamp.org/news/javascript-debounce-example/
+  function debounce(func, timeout = 300) {
+    let timer;
+    return (...args) => {
+      if (!timer) {
+        func.apply(this, args);
+      }
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        timer = undefined;
+      }, timeout);
+    };
+  }
+
+  document.addEventListener("keydown", (e) => {
+    // prevent key being held down from calling function
+    if (!fired) {
+      fired = true;
+      if (e.code === "KeyA" || e.code === "ArrowLeft") {
+        if (!$prev) {
+          debouncePrev();
+        }
+      }
+      if (e.code === "KeyD" || e.code === "ArrowRight") {
+        if (!$next) {
+          debounceNext();
+        }
+      }
+    }
+  });
+
+  document.addEventListener("keyup", () => {
+    fired = false;
+  });
 </script>
 
 <div class="filters">
   <button
-    on:click={goPrev}
+    on:click={debouncePrev}
     class="arrow"
     id="prev-btn"
     aria-label="Previous Page"
@@ -379,7 +339,11 @@
     </select>
   {/if}
 
-  <button on:click={goNext} class="arrow" id="next-btn" aria-label="Next Page"
+  <button
+    on:click={debounceNext}
+    class="arrow"
+    id="next-btn"
+    aria-label="Next Page"
     ><svg
       class:active={!$next}
       class:disabled={$next}
@@ -402,18 +366,15 @@
       <Circle size="64" unit="px" {color} />
     </div>
   {:else}
-    {#each items as item}
-      <Item {...item} isActive={$isActive} />
+    {#each items as item (item.title)}
+      <div
+        animate:flip={{ duration: 850 }}
+        in:fade={{ duration: 500 }}
+        out:fade={{ duration: 300 }}
+      >
+        <Item {...item} isActive={$isActive} />
+      </div>
     {/each}
-    <div class="show-more">
-      <button on:click={fetchNextData} id="show-more">
-        {#if $loading}
-          <Circle size="32" unit="px" {color} />
-        {:else}
-          Show more rankings
-        {/if}
-      </button>
-    </div>
   {/if}
 </div>
 
@@ -449,25 +410,6 @@
       padding-left: 1rem;
       padding-right: 1rem;
     }
-  }
-
-  .show-more {
-    text-align: center;
-  }
-
-  #show-more {
-    /* padding: 0.5rem; */
-    font-size: 1.2rem;
-  }
-
-  #show-more:focus {
-    text-decoration: underline;
-    text-decoration-color: var(--primary-color);
-  }
-
-  #show-more:disabled {
-    color: var(--surface);
-    text-decoration: none;
   }
 
   .arrow {

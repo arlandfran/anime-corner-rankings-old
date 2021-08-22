@@ -1,4 +1,6 @@
 <script>
+  import { slide } from "svelte/transition";
+
   export let question;
   export let answer;
   export let showAll;
@@ -24,19 +26,20 @@
   <h3>{question}</h3>
 </div>
 {#if showDropdown || showAll}
-  <div class="panel">
+  <div class="panel" transition:slide={{ duration: 200 }}>
     {@html answer}
   </div>
 {/if}
 
 <style>
   .accordion {
+    display: flex;
+    align-items: center;
     margin-left: -1rem;
     margin-right: -1rem;
-    padding-top: 1rem;
-    padding-bottom: 1rem;
+    height: 4rem;
     cursor: pointer;
-    /* transition: 0.4s; */
+    border-top: 1px solid white;
   }
 
   .active,
@@ -47,6 +50,15 @@
 
   .panel {
     margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+  @media (prefers-reduced-motion) {
+    .panel {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      animation-delay: 0.01ms !important;
+    }
   }
 
   h3 {

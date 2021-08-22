@@ -2,6 +2,7 @@
   import ItemRank from "./ItemRank.svelte";
   import ItemBanner from "./ItemBanner.svelte";
   import ItemDetails from "./ItemDetails.svelte";
+  import { slide } from "svelte/transition";
   import { Circle } from "svelte-loading-spinners";
   import { db } from "../firebase";
   import { checkCache, cacheData } from "../cache";
@@ -68,7 +69,7 @@
   <div
     class="card"
     on:click={toggleActive}
-    on:keypress={toggleActive}
+    on:keypress|preventDefault={toggleActive}
     tabindex="0"
   >
     <ItemRank {rank} />
@@ -76,7 +77,7 @@
     <ItemDetails {rank} {previousRank} {votes} {previousVotes} {isActive} />
   </div>
   {#if isActive}
-    <div class="card-content">
+    <div class="card-content" transition:slide={{ duration: 200 }}>
       <div>
         <h2 class="title">{title}</h2>
       </div>
@@ -134,6 +135,15 @@
     background-color: #383838;
     border-bottom-left-radius: 6px;
     border-bottom-right-radius: 6px;
+  }
+
+  @media (prefers-reduced-motion) {
+    .card-content {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      animation-delay: 0.01ms !important;
+    }
   }
 
   .title {
