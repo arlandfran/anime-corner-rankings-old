@@ -69,7 +69,7 @@
   <div
     class="card"
     on:click={toggleActive}
-    on:keypress={toggleActive}
+    on:keypress|preventDefault={toggleActive}
     tabindex="0"
   >
     <ItemRank {rank} />

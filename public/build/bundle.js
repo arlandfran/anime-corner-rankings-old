@@ -153,6 +153,13 @@ var app = (function () {
         node.addEventListener(event, handler, options);
         return () => node.removeEventListener(event, handler, options);
     }
+    function prevent_default(fn) {
+        return function (event) {
+            event.preventDefault();
+            // @ts-ignore
+            return fn.call(this, event);
+        };
+    }
     function attr(node, attribute, value) {
         if (value == null)
             node.removeAttribute(attribute);
@@ -24829,15 +24836,15 @@ var app = (function () {
     			t3 = space();
     			html_tag = new HtmlTag();
     			attr_dev(h2, "class", "title svelte-jjyqlm");
-    			add_location(h2, file$5, 81, 8, 1900);
-    			add_location(div0, file$5, 80, 6, 1886);
+    			add_location(h2, file$5, 81, 8, 1915);
+    			add_location(div0, file$5, 80, 6, 1901);
     			attr_dev(div1, "class", "pills svelte-jjyqlm");
-    			add_location(div1, file$5, 83, 6, 1950);
+    			add_location(div1, file$5, 83, 6, 1965);
     			attr_dev(div2, "class", "links svelte-jjyqlm");
-    			add_location(div2, file$5, 88, 6, 2081);
+    			add_location(div2, file$5, 88, 6, 2096);
     			html_tag.a = null;
     			attr_dev(div3, "class", "card-content svelte-jjyqlm");
-    			add_location(div3, file$5, 79, 4, 1816);
+    			add_location(div3, file$5, 79, 4, 1831);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div3, anchor);
@@ -24960,7 +24967,7 @@ var app = (function () {
     			div = element("div");
     			t = text(t_value);
     			attr_dev(div, "class", "pill svelte-jjyqlm");
-    			add_location(div, file$5, 85, 10, 2013);
+    			add_location(div, file$5, 85, 10, 2028);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -25289,11 +25296,11 @@ var app = (function () {
     			if (!src_url_equal(img.src, img_src_value = /*logo*/ ctx[16])) attr_dev(img, "src", img_src_value);
     			attr_dev(img, "alt", "Funimation Logo");
     			attr_dev(img, "class", "funimation svelte-jjyqlm");
-    			add_location(img, file$5, 107, 18, 2911);
+    			add_location(img, file$5, 107, 18, 2926);
     			attr_dev(a, "href", a_href_value = /*link*/ ctx[13].url);
     			attr_dev(a, "class", "link svelte-jjyqlm");
     			attr_dev(a, "target", "_blank");
-    			add_location(a, file$5, 106, 16, 2844);
+    			add_location(a, file$5, 106, 16, 2859);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, a, anchor);
@@ -25410,11 +25417,11 @@ var app = (function () {
     			if (!src_url_equal(img.src, img_src_value = /*logo*/ ctx[16])) attr_dev(img, "src", img_src_value);
     			attr_dev(img, "alt", "Crunchyroll Logo");
     			attr_dev(img, "class", "crunchyroll svelte-jjyqlm");
-    			add_location(img, file$5, 99, 18, 2538);
+    			add_location(img, file$5, 99, 18, 2553);
     			attr_dev(a, "href", a_href_value = /*link*/ ctx[13].url);
     			attr_dev(a, "class", "link svelte-jjyqlm");
     			attr_dev(a, "target", "_blank");
-    			add_location(a, file$5, 98, 16, 2471);
+    			add_location(a, file$5, 98, 16, 2486);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, a, anchor);
@@ -25664,7 +25671,7 @@ var app = (function () {
     			if (!mounted) {
     				dispose = [
     					listen_dev(div0, "click", /*toggleActive*/ ctx[12], false, false, false),
-    					listen_dev(div0, "keypress", /*toggleActive*/ ctx[12], false, false, false)
+    					listen_dev(div0, "keypress", prevent_default(/*toggleActive*/ ctx[12]), false, true, false)
     				];
 
     				mounted = true;
