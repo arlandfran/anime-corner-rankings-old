@@ -7,6 +7,7 @@ Back to [README](../README.md)
 - [Code Validation](#code-validation)
 - [User Story Testing](#user-story-testing)
 - [Manual Testing](#manual-testing)
+- [Bug Fixes](#bug-fixes)
 
 ## Code Validation
 
@@ -166,6 +167,10 @@ The following steps were taken to test accessibility:
 Note: Animations considered safe for vestibular disorders such as fades were left in for a better user experience.
 
 Accessiblity was also tested through the [Web Accessibility Evaluation Tool: WAVE](https://wave.webaim.org/) and changes were made to that the site passed with no errors. Changes include adding alt text to every image & aria-labels to every button with no text value.
-![image](https://user-images.githubusercontent.com/47261277/130350903-16b1efe0-395c-4ec5-82a2-2e4007f1f4ce.png)
 
 Accessibility was also tested using [Microsoft's accessibility.io Web Extension](https://accessibilityinsights.io/en/) and the site passed the automatic check with no errors. 
+
+## Bug Fixes
+
+Bug fixes were documented in the project [issues tracker](https://github.com/arlandfran/anime-corner-rankings/issues?q=label%3Abug+is%3Aclosed). Even though I was not able to apply TDD or use a test framework, console logging was heavily relied on during the development process and the majority of bugs were caught and fixed before being pushed to the repo. Issues tagged as bugs were found after pushing code to the repo.
+
