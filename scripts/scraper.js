@@ -17,7 +17,7 @@ const main = async () => {
   let data = await scrapePage(page);
   let details = await fetchAnilistDetails(data);
   // Add anime details to the respective anime object as new props
-  for (anime in data.rankings) {
+  for (const anime in data.rankings) {
     data.rankings[anime].description = details[anime].description;
     data.rankings[anime].genres = details[anime].genres;
     data.rankings[anime].externalLinks = details[anime].externalLinks;
@@ -62,7 +62,7 @@ const getRankingsPage = async () => {
       return page;
     })
     .catch((err) =>
-      console.log(`Axios: Error fetching ${baseUrl}:`, err.message)
+      console.log(`Axios: Error fetching base URL:`, err.message)
     );
   return page;
 };
@@ -110,7 +110,7 @@ const writeDataToFirestore = async (data) => {
   console.log("Writing to firestore...");
   const doc = db.collection(data.year).doc(data.season).collection(data.week);
 
-  for (anime in data.rankings) {
+  for (const anime in data.rankings) {
     await doc
       .add(data.rankings[anime])
       .catch((err) => console.log("Error adding document: ", err));
@@ -130,12 +130,12 @@ const fetchAnilistDetails = async (data) => {
 
   // Extract titles into titles array for easier querying
   let titles = [];
-  for (anime in data.rankings) {
+  for (const anime in data.rankings) {
     titles.push(data.rankings[anime].title);
   }
 
   // Make an API request for every title
-  for (title in titles) {
+  for (const title in titles) {
     const query = `
     query ($title: String){
       Media (search: $title, type: ANIME) {
@@ -245,12 +245,12 @@ const fetchKitsuDetails = async (title) => {
     );
 
   // Loop over category node and adds values to genres array
-  for (category in data.categories.nodes) {
+  for (const category in data.categories.nodes) {
     genres.push(data.categories.nodes[category].slug);
   }
 
   // Loops over streamer node and only pushes to links array if streamer is Crunchyroll or Funimation
-  for (streamer in data.streamingLinks.nodes) {
+  for (const streamer in data.streamingLinks.nodes) {
     if (
       data.streamingLinks.nodes[streamer].streamer.siteName == "Crunchyroll" ||
       data.streamingLinks.nodes[streamer].streamer.siteName == "Funimation"
@@ -274,9 +274,9 @@ const fetchKitsuDetails = async (title) => {
 
 // Mutates externalLinks prop so that it only contains either Crunchyroll or Funimation links or both or an empty []
 function stripLinks(data) {
-  for (item in data) {
+  for (const item in data) {
     let links = [];
-    for (link in data[item].externalLinks) {
+    for (const link in data[item].externalLinks) {
       if (
         data[item].externalLinks[link].site == "Crunchyroll" ||
         data[item].externalLinks[link].site == "Funimation"
@@ -311,12 +311,12 @@ const fetchPreviousRankings = async (data) => {
 
   // All animes found in Week 1 are new entries so make values null
   if (previousWeek == "Week-00") {
-    for (anime in data.rankings) {
+    for (const anime in data.rankings) {
       data.rankings[anime].previousRank = null;
       data.rankings[anime].previousVotes = null;
     }
   } else {
-    for (anime in data.rankings) {
+    for (const anime in data.rankings) {
       let previousData = await query
         .where("title", "==", data.rankings[anime].title)
         .get()
@@ -338,7 +338,7 @@ const fetchPreviousRankings = async (data) => {
 // Return array that contains anime titles in the weekly ranking
 function extractTitles(data) {
   let titles = [];
-  for (anime in data.rankings) {
+  for (const anime in data.rankings) {
     titles.push(data.rankings[anime].title);
   }
   return titles;
